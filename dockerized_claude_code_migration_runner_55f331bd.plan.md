@@ -16,43 +16,47 @@ todos:
       dependencies:
           - phase1-claude-code-integration
     - id: phase2-mcp-intervention-server
-      content: 'Phase 2: MCP Intervention Server - Create MCP server with AskUserQuestion tool for Claude to request user input, implement filesystem-based polling, persistent audit trail'
-      status: pending
+      content: 'Phase 2 (COMPLETED): MCP Intervention Server - Created MCP server with mcp__intervention__RequestUserIntervention tool for user input requests, filesystem-based polling, persistent audit trail'
+      status: completed
       dependencies:
           - phase1-claude-code-integration
-    - id: phase3-worktree-setup
-      content: 'Phase 3: Git Worktree System - Initialize 6 worktrees (home, product-details, product-list, navbar, footer, customizations) with migration branches for multi-worker isolation'
+    - id: phase3-playwright-demo
+      content: 'Phase 3: Playwright Setup & Demo Test Plan - Install Playwright in storefront-next/, create screenshot script, build multi-step test plan that makes visible code changes (homepage styling/content), triggers mcp__intervention__RequestUserIntervention for user decisions, captures before/after screenshots'
       status: pending
       dependencies:
           - phase2-mcp-intervention-server
     - id: phase4-iterative-workflow
-      content: 'Phase 4: Iterative Workflow Loop - Implement plan → build (pnpm build) → test (Playwright screenshots) → commit (git) → log (output-log.md) cycle with error handling'
+      content: 'Phase 4: Iterative Workflow Loop - Implement plan → build (pnpm build) → test (Playwright screenshots) → commit (git) → log (migration-log.md) cycle directly in storefront-next/ with error handling'
       status: pending
       dependencies:
-          - phase3-worktree-setup
+          - phase3-playwright-demo
     - id: phase5-status-management
       content: 'Phase 5: Status Management & Terminal UI - Create migration-status.json schema, status writer, migrate-status.sh CLI with live updates, ANSI formatting, worker status table'
       status: pending
       dependencies:
-          - phase3-worktree-setup
-    - id: phase6-ci-integration
-      content: 'Phase 6: CI Integration - Create .github/workflows/migration.yml, configure secrets for API key, test Docker execution in CI, upload artifacts'
-      status: pending
-      dependencies:
           - phase4-iterative-workflow
-          - phase5-status-management
-    - id: phase7-documentation
-      content: 'Phase 7: Documentation - Create README for Docker setup, usage guide for CLI commands, troubleshooting guide, CI setup instructions'
+    - id: phase6-worktree-setup
+      content: 'Phase 6: Git Worktree System - Initialize 6 worktrees (home, product-details, product-list, navbar, footer, customizations) with migration branches for multi-worker isolation'
       status: pending
       dependencies:
-          - phase6-ci-integration
+          - phase5-status-management
+    - id: phase7-ci-integration
+      content: 'Phase 7: CI Integration - Create .github/workflows/migration.yml, configure secrets for API key, test Docker execution in CI, upload artifacts'
+      status: pending
+      dependencies:
+          - phase6-worktree-setup
+    - id: phase8-documentation
+      content: 'Phase 8: Documentation - Create README for Docker setup, usage guide for CLI commands, troubleshooting guide, CI setup instructions'
+      status: pending
+      dependencies:
+          - phase7-ci-integration
 ---
 
 # Dockerized Claude Code Migration Runner
 
 ## Overview
 
-This plan creates a Docker-based execution environment for running Claude Code migrations in isolation, supporting both local development and GitHub Actions CI. The system will manage multiple Merge Worker threads, each with their own worktree and `output-log.md` file, with terminal-based status monitoring and an iterative build-test-commit workflow.
+This plan creates a Docker-based execution environment for running Claude Code migrations in isolation, supporting both local development and GitHub Actions CI. The implementation is phased to **prioritize visible results early**: Phase 3 demonstrates the complete iterative workflow with Playwright screenshots and real code changes to storefront-next before implementing the multi-worker worktree system in Phase 6. The final system will manage multiple Merge Worker threads, each with their own worktree and `output-log.md` file, with terminal-based status monitoring and an iterative build-test-commit workflow.
 
 ## Architecture
 
@@ -422,26 +426,26 @@ This system uses **two separate git repositories** for clean separation of conce
 - ✅ TESTING.md - Test writing guide and infrastructure
 - ✅ .env.example - API key template
 
-### Phase 1: Real Claude Code Integration (PENDING)
+### Phase 1: Real Claude Code Integration (COMPLETED)
 
 **Claude Code CLI Execution:**
-- Create simple test plan (hello-world style migration task)
-- Execute Claude Code CLI in Docker with real Anthropic API calls
-- Use `claude code run --dangerously-skip-permissions < test-plan.md`
-- Capture CLI output to log file
-- Validate successful execution and output
+- ✅ Create simple test plan (hello-world style migration task)
+- ✅ Execute Claude Code CLI in Docker with real Anthropic API calls
+- ✅ Use `claude code run --dangerously-skip-permissions < test-plan.md`
+- ✅ Capture CLI output to log file
+- ✅ Validate successful execution and output
 
 **Docker Integration:**
-- Ensure ANTHROPIC_API_KEY is properly passed to container
-- Test CLI installation and availability in container
-- Verify volume mounts work for input/output files
-- Basic error handling for API failures
+- ✅ Ensure ANTHROPIC_API_KEY is properly passed to container
+- ✅ Test CLI installation and availability in container
+- ✅ Verify volume mounts work for input/output files
+- ✅ Basic error handling for API failures
 
 **Output Validation:**
-- Confirm Claude Code makes real API calls
-- Verify file changes are persisted to host
-- Log API responses for inspection
-- Test with simple code modification task
+- ✅ Confirm Claude Code makes real API calls
+- ✅ Verify file changes are persisted to host
+- ✅ Log API responses for inspection
+- ✅ Test with simple code modification task
 
 ### Phase 1.5: HTTP Interception for Testing (SKIPPED)
 
@@ -459,7 +463,7 @@ This system uses **two separate git repositories** for clean separation of conce
 - Simulated mode: Creates files directly, tests orchestration without API calls
 - This covers both use cases without the complexity of HTTP interception
 
-### Phase 2: MCP Intervention Server (PENDING)
+### Phase 2: MCP Intervention Server (COMPLETED)
 
 **Goal:** Enable Claude Code to request user input for non-obvious decisions during migration work, with support for asynchronous/background execution and full auditability.
 
@@ -631,21 +635,148 @@ Ensure MCP server compiles to CommonJS for Node.js execution:
    - Verify graceful handling in all cases
 
 **Deliverables:**
-- `mcp-server/src/intervention-server.ts` - MCP server implementation
-- `mcp-server/package.json` - Dependencies (@modelcontextprotocol/sdk) and build scripts
-- `mcp-server/tsconfig.json` - TypeScript configuration for CommonJS output
-- `docker/entrypoint.sh` - Updated to build MCP server and configure Claude Code CLI
-- `scripts/migrate-respond.sh` - Manual response CLI command
-- Updated `scripts/migrate-watch.ts` - Skip processed interventions
-- Test plan validating tool registration (`test-mcp-registration.md`)
-- Test plan demonstrating intervention flow (`test-intervention-flow.md`)
-- Updated documentation in plan file
+- ✅ `mcp-server/src/intervention-server.ts` - MCP server implementation
+- ✅ `mcp-server/package.json` - Dependencies (@modelcontextprotocol/sdk) and build scripts
+- ✅ `mcp-server/tsconfig.json` - TypeScript configuration for CommonJS output
+- ✅ `docker/entrypoint.sh` - Updated to build MCP server and configure Claude Code CLI
+- ✅ `scripts/migrate-respond.sh` - Manual response CLI command
+- ✅ Updated `scripts/migrate-watch.ts` - Skip processed interventions
+- ✅ Test plan validating tool registration (`test-mcp-registration.md`)
+- ✅ Test plan demonstrating intervention flow (`test-intervention-flow.md`)
+- ✅ Updated documentation in plan file
 
 **Edge Case: Container Restarts**
 
 If container restarts during polling, the process dies and conversation state is lost. For MVP, document as limitation: "Don't restart containers mid-migration." Future enhancement could checkpoint conversation state to filesystem, but adds significant complexity. Validate this is acceptable trade-off before implementing resumability.
 
-### Phase 3: Git Worktree System (PENDING)
+### Phase 3: Playwright Setup & Demo Test Plan (PENDING)
+
+**Goal:** Show tangible results quickly by setting up Playwright screenshots and creating a multi-step demonstration that makes visible code changes to storefront-next, uses the MCP intervention tool, and captures visual evidence of progress.
+
+**Rationale:**
+Before building the full multi-worker worktree system, validate the iterative workflow by:
+1. Making real, visible changes to the storefront-next codebase
+2. Demonstrating the MCP intervention flow with actual user decisions
+3. Capturing before/after screenshots to show progress
+4. Proving the build → test → commit cycle works end-to-end
+
+This provides early validation and visible results that build confidence in the system.
+
+**Playwright Setup:**
+- Install Playwright in storefront-next: `cd storefront-next && pnpm add -D @playwright/test`
+- Install browsers: `pnpm exec playwright install chromium`
+- Create basic screenshot script: `scripts/capture-screenshots.ts`
+- Screenshot key pages: homepage, product listing, product detail
+- Save screenshots with timestamps: `screenshots/{timestamp}-{page}.png`
+- Verify dev server can start and pages load
+
+**Demo Test Plan:**
+Create `test-iterative-demo.plan.md` that instructs Claude Code to:
+1. **Initial baseline**: Capture "before" screenshots of homepage
+2. **Change 1**: Update homepage hero title text (e.g., "Welcome to Our Store" → "Shop the Latest Collection")
+3. **Intervention point**: Use `mcp__intervention__RequestUserIntervention` to ask user for color scheme preference (blue vs green theme)
+4. **Change 2**: Apply user's color choice to hero section background
+5. **Change 3**: Update homepage featured products section heading
+6. **Final validation**: Capture "after" screenshots showing all changes
+7. **Build verification**: Run `pnpm build` to ensure changes don't break production build
+8. **Commit**: Create git commit with descriptive message
+
+**Implementation Steps:**
+1. Create Playwright config in storefront-next
+2. Implement screenshot capture script with proper wait logic
+3. Write the multi-step demo plan in clear, executable markdown
+4. Test plan execution: run Claude Code with the demo plan in Docker
+5. Verify MCP intervention tool is called and user can respond
+6. Validate screenshots show visible before/after differences
+7. Confirm git commit captures all changes
+
+**Success Criteria:**
+- Screenshots successfully captured at each step
+- MCP intervention request appears and user response flows back to Claude
+- Code changes are visible in screenshots
+- Build completes without errors
+- Git commit includes all changes with clear message
+- Entire workflow completes without manual intervention (except MCP response)
+
+**Deliverables:**
+- `storefront-next/playwright.config.ts` - Playwright configuration
+- `scripts/capture-screenshots.ts` - Screenshot utility
+- `test-iterative-demo.plan.md` - Multi-step demo plan
+- `screenshots/` directory with before/after images
+- Git commit in storefront-next with demo changes
+- Documentation of workflow execution
+
+### Phase 4: Iterative Workflow Loop (PENDING)
+
+**Goal:** Generalize the demo from Phase 3 into a reusable workflow orchestrator that can run any migration plan through the build → test → commit cycle.
+
+**Build Validation:**
+- Implement build step (pnpm build) after Claude Code execution in storefront-next/
+- Capture and log build errors to migration-log.md
+- Retry logic for build failures (up to 3 attempts)
+- Parse build output for actionable error messages
+
+**Playwright Screenshot Integration:**
+- Generalize screenshot script from Phase 3 for any plan execution
+- Start dev server (`pnpm dev`) in background
+- Wait for server ready (poll localhost:5173/health or similar)
+- Capture screenshots of configured pages
+- Save with worker ID and timestamp for multi-worker support later
+- Clean up dev server process after capture
+
+**Git Commit Automation:**
+- Stage all changes in storefront-next/
+- Generate commit messages based on plan description and changes made
+- Include build/test status in commit message
+- Push to current branch (supports worktrees in Phase 6)
+- Handle git conflicts and provide clear error messages
+
+**Workflow Orchestrator Script:**
+Create `scripts/run-migration-workflow.sh`:
+```bash
+# Usage: ./run-migration-workflow.sh <plan-file> [worker-id]
+# 1. Run Claude Code with plan
+# 2. Build project
+# 3. Capture screenshots
+# 4. Commit changes
+# 5. Log results to migration-log.md
+```
+
+**Error Handling:**
+- Detect Claude Code failures (exit code, timeout)
+- Detect build failures and log errors
+- Detect dev server startup failures
+- Provide clear error messages for each failure type
+- Support optional retry with `--retry` flag
+
+**Logging:**
+- Append all workflow steps to `migration-log.md`
+- Include timestamps, plan name, success/failure status
+- Link to screenshots and git commits
+- Format for both human and machine readability
+
+**Success Criteria:**
+- Any plan can be executed through the workflow
+- Build errors are caught and logged
+- Screenshots work consistently
+- Git commits have meaningful messages
+- Error recovery works for common failures
+
+### Phase 5: Status Management & Terminal UI (PENDING)
+
+**Status File Implementation:**
+- Create `migration-status.json` schema (see section 2)
+- Status writer in orchestrator script
+- Per-worker status tracking
+- Error state management
+
+**Enhanced Terminal UI:**
+- Live updates (watch mode)
+- Worker status table with progress bars
+- Recent log entries display
+- Screenshot thumbnails (if supported)
+
+### Phase 6: Git Worktree System (PENDING)
 
 **Worktree Initialization:**
 - Create script to initialize 6 worktrees from storefront-next:
@@ -665,44 +796,13 @@ If container restarts during polling, the process dies and conversation state is
 - Handle conflicts and branch management
 - Multi-worker isolation testing
 
-### Phase 4: Iterative Workflow (PENDING)
+**Integration with Phase 4 Workflow:**
+- Adapt workflow orchestrator to support worktree paths
+- Run multiple workers in parallel, each in their own worktree
+- Coordinate status updates across workers
+- Test concurrent execution without conflicts
 
-**Build Validation:**
-- Implement build step (pnpm build) after Claude Code execution
-- Capture and log build errors
-- Retry logic for build failures
-
-**Playwright Screenshot Integration:**
-- Start dev server (`pnpm dev`)
-- Wait for server ready
-- Capture screenshots of key pages
-- Save with worker ID and timestamp
-
-**Git Commit Automation:**
-- Stage changes in worktree
-- Generate commit messages based on phase
-- Push to remote branch
-
-**Workflow Loop:**
-- Plan → Build → Test → Commit → Log cycle
-- Error handling and recovery
-- Progress tracking
-
-### Phase 5: Status Management & Terminal UI (PENDING)
-
-**Status File Implementation:**
-- Create `migration-status.json` schema (see section 2)
-- Status writer in orchestrator script
-- Per-worker status tracking
-- Error state management
-
-**Enhanced Terminal UI:**
-- Live updates (watch mode)
-- Worker status table with progress bars
-- Recent log entries display
-- Screenshot thumbnails (if supported)
-
-### Phase 6: CI Integration (PENDING)
+### Phase 7: CI Integration (PENDING)
 
 **GitHub Actions Workflow:**
 - `.github/workflows/migration.yml`
@@ -710,7 +810,7 @@ If container restarts during polling, the process dies and conversation state is
 - Secrets management for API key
 - Artifact upload (screenshots, logs)
 
-### Phase 7: Documentation (PENDING)
+### Phase 8: Documentation (PENDING)
 
 **User-Facing Documentation:**
 - Overall README for system
@@ -720,18 +820,19 @@ If container restarts during polling, the process dies and conversation state is
 
 ## Key Design Decisions
 
-1. **Volume Mounts**: Share all files except `node_modules` to avoid Docker filesystem overhead while maintaining isolation
-2. **Status File**: JSON file for easy parsing by both container and host CLI
-3. **Markdown Logs**: `output-log.md` files are human-readable and Claude Code can modify them
-4. **Terminal UI**: Bash-based for portability, uses ANSI codes for formatting
-5. **Worktree Isolation**: Each worker gets its own git worktree to avoid conflicts
-6. **CI-First Design**: Ensure Docker setup works in GitHub Actions from the start
-7. **File-Based Protocol**: Filesystem as single source of truth - no databases or complex state management
-8. **Multi-File Pattern**: Separate intervention files per worker to support concurrent execution
-9. **TypeScript for Interactivity**: Use TypeScript with chokidar for reliable file watching and prompts for better UX
-10. **Test-First Approach**: Comprehensive automated testing (33 tests) before feature implementation
-11. **MCP for Intervention Requests**: Use MCP server to provide AskUserQuestion tool to Claude, enabling programmatic intervention requests with natural conversation flow. Conversation state lives in process memory, no complex checkpointing needed for MVP.
-12. **Persistent Audit Trail**: Intervention and response files persist in filesystem with `processed` flag, providing complete auditability and supporting asynchronous/background execution patterns
+1. **Prioritize Visible Results**: Demonstrate the complete workflow with Playwright screenshots and iterative code changes (Phase 3) before building the multi-worker worktree system (Phase 6). This provides early validation, tangible evidence of progress, and builds confidence in the approach before adding complexity.
+2. **Volume Mounts**: Share all files except `node_modules` to avoid Docker filesystem overhead while maintaining isolation
+3. **Status File**: JSON file for easy parsing by both container and host CLI
+4. **Markdown Logs**: `output-log.md` files are human-readable and Claude Code can modify them
+5. **Terminal UI**: Bash-based for portability, uses ANSI codes for formatting
+6. **Worktree Isolation**: Each worker gets its own git worktree to avoid conflicts (deferred to Phase 6)
+7. **CI-First Design**: Ensure Docker setup works in GitHub Actions from the start
+8. **File-Based Protocol**: Filesystem as single source of truth - no databases or complex state management
+9. **Multi-File Pattern**: Separate intervention files per worker to support concurrent execution
+10. **TypeScript for Interactivity**: Use TypeScript with chokidar for reliable file watching and prompts for better UX
+11. **Test-First Approach**: Comprehensive automated testing (33 tests) before feature implementation
+12. **MCP for Intervention Requests**: Use MCP server to provide mcp__intervention__RequestUserIntervention tool to Claude, enabling programmatic intervention requests with natural conversation flow. Conversation state lives in process memory, no complex checkpointing needed for MVP.
+13. **Persistent Audit Trail**: Intervention and response files persist in filesystem with `processed` flag, providing complete auditability and supporting asynchronous/background execution patterns
 
 ## Phase 0 Learnings & Patterns
 
