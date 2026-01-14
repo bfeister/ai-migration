@@ -136,38 +136,84 @@ async function displayIntervention(intervention: Intervention) {
 async function promptForResponse(intervention: Intervention): Promise<string | null> {
   let response: prompts.Answers<string>;
 
+  // Ensure stdin is in raw mode for proper interactive input
+  if (process.stdin.isTTY && process.stdin.setRawMode) {
+    process.stdin.setRawMode(true);
+  }
+
   if (intervention.options && intervention.options.length > 0) {
     // Multiple choice
-    response = await prompts({
-      type: 'select',
-      name: 'answer',
-      message: 'Select your response:',
-      choices: [
-        ...intervention.options.map((option) => ({
-          title: option,
-          value: option,
-        })),
-        { title: 'Other (custom text)', value: '__custom__' },
-      ],
-    });
+    response = await prompts(
+      {
+        type: 'select',
+        name: 'answer',
+        message: 'Select your response:',
+        initial: 0, // Start at first option but don't auto-select
+        choices: [
+          ...intervention.options.map((option) => ({
+            title: option,
+            value: option,
+          })),
+          { title: 'Other (custom text)', value: '__custom__' },
+        ],
+        stdin: process.stdin,
+        stdout: process.stdout,
+      },
+      {
+        onCancel: () => {
+          log('Prompt cancelled by user', 'yellow');
+          return null;
+        },
+      }
+    );
 
     if (response.answer === '__custom__') {
-      const customResponse = await prompts({
-        type: 'text',
-        name: 'answer',
-        message: 'Enter your custom response:',
-      });
+      const customResponse = await prompts(
+        {
+          type: 'text',
+          name: 'answer',
+          message: 'Enter your custom response:',
+          stdin: process.stdin,
+          stdout: process.stdout,
+        },
+        {
+          onCancel: () => {
+            log('Prompt cancelled by user', 'yellow');
+            return null;
+          },
+        }
+      );
       return customResponse.answer || null;
+    }
+
+    // Restore stdin mode after prompting
+    if (process.stdin.isTTY && process.stdin.setRawMode) {
+      process.stdin.setRawMode(false);
     }
 
     return response.answer || null;
   } else {
     // Free text
-    response = await prompts({
-      type: 'text',
-      name: 'answer',
-      message: 'Enter your response:',
-    });
+    response = await prompts(
+      {
+        type: 'text',
+        name: 'answer',
+        message: 'Enter your response:',
+        stdin: process.stdin,
+        stdout: process.stdout,
+      },
+      {
+        onCancel: () => {
+          log('Prompt cancelled by user', 'yellow');
+          return null;
+        },
+      }
+    );
+
+    // Restore stdin mode after prompting
+    if (process.stdin.isTTY && process.stdin.setRawMode) {
+      process.stdin.setRawMode(false);
+    }
 
     return response.answer || null;
   }
@@ -179,6 +225,7 @@ async function saveResponse(intervention: Intervention, answer: string) {
     response: answer,
     question_timestamp: intervention.timestamp,
     intervention_id: intervention.id,
+    processed: false, // MCP server will set to true after reading
   };
 
   // Create response file with same naming pattern as intervention
@@ -243,20 +290,15 @@ async function processIntervention(intervention: Intervention) {
       console.log('');
       log('The migration worker will now continue execution.', 'green');
 
-      // Wait for container to process and remove the file
-      log('Waiting for container to process response...', 'cyan');
-
-      // Give the container time to process
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      // Archive if file still exists
-      await archiveIntervention(intervention);
+      // Phase 2: Files persist for audit trail instead of archiving
+      log('Response saved - intervention files will persist for audit', 'cyan');
+      log('(MCP server will mark as processed after reading)', 'cyan');
 
       // Remove from queue
       delete interventionQueue[intervention.id];
 
       console.log('');
-      logBox('✅ Intervention resolved and archived', 'green');
+      logBox('✅ Intervention resolved', 'green');
       console.log('');
     } else {
       log('Response cancelled', 'yellow');
@@ -315,6 +357,26 @@ async function handleQueue() {
   }
 }
 
+async function isInterventionProcessed(intervention: Intervention): Promise<boolean> {
+  // Check if corresponding response file exists with processed: true
+  const interventionFileName = intervention.filePath.split('/').pop() || '';
+  const responseFileName = interventionFileName.replace('needed-', 'response-');
+  const responseFile = join(interventionDir, responseFileName);
+
+  if (!existsSync(responseFile)) {
+    return false;
+  }
+
+  try {
+    const responseContent = await readFile(responseFile, 'utf-8');
+    const responseData = JSON.parse(responseContent);
+    return responseData.processed === true;
+  } catch (error) {
+    log(`Warning: Could not check response file: ${error}`, 'yellow');
+    return false;
+  }
+}
+
 async function onInterventionFileChange(filePath: string) {
   // Filter for needed-*.json files only
   const fileName = filePath.split('/').pop() || '';
@@ -334,6 +396,12 @@ async function onInterventionFileChange(filePath: string) {
     return;
   }
 
+  // Phase 2: Check if intervention already processed by MCP server
+  if (await isInterventionProcessed(intervention)) {
+    log(`Skipping already processed intervention: ${intervention.id}`, 'green');
+    return;
+  }
+
   // Check if this is a new or updated intervention
   const existing = interventionQueue[intervention.id];
 
@@ -346,6 +414,14 @@ async function onInterventionFileChange(filePath: string) {
 }
 
 async function startWatcher() {
+  // Check for interactive terminal
+  if (!process.stdin.isTTY) {
+    log('ERROR: This script requires an interactive terminal (TTY)', 'red');
+    log('Please run directly in a terminal, not piped or redirected', 'red');
+    log('Example: ./scripts/migrate-watch.sh', 'yellow');
+    process.exit(1);
+  }
+
   log('Monitoring for intervention requests...', 'cyan');
   log('Press Ctrl+C to stop');
   log(`Watching: ${interventionPattern}`, 'cyan');

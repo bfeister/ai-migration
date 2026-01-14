@@ -54,6 +54,78 @@ fi
 
 log_success "Environment validated - container ready"
 
+# ============================================================================
+# Phase 2: MCP Intervention Server Setup
+# ============================================================================
+
+log_info "Setting up MCP Intervention Server..."
+
+# Build MCP server
+if [ -d "/workspace/mcp-server" ]; then
+    # Check if already built (dist/ exists from host build via volume mount)
+    if [ -f "/workspace/mcp-server/dist/intervention-server.js" ]; then
+        log_success "MCP server already built (found dist/intervention-server.js)"
+    else
+        log_info "Building MCP server in container..."
+        cd /workspace/mcp-server
+
+        # Note: node_modules is excluded from volume mount, so we need to install
+        log_info "Installing MCP server dependencies..."
+        if pnpm install; then
+            log_success "Dependencies installed"
+        else
+            log_error "Failed to install dependencies"
+            cd /workspace
+            log_warning "Claude Code will run without intervention tool"
+            # Skip build and continue
+            return 0 2>/dev/null || exit 0
+        fi
+
+        # Build the server
+        if pnpm build; then
+            log_success "MCP server built successfully"
+        else
+            log_error "MCP server build failed"
+            log_warning "Claude Code will run without intervention tool"
+        fi
+
+        cd /workspace
+    fi
+else
+    log_warning "MCP server directory not found at /workspace/mcp-server"
+    log_warning "Claude Code will run without intervention tool"
+fi
+
+# Configure Claude Code CLI to use MCP server
+log_info "Configuring Claude Code with MCP server..."
+mkdir -p ~/.config/claude-code
+
+cat > ~/.config/claude-code/mcp.json <<'EOF'
+{
+  "mcpServers": {
+    "intervention": {
+      "command": "node",
+      "args": ["/workspace/mcp-server/dist/intervention-server.js"],
+      "env": {
+        "WORKSPACE_ROOT": "/workspace",
+        "INTERVENTION_DIR": "/workspace/intervention"
+      }
+    }
+  }
+}
+EOF
+
+if [ -f ~/.config/claude-code/mcp.json ]; then
+    log_success "Claude Code MCP configuration created"
+    log_info "MCP server will provide AskUserQuestion tool to Claude"
+else
+    log_error "Failed to create MCP configuration"
+fi
+
+# ============================================================================
+# End Phase 2 Setup
+# ============================================================================
+
 # Background process to monitor interventions
 monitor_interventions() {
     log_info "Starting intervention monitor..."
