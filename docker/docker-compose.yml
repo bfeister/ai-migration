@@ -1,0 +1,20 @@
+services:
+  claude-migration:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: claude-migration
+    volumes:
+      # Mount entire project (cached for performance)
+      - ..:/workspace:cached
+      # Exclude node_modules from host (let container manage its own)
+      - /workspace/node_modules
+    environment:
+      # Load API key from .env file
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+    working_dir: /workspace
+    # Keep container running and allow interaction
+    stdin_open: true
+    tty: true
+    # Restart policy
+    restart: unless-stopped

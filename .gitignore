@@ -1,0 +1,149 @@
+# Migration Framework - Gitignore
+
+# ============================================================================
+# Environment & Secrets
+# ============================================================================
+.env
+.env.local
+.env.*.local
+*.key
+*.pem
+
+# Keep example files
+!.env.example
+
+# ============================================================================
+# Node.js & Package Managers
+# ============================================================================
+node_modules/
+**/node_modules/
+
+# pnpm
+.pnpm-store/
+.pnpm-debug.log*
+
+# npm
+npm-debug.log*
+
+# yarn
+yarn-debug.log*
+yarn-error.log*
+.yarn/
+!.yarn/releases
+!.yarn/plugins
+
+# ============================================================================
+# Build Artifacts
+# ============================================================================
+dist/
+build/
+out/
+.next/
+*.tsbuildinfo
+
+# ============================================================================
+# Migration Framework Runtime Files
+# ============================================================================
+
+# Migration logs (runtime generated)
+migration-log.md
+
+# Intervention protocol (runtime communication files)
+intervention/needed.json
+intervention/response.json
+intervention/history/
+
+# Git worktrees (Phase 1 - isolated migration work)
+worktrees/
+
+# Migration status (if generated)
+migration-status.json
+
+# Test migration plans (if created during testing)
+test-migration-plan.md
+
+# ============================================================================
+# Docker
+# ============================================================================
+# Docker volumes are managed by compose, but ignore any local overrides
+docker-compose.override.yml
+
+# ============================================================================
+# IDE & Editors
+# ============================================================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Cursor IDE specific (keep plans directory structure)
+.cursor/chat-context/
+.cursor/.cursorrules
+
+# Keep plans directory for documentation
+!.cursor/plans/
+
+# ============================================================================
+# OS Files
+# ============================================================================
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# ============================================================================
+# Test & Coverage
+# ============================================================================
+coverage/
+.nyc_output/
+*.lcov
+
+# Playwright
+playwright/.cache/
+test-results/
+playwright-report/
+
+# Screenshots from migration validation (generated during tests)
+screenshots/
+
+# ============================================================================
+# Logs
+# ============================================================================
+*.log
+logs/
+*.log.*
+
+# ============================================================================
+# Temporary Files
+# ============================================================================
+*.tmp
+*.temp
+.cache/
+.temp/
+
+# ============================================================================
+# Git
+# ============================================================================
+*.orig
+*.rej
+
+# ============================================================================
+# SFRA Reference (if cloned locally)
+# ============================================================================
+# These are large reference directories that should be tracked separately
+# Uncomment if you want to ignore them locally
+# storefront-reference-architecture/
+# storefront-next/
+
+# ============================================================================
+# Project Specific
+# ============================================================================
+# Any local development overrides
+*.local.js
+*.local.ts
+*.local.json
+
+# Debug files
+debug/
+*.debug
