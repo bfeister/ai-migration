@@ -5,49 +5,42 @@ todos:
     - id: phase0-foundation
       content: 'Phase 0 (COMPLETED): Docker foundation, intervention protocol, TypeScript watcher, comprehensive testing (33 Bats tests), validation scripts, and documentation'
       status: completed
-    - id: phase1-worktree-setup
-      content: 'Phase 1: Git worktree initialization, worktree-aware Docker configuration, and mock Claude Code CLI integration tests with HTTP API mocking'
+    - id: phase1-claude-code-integration
+      content: 'Phase 1: Real Claude Code Integration - Execute Claude Code CLI with real Anthropic API calls in Docker, create test plan, capture output, validate execution'
       status: pending
       dependencies:
           - phase0-foundation
-    - id: status-management
-      content: 'Implement status management: Create migration-status.json schema, status writer in orchestrator script, and migrate-status.sh CLI script that reads from container'
+    - id: phase1-5-http-interception
+      content: 'Phase 1.5: HTTP Interception for Testing - Set up mitmproxy to intercept Anthropic API calls, record responses for test fixtures, enable testing without API costs'
       status: pending
       dependencies:
-          - phase1-worktree-setup
-    - id: claude-code-integration
-      content: 'Integrate Claude Code: Create plan execution wrapper that runs claude code run --dangerously-skip-permissions, implement output-log.md writer for each worker, and validate with real CLI'
+          - phase1-claude-code-integration
+    - id: phase2-worktree-setup
+      content: 'Phase 2: Git Worktree System - Initialize 6 worktrees (home, product-details, product-list, navbar, footer, customizations) with migration branches for multi-worker isolation'
       status: pending
       dependencies:
-          - phase1-worktree-setup
-    - id: iterative-workflow
-      content: 'Build iterative workflow loop: Implement plan → build (pnpm build) → test (Playwright screenshots) → commit (git) → log (output-log.md) cycle with error handling'
+          - phase1-claude-code-integration
+    - id: phase3-iterative-workflow
+      content: 'Phase 3: Iterative Workflow Loop - Implement plan → build (pnpm build) → test (Playwright screenshots) → commit (git) → log (output-log.md) cycle with error handling'
       status: pending
       dependencies:
-          - claude-code-integration
-          - status-management
-    - id: terminal-ui
-      content: 'Create terminal-based UI: Build migrate-status.sh with live updates, ANSI formatting, worker status table, and screenshot/commit info display'
+          - phase2-worktree-setup
+    - id: phase4-status-management
+      content: 'Phase 4: Status Management & Terminal UI - Create migration-status.json schema, status writer, migrate-status.sh CLI with live updates, ANSI formatting, worker status table'
       status: pending
       dependencies:
-          - status-management
-    - id: ci-integration
-      content: 'Add GitHub Actions CI support: Create .github/workflows/migration.yml workflow, configure secrets for API key, and test Docker execution in CI'
+          - phase2-worktree-setup
+    - id: phase5-ci-integration
+      content: 'Phase 5: CI Integration - Create .github/workflows/migration.yml, configure secrets for API key, test Docker execution in CI, upload artifacts'
       status: pending
       dependencies:
-          - phase1-worktree-setup
-          - iterative-workflow
-    - id: dev-server-integration
-      content: 'Integrate local dev server: Configure Playwright to start pnpm dev server, wait for ready, capture screenshots of key pages, and save with worker ID/timestamp'
+          - phase3-iterative-workflow
+          - phase4-status-management
+    - id: phase6-documentation
+      content: 'Phase 6: Documentation - Create README for Docker setup, usage guide for CLI commands, troubleshooting guide, CI setup instructions'
       status: pending
       dependencies:
-          - iterative-workflow
-    - id: documentation
-      content: 'Write documentation: Create README for Docker setup, usage guide for CLI commands, troubleshooting guide, and CI setup instructions'
-      status: pending
-      dependencies:
-          - ci-integration
-          - terminal-ui
+          - phase5-ci-integration
 ---
 
 # Dockerized Claude Code Migration Runner
@@ -338,13 +331,20 @@ This system uses **two separate git repositories** for clean separation of conce
 ├── PHASE0-README.md                           # Phase 0 ✅ Complete documentation
 ├── migration-log.md                           # Phase 0 ✅ Activity log (placeholder)
 │
-├── migration-status.json                      # Phase 1: Global status (in container)
-└── worktrees/                                 # Phase 1: Git worktrees (shared)
+├── migration-status.json                      # Phase 4: Global status (in container)
+└── worktrees/                                 # Phase 2: Git worktrees (shared)
     ├── home/
     │   └── output-log.md
-    ├── pdp/
+    ├── product-details/
     │   └── output-log.md
-    └── ...
+    ├── product-list/
+    │   └── output-log.md
+    ├── navbar/
+    │   └── output-log.md
+    ├── footer/
+    │   └── output-log.md
+    └── customizations/
+        └── output-log.md
 ```
 
 ## Implementation Steps
@@ -400,26 +400,68 @@ This system uses **two separate git repositories** for clean separation of conce
 - ✅ TESTING.md - Test writing guide and infrastructure
 - ✅ .env.example - API key template
 
-### Phase 1: Git Worktree Setup (PENDING)
+### Phase 1: Real Claude Code Integration (PENDING)
 
-**Git Worktree Integration:**
-- Create worktree initialization script
-- Implement worktree-aware Docker configuration
-- Support multiple workers with isolated branches
-- Worktree cleanup and management
+**Claude Code CLI Execution:**
+- Create simple test plan (hello-world style migration task)
+- Execute Claude Code CLI in Docker with real Anthropic API calls
+- Use `claude code run --dangerously-skip-permissions < test-plan.md`
+- Capture CLI output to log file
+- Validate successful execution and output
 
-**HTTP API Mocking:**
-- Implement HTTP request interception for Claude Code CLI
-- Mock Anthropic API responses for testing
-- Replace Phase 0's CLI-level mocking with API-level mocking
-- Support recording/playback of API interactions
+**Docker Integration:**
+- Ensure ANTHROPIC_API_KEY is properly passed to container
+- Test CLI installation and availability in container
+- Verify volume mounts work for input/output files
+- Basic error handling for API failures
 
-**Integration Testing:**
-- Test worktree isolation across workers
-- Validate concurrent execution without conflicts
-- Test API mocking with real Claude Code CLI
+**Output Validation:**
+- Confirm Claude Code makes real API calls
+- Verify file changes are persisted to host
+- Log API responses for inspection
+- Test with simple code modification task
 
-### Phase 2: Iterative Workflow (PENDING)
+### Phase 1.5: HTTP Interception for Testing (PENDING)
+
+**mitmproxy Setup:**
+- Install and configure mitmproxy in Docker container
+- Set up proxy for intercepting HTTPS traffic to Anthropic API
+- Configure Claude Code CLI to route through proxy
+- Test interception with real API calls
+
+**One-Time Recording:**
+- Execute test plan with mitmproxy recording
+- Capture Anthropic API request/response payloads
+- Store recorded data using intervention protocol pattern
+- Document API response structure for future mocking
+
+**Test Fixture Creation:**
+- Convert recorded API responses to test fixtures
+- Create mock server for replaying responses
+- Enable testing mode that uses fixtures instead of API
+- Validate tests work without API key/network
+
+### Phase 2: Git Worktree System (PENDING)
+
+**Worktree Initialization:**
+- Create script to initialize 6 worktrees from storefront-next:
+  - `home` → `worktrees/home/` (branch: `migration/home`)
+  - `product-details` → `worktrees/product-details/` (branch: `migration/product-details`)
+  - `product-list` → `worktrees/product-list/` (branch: `migration/product-list`)
+  - `navbar` → `worktrees/navbar/` (branch: `migration/navbar`)
+  - `footer` → `worktrees/footer/` (branch: `migration/footer`)
+  - `customizations` → `worktrees/customizations/` (branch: `migration/customizations`)
+- Base all worktrees on `main` branch
+- Create migration branches automatically
+- Docker configuration updates for worktree paths
+
+**Worktree Management:**
+- Cleanup script to remove worktrees
+- Status check for worktree health
+- Handle conflicts and branch management
+- Multi-worker isolation testing
+
+### Phase 3: Iterative Workflow (PENDING)
 
 **Build Validation:**
 - Implement build step (pnpm build) after Claude Code execution
@@ -442,7 +484,7 @@ This system uses **two separate git repositories** for clean separation of conce
 - Error handling and recovery
 - Progress tracking
 
-### Phase 3: Status Management & Terminal UI (PENDING)
+### Phase 4: Status Management & Terminal UI (PENDING)
 
 **Status File Implementation:**
 - Create `migration-status.json` schema (see section 2)
@@ -456,7 +498,7 @@ This system uses **two separate git repositories** for clean separation of conce
 - Recent log entries display
 - Screenshot thumbnails (if supported)
 
-### Phase 4: CI Integration (PENDING)
+### Phase 5: CI Integration (PENDING)
 
 **GitHub Actions Workflow:**
 - `.github/workflows/migration.yml`
@@ -464,7 +506,7 @@ This system uses **two separate git repositories** for clean separation of conce
 - Secrets management for API key
 - Artifact upload (screenshots, logs)
 
-### Phase 5: Documentation (PENDING)
+### Phase 6: Documentation (PENDING)
 
 **User-Facing Documentation:**
 - Overall README for system
@@ -502,13 +544,18 @@ This system uses **two separate git repositories** for clean separation of conce
 - System notifications
 
 ### Mock Testing Strategy
-**Short-Term (Phase 0):**
+**Phase 0 (CLI-Level Mocking):**
 - Mock the CLI tool itself with bash script (`mock-claude-code.sh`)
 - Simulates file-based intervention protocol
 - No API calls, fast tests (~15s)
 
-**Long-Term (Phase 1+):**
-- Mock HTTP API calls to Anthropic
+**Phase 1 (Real API Calls):**
+- Execute real Claude Code CLI with actual Anthropic API
+- Validate end-to-end integration
+- Test with real API key in Docker
+
+**Phase 1.5+ (HTTP-Level Mocking):**
+- Mock HTTP API calls to Anthropic with mitmproxy
 - Use real Claude Code CLI with intercepted requests
 - Record/playback for reproducible tests
 - Validate error handling and retries
@@ -617,12 +664,12 @@ Phase 0 implements a comprehensive 4-tier testing strategy using Bats (Bash Auto
 - Confirm automatic archiving
 - Validate complete workflow without API calls
 
-### Phase 1+ Testing Strategy
+### Phase 1.5+ Testing Strategy
 
 **HTTP API Mocking:**
-When the real Claude Code CLI is integrated in Phase 1, replace the Phase 0 CLI-level mock with HTTP-level mocking:
-- Use tools like `nock` or `msw` to intercept Anthropic API requests
-- Record real API interactions for playback
+In Phase 1.5, after validating real Claude Code CLI execution in Phase 1, add HTTP-level mocking:
+- Use mitmproxy to intercept Anthropic API requests
+- Record real API interactions for playback (one-time)
 - Test with actual Claude Code CLI but mocked responses
 - Validate API error handling and retry logic
 
