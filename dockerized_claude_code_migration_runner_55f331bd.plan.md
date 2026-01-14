@@ -6,13 +6,13 @@ todos:
       content: 'Phase 0 (COMPLETED): Docker foundation, intervention protocol, TypeScript watcher, comprehensive testing (33 Bats tests), validation scripts, and documentation'
       status: completed
     - id: phase1-claude-code-integration
-      content: 'Phase 1: Real Claude Code Integration - Execute Claude Code CLI with real Anthropic API calls in Docker, create test plan, capture output, validate execution'
-      status: pending
+      content: 'Phase 1 (COMPLETED): Real Claude Code Integration - Execute Claude Code CLI with real Anthropic API calls in Docker, create test plan, capture output, validate execution'
+      status: completed
       dependencies:
           - phase0-foundation
     - id: phase1-5-http-interception
-      content: 'Phase 1.5: HTTP Interception for Testing - Set up mitmproxy to intercept Anthropic API calls, record responses for test fixtures, enable testing without API costs'
-      status: pending
+      content: 'Phase 1.5 (SKIPPED): HTTP Interception - Not needed; Claude tool call execution is too complex to mock meaningfully. Filesystem simulation in test-dynamic-plans.sh is sufficient for testing orchestration without API costs.'
+      status: completed
       dependencies:
           - phase1-claude-code-integration
     - id: phase2-worktree-setup
@@ -421,25 +421,21 @@ This system uses **two separate git repositories** for clean separation of conce
 - Log API responses for inspection
 - Test with simple code modification task
 
-### Phase 1.5: HTTP Interception for Testing (PENDING)
+### Phase 1.5: HTTP Interception for Testing (SKIPPED)
 
-**mitmproxy Setup:**
-- Install and configure mitmproxy in Docker container
-- Set up proxy for intercepting HTTPS traffic to Anthropic API
-- Configure Claude Code CLI to route through proxy
-- Test interception with real API calls
+**Decision: This phase is not needed**
 
-**One-Time Recording:**
-- Execute test plan with mitmproxy recording
-- Capture Anthropic API request/response payloads
-- Store recorded data using intervention protocol pattern
-- Document API response structure for future mocking
+**Rationale:**
+- HTTP mocking would avoid API costs but Claude Code CLI still executes tool calls
+- Tool calls (Write, Edit, etc.) create real files regardless of API mocking
+- Recording tool call responses for every scenario is too complex
+- Filesystem simulation in `test-dynamic-plans.sh` already provides cost-free testing
+- Simulated mode tests what matters: orchestration logic and workflow completion
 
-**Test Fixture Creation:**
-- Convert recorded API responses to test fixtures
-- Create mock server for replaying responses
-- Enable testing mode that uses fixtures instead of API
-- Validate tests work without API key/network
+**What we have instead:**
+- Real API mode: Validates full end-to-end functionality with actual Claude
+- Simulated mode: Creates files directly, tests orchestration without API calls
+- This covers both use cases without the complexity of HTTP interception
 
 ### Phase 2: Git Worktree System (PENDING)
 
@@ -664,14 +660,14 @@ Phase 0 implements a comprehensive 4-tier testing strategy using Bats (Bash Auto
 - Confirm automatic archiving
 - Validate complete workflow without API calls
 
-### Phase 1.5+ Testing Strategy
+### Phase 2+ Testing Strategy
 
-**HTTP API Mocking:**
-In Phase 1.5, after validating real Claude Code CLI execution in Phase 1, add HTTP-level mocking:
-- Use mitmproxy to intercept Anthropic API requests
-- Record real API interactions for playback (one-time)
-- Test with actual Claude Code CLI but mocked responses
-- Validate API error handling and retry logic
+**Filesystem Simulation (Implemented in Phase 1):**
+The `test-dynamic-plans.sh` script supports dual-mode testing:
+- **Real API mode**: Full end-to-end validation with actual Claude Code CLI
+- **Simulated mode**: Creates output files directly without API calls
+- Simulated mode tests orchestration logic without API costs
+- No HTTP mocking needed - Claude's tool call execution is too complex to mock meaningfully
 
 **End-to-End Testing:**
 - Full workflow loop (plan → build → test → commit)

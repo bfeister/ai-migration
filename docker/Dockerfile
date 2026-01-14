@@ -17,12 +17,17 @@ RUN npm install -g @anthropic-ai/claude-code
 # Create workspace directory
 WORKDIR /workspace
 
-# Create intervention directory
-RUN mkdir -p /workspace/intervention/history
+# Create intervention directory and set permissions for node user
+# Claude Code CLI requires non-root user for --dangerously-skip-permissions flag
+RUN mkdir -p /workspace/intervention/history && \
+    chown -R node:node /workspace
 
 # Copy entrypoint script
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
+
+# Switch to non-root node user
+USER node
 
 # Default command
 CMD ["/entrypoint.sh"]

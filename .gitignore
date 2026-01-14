@@ -62,6 +62,10 @@ migration-status.json
 # Test migration plans (if created during testing)
 test-migration-plan.md
 
+# Phase 1 test artifacts (generated during test execution)
+dynamic-plan.md
+*-manual-test.txt
+
 # ============================================================================
 # Docker
 # ============================================================================
