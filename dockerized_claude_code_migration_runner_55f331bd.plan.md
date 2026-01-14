@@ -15,32 +15,37 @@ todos:
       status: completed
       dependencies:
           - phase1-claude-code-integration
-    - id: phase2-worktree-setup
-      content: 'Phase 2: Git Worktree System - Initialize 6 worktrees (home, product-details, product-list, navbar, footer, customizations) with migration branches for multi-worker isolation'
+    - id: phase2-mcp-intervention-server
+      content: 'Phase 2: MCP Intervention Server - Create MCP server with AskUserQuestion tool for Claude to request user input, implement filesystem-based polling, persistent audit trail'
       status: pending
       dependencies:
           - phase1-claude-code-integration
-    - id: phase3-iterative-workflow
-      content: 'Phase 3: Iterative Workflow Loop - Implement plan → build (pnpm build) → test (Playwright screenshots) → commit (git) → log (output-log.md) cycle with error handling'
+    - id: phase3-worktree-setup
+      content: 'Phase 3: Git Worktree System - Initialize 6 worktrees (home, product-details, product-list, navbar, footer, customizations) with migration branches for multi-worker isolation'
       status: pending
       dependencies:
-          - phase2-worktree-setup
-    - id: phase4-status-management
-      content: 'Phase 4: Status Management & Terminal UI - Create migration-status.json schema, status writer, migrate-status.sh CLI with live updates, ANSI formatting, worker status table'
+          - phase2-mcp-intervention-server
+    - id: phase4-iterative-workflow
+      content: 'Phase 4: Iterative Workflow Loop - Implement plan → build (pnpm build) → test (Playwright screenshots) → commit (git) → log (output-log.md) cycle with error handling'
       status: pending
       dependencies:
-          - phase2-worktree-setup
-    - id: phase5-ci-integration
-      content: 'Phase 5: CI Integration - Create .github/workflows/migration.yml, configure secrets for API key, test Docker execution in CI, upload artifacts'
+          - phase3-worktree-setup
+    - id: phase5-status-management
+      content: 'Phase 5: Status Management & Terminal UI - Create migration-status.json schema, status writer, migrate-status.sh CLI with live updates, ANSI formatting, worker status table'
       status: pending
       dependencies:
-          - phase3-iterative-workflow
-          - phase4-status-management
-    - id: phase6-documentation
-      content: 'Phase 6: Documentation - Create README for Docker setup, usage guide for CLI commands, troubleshooting guide, CI setup instructions'
+          - phase3-worktree-setup
+    - id: phase6-ci-integration
+      content: 'Phase 6: CI Integration - Create .github/workflows/migration.yml, configure secrets for API key, test Docker execution in CI, upload artifacts'
       status: pending
       dependencies:
-          - phase5-ci-integration
+          - phase4-iterative-workflow
+          - phase5-status-management
+    - id: phase7-documentation
+      content: 'Phase 7: Documentation - Create README for Docker setup, usage guide for CLI commands, troubleshooting guide, CI setup instructions'
+      status: pending
+      dependencies:
+          - phase6-ci-integration
 ---
 
 # Dockerized Claude Code Migration Runner
@@ -187,6 +192,14 @@ This system uses **two separate git repositories** for clean separation of conce
 -   Capture output to worker-specific `output-log.md`
 -   Monitor process and update `migration-status.json`
 
+**MCP Server Integration (Phase 2):**
+
+-   Custom MCP server provides `AskUserQuestion` tool for user interventions
+-   Configured via `~/.config/claude-code/mcp.json` in container
+-   Built during container initialization in entrypoint
+-   Enables Claude to request input for non-obvious decisions
+-   Supports asynchronous responses (hours/days later) for background execution
+
 **Adapter Pattern Alignment:**
 
 -   This Docker setup will serve as the execution environment for the Claude Code adapter from the master plan
@@ -327,12 +340,21 @@ This system uses **two separate git repositories** for clean separation of conce
 │       ├── {timestamp}_needed-{worker-id}.json
 │       └── {timestamp}_response-{worker-id}.json
 │
+├── mcp-server/                                # Phase 2: MCP Server
+│   ├── src/
+│   │   └── intervention-server.ts             # MCP server with AskUserQuestion tool
+│   ├── dist/                                  # Compiled JavaScript (gitignored)
+│   │   └── intervention-server.js
+│   ├── package.json                           # MCP SDK dependencies + build scripts
+│   ├── tsconfig.json                          # TypeScript config (CommonJS output)
+│   └── .gitignore                             # Ignore dist/ and node_modules/
+│
 ├── .env.example                               # Phase 0 ✅ API key template
 ├── PHASE0-README.md                           # Phase 0 ✅ Complete documentation
 ├── migration-log.md                           # Phase 0 ✅ Activity log (placeholder)
 │
-├── migration-status.json                      # Phase 4: Global status (in container)
-└── worktrees/                                 # Phase 2: Git worktrees (shared)
+├── migration-status.json                      # Phase 5: Global status (in container)
+└── worktrees/                                 # Phase 3: Git worktrees (shared)
     ├── home/
     │   └── output-log.md
     ├── product-details/
@@ -437,7 +459,193 @@ This system uses **two separate git repositories** for clean separation of conce
 - Simulated mode: Creates files directly, tests orchestration without API calls
 - This covers both use cases without the complexity of HTTP interception
 
-### Phase 2: Git Worktree System (PENDING)
+### Phase 2: MCP Intervention Server (PENDING)
+
+**Goal:** Enable Claude Code to request user input for non-obvious decisions during migration work, with support for asynchronous/background execution and full auditability.
+
+**Rationale:**
+When running migrations in background/CI contexts, Claude may encounter decisions where the correct path forward is ambiguous (e.g., "Use JWT or session-based auth?"). The system needs a way to:
+1. Pause the worker and request user input
+2. Allow the user to respond asynchronously (hours/days later)
+3. Resume the conversation naturally after receiving the response
+4. Maintain full audit trail of all interventions
+
+The MCP server provides an `AskUserQuestion` tool that bridges Claude Code's execution context with the filesystem-based intervention protocol built in Phase 0. The key insight is that **conversation state lives in the Claude Code process memory** - as long as the process stays alive during polling, the Anthropic API conversation continues naturally when the tool call returns.
+
+**MCP Server Implementation:**
+
+Create `mcp-server/intervention-server.ts`:
+- Implements MCP server with single tool: `AskUserQuestion`
+- Tool parameters: `question`, `options` (array), `context`, `worker_id`
+- On tool call: Write `needed-{worker-id}.json`, poll for `response-{worker-id}.json`
+- Polling logic: Simple 1-second interval loop, no timeout (supports multi-day pauses)
+- Return tool result: Read response, mark as `processed: true`, return answer to Claude
+- No complex state management needed - filesystem is source of truth
+
+**File Lifecycle Changes:**
+
+Current behavior (Phase 0): Files archived immediately after response
+New behavior (Phase 2): Files persist for audit trail, marked as processed
+
+```json
+// intervention/response-{worker-id}.json
+{
+  "timestamp": "2024-01-14T10:01:30Z",
+  "response": "JWT",
+  "question_timestamp": "2024-01-14T10:00:00Z",
+  "intervention_id": "needed-worker-1",
+  "processed": true  // Added by MCP server after returning to Claude
+}
+```
+
+**Watcher Updates:**
+
+Update `migrate-watch.ts` to skip re-prompting for already-processed interventions:
+- Check if `response-{worker-id}.json` exists with `processed: true`
+- If yes, skip (already handled)
+- If no, prompt user as before
+- Don't archive automatically - files persist for audit
+
+**CLI Command: `migrate-respond`**
+
+New script for manual intervention responses (SSH/detached scenarios):
+```bash
+docker exec claude-migration migrate-respond worker-1 "JWT"
+```
+
+Creates response file directly, allowing user to respond without interactive watcher.
+
+**Docker Integration:**
+
+Critical: Claude Code CLI must be explicitly configured to use the MCP server. The tool won't be available unless properly configured.
+
+**MCP Configuration File:**
+
+Create `~/.config/claude-code/mcp.json` in the container:
+```json
+{
+  "mcpServers": {
+    "intervention": {
+      "command": "node",
+      "args": ["/workspace/mcp-server/dist/intervention-server.js"],
+      "env": {
+        "WORKSPACE_ROOT": "/workspace"
+      }
+    }
+  }
+}
+```
+
+**Entrypoint Updates (`docker/entrypoint.sh`):**
+
+```bash
+#!/bin/bash
+set -euo pipefail
+
+# Build MCP server
+echo "Building MCP intervention server..."
+cd /workspace/mcp-server
+pnpm install --silent
+pnpm build
+
+# Configure Claude Code CLI to use MCP server
+echo "Configuring Claude Code with MCP server..."
+mkdir -p ~/.config/claude-code
+cat > ~/.config/claude-code/mcp.json <<'EOF'
+{
+  "mcpServers": {
+    "intervention": {
+      "command": "node",
+      "args": ["/workspace/mcp-server/dist/intervention-server.js"],
+      "env": {
+        "WORKSPACE_ROOT": "/workspace",
+        "INTERVENTION_DIR": "/workspace/intervention"
+      }
+    }
+  }
+}
+EOF
+
+# Execute original command
+exec "$@"
+```
+
+**MCP Server Build Configuration:**
+
+Ensure MCP server compiles to CommonJS for Node.js execution:
+
+`mcp-server/tsconfig.json`:
+```json
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "commonjs",
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
+}
+```
+
+`mcp-server/package.json` should include build script:
+```json
+{
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  }
+}
+```
+
+**Testing Strategy:**
+
+1. **Validate MCP Tool Registration:**
+   ```bash
+   # Create test plan that lists available tools
+   cat > /workspace/test-mcp-registration.md <<'EOF'
+   Please list all tools you have access to. Specifically confirm you have:
+   - AskUserQuestion tool
+
+   If you have it, describe its parameters.
+   EOF
+
+   claude code run < /workspace/test-mcp-registration.md
+   ```
+
+2. **Test Intervention Flow:**
+   - Create test plan that calls `AskUserQuestion` tool
+   - Run Claude Code CLI in Docker with MCP server configured
+   - Verify `needed-{worker-id}.json` created
+   - Test response via both watcher and `migrate-respond` command
+   - Validate Claude continues execution with user's answer
+   - Confirm files persist with `processed: true` flag
+
+3. **Validate Error Handling:**
+   - Test with no response (validate polling continues)
+   - Test with malformed response file
+   - Test with multiple concurrent interventions
+   - Verify graceful handling in all cases
+
+**Deliverables:**
+- `mcp-server/src/intervention-server.ts` - MCP server implementation
+- `mcp-server/package.json` - Dependencies (@modelcontextprotocol/sdk) and build scripts
+- `mcp-server/tsconfig.json` - TypeScript configuration for CommonJS output
+- `docker/entrypoint.sh` - Updated to build MCP server and configure Claude Code CLI
+- `scripts/migrate-respond.sh` - Manual response CLI command
+- Updated `scripts/migrate-watch.ts` - Skip processed interventions
+- Test plan validating tool registration (`test-mcp-registration.md`)
+- Test plan demonstrating intervention flow (`test-intervention-flow.md`)
+- Updated documentation in plan file
+
+**Edge Case: Container Restarts**
+
+If container restarts during polling, the process dies and conversation state is lost. For MVP, document as limitation: "Don't restart containers mid-migration." Future enhancement could checkpoint conversation state to filesystem, but adds significant complexity. Validate this is acceptable trade-off before implementing resumability.
+
+### Phase 3: Git Worktree System (PENDING)
 
 **Worktree Initialization:**
 - Create script to initialize 6 worktrees from storefront-next:
@@ -457,7 +665,7 @@ This system uses **two separate git repositories** for clean separation of conce
 - Handle conflicts and branch management
 - Multi-worker isolation testing
 
-### Phase 3: Iterative Workflow (PENDING)
+### Phase 4: Iterative Workflow (PENDING)
 
 **Build Validation:**
 - Implement build step (pnpm build) after Claude Code execution
@@ -480,7 +688,7 @@ This system uses **two separate git repositories** for clean separation of conce
 - Error handling and recovery
 - Progress tracking
 
-### Phase 4: Status Management & Terminal UI (PENDING)
+### Phase 5: Status Management & Terminal UI (PENDING)
 
 **Status File Implementation:**
 - Create `migration-status.json` schema (see section 2)
@@ -494,7 +702,7 @@ This system uses **two separate git repositories** for clean separation of conce
 - Recent log entries display
 - Screenshot thumbnails (if supported)
 
-### Phase 5: CI Integration (PENDING)
+### Phase 6: CI Integration (PENDING)
 
 **GitHub Actions Workflow:**
 - `.github/workflows/migration.yml`
@@ -502,7 +710,7 @@ This system uses **two separate git repositories** for clean separation of conce
 - Secrets management for API key
 - Artifact upload (screenshots, logs)
 
-### Phase 6: Documentation (PENDING)
+### Phase 7: Documentation (PENDING)
 
 **User-Facing Documentation:**
 - Overall README for system
@@ -522,6 +730,8 @@ This system uses **two separate git repositories** for clean separation of conce
 8. **Multi-File Pattern**: Separate intervention files per worker to support concurrent execution
 9. **TypeScript for Interactivity**: Use TypeScript with chokidar for reliable file watching and prompts for better UX
 10. **Test-First Approach**: Comprehensive automated testing (33 tests) before feature implementation
+11. **MCP for Intervention Requests**: Use MCP server to provide AskUserQuestion tool to Claude, enabling programmatic intervention requests with natural conversation flow. Conversation state lives in process memory, no complex checkpointing needed for MVP.
+12. **Persistent Audit Trail**: Intervention and response files persist in filesystem with `processed` flag, providing complete auditability and supporting asynchronous/background execution patterns
 
 ## Phase 0 Learnings & Patterns
 
@@ -660,7 +870,7 @@ Phase 0 implements a comprehensive 4-tier testing strategy using Bats (Bash Auto
 - Confirm automatic archiving
 - Validate complete workflow without API calls
 
-### Phase 2+ Testing Strategy
+### Phase 3+ Testing Strategy
 
 **Filesystem Simulation (Implemented in Phase 1):**
 The `test-dynamic-plans.sh` script supports dual-mode testing:
