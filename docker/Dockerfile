@@ -1,12 +1,23 @@
 FROM node:24-alpine
 
-# Install system dependencies
+# Install system dependencies including Playwright/Chromium requirements
 RUN apk add --no-cache \
     git \
     bash \
     jq \
     curl \
-    coreutils
+    coreutils \
+    chromium \
+    nss \
+    freetype \
+    harfbuzz \
+    ca-certificates \
+    ttf-freefont \
+    font-noto-emoji
+
+# Set Playwright to use system Chromium
+ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
+ENV PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium-browser
 
 # Enable and configure pnpm
 RUN corepack enable && corepack prepare pnpm@10.26.1 --activate

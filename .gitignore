@@ -108,9 +108,6 @@ playwright/.cache/
 test-results/
 playwright-report/
 
-# Screenshots from migration validation (generated during tests)
-screenshots/
-
 # ============================================================================
 # Logs
 # ============================================================================

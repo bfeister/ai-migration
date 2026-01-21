@@ -1,0 +1,76 @@
+{
+  "version": "1.0",
+  "description": "URL mappings for SFRA to Storefront Next migration screenshot capture",
+  "default_target_url": "http://localhost:5173",
+  "mappings": [
+    {
+      "feature_id": "01-homepage-hero",
+      "feature_name": "Homepage Hero Section",
+      "sfra_url": "https://zzrf-001.dx.commercecloud.salesforce.com/s/RefArchGlobal/en_GB/home",
+      "target_url": "http://localhost:5173/",
+      "viewport": {
+        "width": 1920,
+        "height": 1080
+      },
+      "dismiss_consent": true,
+      "consent_button_selector": "button.affirm",
+      "notes": "Homepage URL (UK locale), full viewport to capture hero section. Auto-dismisses tracking consent modal. Baseline: screenshots/baseline/sfra-homepage-baseline.png"
+    },
+    {
+      "feature_id": "02-homepage-featured",
+      "feature_name": "Homepage Featured Products",
+      "sfra_url": "https://zzrf-001.dx.commercecloud.salesforce.com/s/RefArchGlobal/en_GB/home",
+      "target_url": "http://localhost:5173/",
+      "viewport": {
+        "width": 1920,
+        "height": 1080
+      },
+      "dismiss_consent": true,
+      "scroll_to_selector": ".featured-products",
+      "notes": "Same homepage URL, scroll to featured section before screenshot"
+    },
+    {
+      "feature_id": "03-product-tile-component",
+      "feature_name": "Product Tile Component",
+      "sfra_url": "https://zzrf-001.dx.commercecloud.salesforce.com/on/demandware.store/Sites-RefArchGlobal-Site/en_US/Search-Show?q=shirt",
+      "target_url": "http://localhost:5173/search?q=shirt",
+      "viewport": {
+        "width": 1920,
+        "height": 1080
+      },
+      "wait_for_selector": ".product-tile",
+      "notes": "Product search results page to show tiles"
+    },
+    {
+      "feature_id": "04-navbar",
+      "feature_name": "Navigation Bar",
+      "sfra_url": "https://zzrf-001.dx.commercecloud.salesforce.com/s/RefArchGlobal/en_GB/home",
+      "target_url": "http://localhost:5173/",
+      "viewport": {
+        "width": 1920,
+        "height": 200
+      },
+      "dismiss_consent": true,
+      "crop": {
+        "x": 0,
+        "y": 0,
+        "width": 1920,
+        "height": 200
+      },
+      "notes": "Crop to just navbar area at top of page"
+    },
+    {
+      "feature_id": "05-footer",
+      "feature_name": "Footer",
+      "sfra_url": "https://zzrf-001.dx.commercecloud.salesforce.com/s/RefArchGlobal/en_GB/home",
+      "target_url": "http://localhost:5173/",
+      "viewport": {
+        "width": 1920,
+        "height": 1080
+      },
+      "dismiss_consent": true,
+      "scroll_to": "bottom",
+      "notes": "Scroll to bottom to capture footer"
+    }
+  ]
+}

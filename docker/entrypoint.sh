@@ -126,6 +126,42 @@ fi
 # End Phase 2 Setup
 # ============================================================================
 
+# ============================================================================
+# Phase 3: Playwright Setup
+# ============================================================================
+
+log_info "Setting up Playwright dependencies..."
+
+# Install dependencies in storefront-next for Playwright support
+if [ -d "/workspace/storefront-next" ]; then
+    log_info "Installing storefront-next dependencies..."
+    cd /workspace/storefront-next
+
+    # Install root dependencies
+    if pnpm install --frozen-lockfile; then
+        log_success "Storefront Next dependencies installed"
+    else
+        log_error "Failed to install storefront-next dependencies"
+        log_warning "Screenshot capture may not work properly"
+    fi
+
+    cd /workspace
+else
+    log_warning "storefront-next directory not found"
+    log_warning "Screenshot capture will not be available"
+fi
+
+# Verify Playwright is available
+if command -v chromium-browser > /dev/null; then
+    log_success "Chromium browser available at: $(which chromium-browser)"
+else
+    log_warning "Chromium browser not found - screenshots may fail"
+fi
+
+# ============================================================================
+# End Phase 3 Setup
+# ============================================================================
+
 # Background process to monitor interventions
 monitor_interventions() {
     log_info "Starting intervention monitor..."
