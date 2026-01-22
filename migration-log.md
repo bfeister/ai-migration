@@ -1,9 +1,10 @@
 # Migration Progress Log
 
 **Started:** 2026-01-22 21:03:11
-**Status:** 🔄 In Progress
-**Completed Micro-Plans:** 1 / 6
+**Status:** ⏸️ Blocked - Awaiting Dependency Resolution
+**Completed Micro-Plans:** 1 / 6 (subplan-01-02 partially complete - documentation only)
 **Current Feature:** 01-homepage-content
+**Blocking Issue:** storefront-next dependencies need resolution (see subplan-01-02 notes)
 
 ---
 
