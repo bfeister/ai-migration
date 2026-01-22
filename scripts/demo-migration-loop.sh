@@ -28,10 +28,42 @@ MIGRATION_LOG="$WORKSPACE_ROOT/migration-log.md"
 INTERVENTION_DIR="$WORKSPACE_ROOT/intervention"
 SCREENSHOTS_DIR="$WORKSPACE_ROOT/screenshots"
 
+# Flags
+CLEAN_START=false
+STOP_ON_EXIT=false
+
 # State tracking
 LOOP_PID=""
 MONITOR_PID=""
 START_TIME=$(date +%s)
+
+# Parse command line arguments
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --clean)
+            CLEAN_START=true
+            shift
+            ;;
+        --stop)
+            STOP_ON_EXIT=true
+            shift
+            ;;
+        --help)
+            echo "Usage: $0 [OPTIONS]"
+            echo ""
+            echo "Options:"
+            echo "  --clean    Remove existing container and start fresh"
+            echo "  --stop     Stop and remove container on exit (default: keep running)"
+            echo "  --help     Show this help message"
+            exit 0
+            ;;
+        *)
+            echo "Unknown option: $1"
+            echo "Run with --help for usage information"
+            exit 1
+            ;;
+    esac
+done
 
 # Logging functions
 log_header() {
@@ -69,11 +101,15 @@ cleanup() {
         kill "$MONITOR_PID" 2>/dev/null || true
     fi
 
-    # Stop Docker container
-    if docker ps -q -f name="$CONTAINER_NAME" | grep -q .; then
-        log_info "Stopping container: $CONTAINER_NAME"
-        docker stop "$CONTAINER_NAME" >/dev/null 2>&1 || true
-        docker rm "$CONTAINER_NAME" >/dev/null 2>&1 || true
+    # Stop Docker container (only if --stop flag was provided)
+    if [ "$STOP_ON_EXIT" = true ]; then
+        if docker ps -q -f name="$CONTAINER_NAME" | grep -q .; then
+            log_info "Stopping container: $CONTAINER_NAME"
+            docker stop "$CONTAINER_NAME" >/dev/null 2>&1 || true
+            docker rm "$CONTAINER_NAME" >/dev/null 2>&1 || true
+        fi
+    else
+        log_info "Container $CONTAINER_NAME left running (use --stop to remove on exit)"
     fi
 
     # Show summary
@@ -300,10 +336,21 @@ check_prerequisites() {
 start_container() {
     log_header "Starting Docker Container"
 
-    # Remove existing container if present
-    if docker ps -a -q -f name="$CONTAINER_NAME" | grep -q .; then
-        log_info "Removing existing container"
-        docker rm -f "$CONTAINER_NAME" >/dev/null 2>&1 || true
+    # Remove existing container if --clean flag provided or if it's stopped
+    if [ "$CLEAN_START" = true ]; then
+        if docker ps -a -q -f name="$CONTAINER_NAME" | grep -q .; then
+            log_info "Removing existing container (--clean flag)"
+            docker rm -f "$CONTAINER_NAME" >/dev/null 2>&1 || true
+        fi
+    else
+        # Check if container exists and is running (reuse it)
+        if docker ps -q -f name="$CONTAINER_NAME" | grep -q .; then
+            log_success "Container already running, reusing: $CONTAINER_NAME"
+            return 0
+        elif docker ps -a -q -f name="$CONTAINER_NAME" | grep -q .; then
+            log_info "Container exists but is stopped, removing and recreating"
+            docker rm -f "$CONTAINER_NAME" >/dev/null 2>&1 || true
+        fi
     fi
 
     # Ensure directories exist

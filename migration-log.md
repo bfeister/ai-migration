@@ -92,3 +92,36 @@ Solution documented in TARBALL-SOLUTION.md: Need to regenerate project with tarb
 **Notes:** Code analysis completed successfully. Cannot proceed with screenshot capture or build validation until dependencies are resolved. Need user intervention to fix `file://` dependencies using tarball approach or regenerating the storefront-next project.
 
 ---
+
+## [2026-01-22 21:54:00] Dependency Resolution Attempted
+**Status:** ⏸️ Blocked - Docker Mac File Descriptor Limit
+**Feature:** 01-homepage-hero (Homepage Hero Section)
+**Changes:**
+- Fixed package.json file:// references to point to `/tmp/SFCC-Odyssey/packages/*` (container paths)
+- Created manual symlinks for @salesforce/storefront-next-dev and @salesforce/storefront-next-runtime
+- Verified sfnext CLI works (version 0.2.0-dev)
+
+**Blocking Issue:**
+pnpm install fails with `ERR_PNPM_Unknown system error -116` when copying files. This is a known Docker on Mac file descriptor limit issue. While the Salesforce packages were manually symlinked successfully, other dependencies (vite, etc.) failed to install, preventing dev server from starting.
+
+**Error:**
+```
+ERR_PNPM_Unknown system error -116: Unknown system error -116, copyfile
+```
+
+**Current State:**
+- ✅ package.json fixed: file:// paths point to /tmp/SFCC-Odyssey/packages
+- ✅ Salesforce packages symlinked manually
+- ✅ sfnext CLI works
+- ❌ Other dependencies missing (vite, react, etc.)
+- ❌ Dev server cannot start
+
+**Possible Solutions:**
+1. Run `pnpm install` from host (outside Docker) if storefront-next is mounted
+2. Increase Docker file descriptor limits
+3. Use yarn or npm instead of pnpm (different file handling)
+4. Copy node_modules from a successful host installation
+
+**Waiting for:** User intervention to resolve dependency installation issue
+
+---

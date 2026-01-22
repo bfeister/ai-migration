@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # generate-standalone-in-container.sh - Generate standalone project INSIDE container
 #
-# This ensures all native modules (like @rollup/rollup-linux-arm64-musl) are
-# compiled for the correct architecture (Linux ARM64, not macOS)
+# This script runs create-storefront inside the container using the built monorepo
+# at /tmp/SFCC-Odyssey. The generated project will have file:// symlinks to the
+# monorepo packages which already contain Linux ARM64 binaries.
 
 set -euo pipefail
 
@@ -50,104 +51,48 @@ echo ""
 
 # Generate standalone project inside container
 log_info "Generating standalone project inside container..."
-log_info "Using Linux-built packages"
+log_info "Using file:// symlinks to built monorepo packages"
 echo ""
 
 docker exec -u node "$CONTAINER_NAME" bash << 'CONTAINER_SCRIPT'
 set -e
 
-echo "[Container] Detecting workspace:* and file:// dependencies from template..."
+echo "[Container] Creating clean template with git history..."
+cd /tmp
+
+# Remove old clean template if exists
+rm -rf template-clean
+
+# Copy template excluding node_modules (should already be excluded, but be explicit)
+rsync -a --exclude='node_modules' --exclude='.git' \
+    /tmp/SFCC-Odyssey/packages/template-retail-rsc-app/ \
+    template-clean/
+
+# Initialize clean git repository (required by create-storefront)
+cd template-clean
+git init
+git add .
+git commit -m "Initial template"
+
+echo "[Container] ✓ Clean template created at /tmp/template-clean"
 echo ""
-
-# Find template package.json
-TEMPLATE_PKG="/tmp/SFCC-Odyssey/packages/template-retail-rsc-app/package.json"
-
-if [ ! -f "$TEMPLATE_PKG" ]; then
-    echo "[Container] ERROR: Template package.json not found"
-    exit 1
-fi
-
-# Extract all workspace:* and file:// dependency paths
-MONOREPO_DEPS=$(node -e "
-const pkg = require('$TEMPLATE_PKG');
-const deps = {...pkg.dependencies, ...pkg.devDependencies};
-for (const [name, version] of Object.entries(deps)) {
-  if (version.startsWith('workspace:') || version.startsWith('file:')) {
-    console.log(name + '|' + version);
-  }
-}
-")
-
-if [ -z "$MONOREPO_DEPS" ]; then
-    echo "[Container] No workspace or file:// dependencies found in template"
-else
-    echo "[Container] Found monorepo dependencies:"
-    echo "$MONOREPO_DEPS" | while IFS='|' read -r name version; do
-        echo "[Container]   - $name: $version"
-    done
-fi
-
-echo ""
-echo "[Container] Packing monorepo packages to tarballs (Linux binaries)..."
-echo ""
-
-# Pack packages inside container (gets Linux ARM64 binaries!)
-PACK_DIR="/tmp/packed-packages"
-mkdir -p "$PACK_DIR"
-
-# For each monorepo dependency, resolve and pack it
-echo "$MONOREPO_DEPS" | while IFS='|' read -r name version; do
-    PKG_PATH=""
-
-    # Resolve package path based on version type
-    if [[ "$version" = workspace:* ]]; then
-        # workspace:* dependencies - look in monorepo packages/
-        # Pattern: @salesforce/storefront-next-dev → storefront-next-dev
-        pkg_name="${name##*/}"  # Get last part after /
-        PKG_PATH="/tmp/SFCC-Odyssey/packages/$pkg_name"
-    elif [[ "$version" = file:* ]]; then
-        # file:// dependencies - resolve relative path
-        path="${version#file:}"
-        TEMPLATE_DIR="/tmp/SFCC-Odyssey/packages/template-retail-rsc-app"
-
-        if [[ "$path" = /* ]]; then
-            PKG_PATH="$path"
-        else
-            PKG_PATH=$(cd "$TEMPLATE_DIR" && cd "$path" && pwd)
-        fi
-    fi
-
-    if [ -d "$PKG_PATH" ] && [ -f "$PKG_PATH/package.json" ]; then
-        echo "[Container] Packing: $name ($version)"
-        cd "$PKG_PATH"
-        TARBALL=$(pnpm pack --pack-destination "$PACK_DIR" 2>&1 | tail -1)
-        echo "[Container]   ✓ Created: $TARBALL"
-    else
-        echo "[Container]   ✗ Package not found at: $PKG_PATH"
-    fi
-done
-
-echo ""
-echo "[Container] Creating template directory..."
-
-# Create temp template directory
-TEMP_TEMPLATE="/tmp/temp-template-$(date +%s)"
-mkdir -p "$TEMP_TEMPLATE"
-cp -r /tmp/SFCC-Odyssey/packages/template-retail-rsc-app/* "$TEMP_TEMPLATE/"
 
 cd /workspace
 
-echo "[Container] Running create-storefront (without --local-packages-dir)..."
-echo "[Container] Template: file://$TEMP_TEMPLATE"
-echo ""
-
-# Remove old storefront-next if exists
+echo "[Container] Removing old storefront-next if exists..."
 rm -rf storefront-next
 
-# Run create-storefront WITHOUT --local-packages-dir
-npx /tmp/SFCC-Odyssey/packages/storefront-next-dev create-storefront \
+echo "[Container] Running create-storefront..."
+echo "[Container] Template: /tmp/template-clean"
+echo "[Container] Local packages: /tmp/SFCC-Odyssey/packages"
+echo ""
+
+# Run create-storefront with clean template and local packages dir
+# This will convert workspace:* → file:///tmp/SFCC-Odyssey/packages/*
+npx /tmp/SFCC-Odyssey/packages/storefront-next-dev/dist/cli.js create-storefront \
     --name storefront-next \
-    --template "file://$TEMP_TEMPLATE"
+    --template "file:///tmp/template-clean" \
+    --local-packages-dir "/tmp/SFCC-Odyssey/packages"
 
 if [ ! -d storefront-next ]; then
     echo "[Container] ERROR: storefront-next directory not created"
@@ -155,69 +100,34 @@ if [ ! -d storefront-next ]; then
 fi
 
 echo ""
-echo "[Container] Standalone project generated"
-echo "[Container] Installing dependencies from tarballs (Linux binaries)..."
+echo "[Container] Project created with file:// references to monorepo"
+echo "[Container] Installing dependencies..."
 echo ""
 
 cd storefront-next
 
-# Remove workspace:* and file:// dependencies from package.json (they'll be installed from tarballs)
-echo "[Container] Cleaning workspace:* and file:// dependencies from package.json..."
-node -e "
-const fs = require('fs');
-const pkg = JSON.parse(fs.readFileSync('./package.json', 'utf8'));
-let removed = [];
-
-for (const depType of ['dependencies', 'devDependencies']) {
-  if (pkg[depType]) {
-    for (const [name, version] of Object.entries(pkg[depType])) {
-      if (version.startsWith('workspace:') || version.startsWith('file:')) {
-        removed.push(name);
-        delete pkg[depType][name];
-      }
-    }
-  }
-}
-
-fs.writeFileSync('./package.json', JSON.stringify(pkg, null, 2) + '\n');
-console.log('[Container] Removed: ' + removed.join(', '));
-"
-
-# Install base dependencies
-echo "[Container] Installing base dependencies..."
+# Install dependencies
+# The file:// references will symlink to /tmp/SFCC-Odyssey/packages/*
+# which already have Linux ARM64 binaries from the build step
 pnpm install
 
-# Install packages from Linux-built tarballs
-echo "[Container] Installing packages from tarballs..."
-TARBALL_COUNT=0
-for tarball in "$PACK_DIR"/*.tgz; do
-    if [ -f "$tarball" ]; then
-        echo "[Container]   Installing: $(basename $tarball)"
-        pnpm add "file:$tarball"
-        TARBALL_COUNT=$((TARBALL_COUNT + 1))
-    fi
-done
-
-if [ $TARBALL_COUNT -eq 0 ]; then
-    echo "[Container]   (No tarballs to install)"
-fi
-
-# Cleanup
-rm -rf "$PACK_DIR"
-
 echo ""
-echo "[Container] Verifying sfnext CLI..."
+echo "[Container] Verifying installation..."
+
+# Check for sfnext CLI
 if [ -f node_modules/.bin/sfnext ]; then
     echo "[Container] ✓ sfnext CLI available"
-    node_modules/.bin/sfnext --version || echo "[Container] (version check skipped)"
+    node_modules/.bin/sfnext --version 2>/dev/null || echo "[Container]   (version check skipped)"
 else
     echo "[Container] ✗ sfnext CLI not found"
     exit 1
 fi
 
-echo ""
-echo "[Container] Checking architecture of native modules..."
-file node_modules/@rollup/rollup-linux-arm64-musl/rollup.linux-arm64-musl.node 2>/dev/null | head -1 || echo "[Container] (rollup binary check skipped)"
+# Verify Linux ARM64 binaries
+if [ -f node_modules/@rollup/rollup-linux-arm64-musl/rollup.linux-arm64-musl.node ]; then
+    echo "[Container] ✓ Native modules present"
+    file node_modules/@rollup/rollup-linux-arm64-musl/rollup.linux-arm64-musl.node 2>/dev/null | head -1 || true
+fi
 
 # Create .env if needed
 if [ ! -f .env ] && [ -f .env.default ]; then
@@ -225,11 +135,9 @@ if [ ! -f .env ] && [ -f .env.default ]; then
     echo "[Container] ✓ Created .env from .env.default"
 fi
 
-# Cleanup temp template
-rm -rf "$TEMP_TEMPLATE"
-
 echo ""
 echo "[Container] Generation complete!"
+echo "[Container] Project uses file:// symlinks to /tmp/SFCC-Odyssey with Linux binaries"
 
 CONTAINER_SCRIPT
 
@@ -237,7 +145,7 @@ if [ $? -eq 0 ]; then
     log_success "Standalone project generated successfully"
     echo ""
     log_info "Location: storefront-next/"
-    log_info "Architecture: Linux ARM64 (native modules compiled correctly)"
+    log_info "Dependencies: file:// symlinks to /tmp/SFCC-Odyssey (Linux ARM64)"
     log_info "Ready to run: cd storefront-next && pnpm dev"
 else
     log_error "Generation failed"

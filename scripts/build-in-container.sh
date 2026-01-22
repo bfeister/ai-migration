@@ -58,9 +58,16 @@ TEMP_COPY="$WORKSPACE_ROOT/.temp-monorepo-copy"
 rm -rf "$TEMP_COPY"
 mkdir -p "$TEMP_COPY"
 
-# Copy monorepo excluding node_modules
-log_info "Creating clean copy of monorepo (excluding node_modules)..."
-rsync -a --exclude='node_modules' --exclude='.git' "$MONOREPO_PATH/" "$TEMP_COPY/"
+# Copy monorepo excluding node_modules and other unnecessary directories
+log_info "Creating clean copy of monorepo (excluding node_modules, .pnpm-store, dist)..."
+rsync -a \
+    --exclude='node_modules' \
+    --exclude='.pnpm-store' \
+    --exclude='.git' \
+    --exclude='dist' \
+    --exclude='build' \
+    --exclude='.next' \
+    "$MONOREPO_PATH/" "$TEMP_COPY/"
 
 # Copy to container
 log_info "Transferring to container..."
