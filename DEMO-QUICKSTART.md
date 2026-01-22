@@ -234,7 +234,7 @@ Before running the demo, you may want to start with a clean state:
 
 **What each flag does:**
 - `--log` - Backs up and resets migration-log.md to initial state
-- `--screenshots` - Deletes captured screenshots (preserves baseline/)
+- `--screenshots` - Deletes all captured screenshots
 - `--git` - Resets git commits in storefront-next/ (asks for confirmation)
 - `--full` - All of the above (asks for confirmation)
 

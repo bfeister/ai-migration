@@ -48,6 +48,12 @@ out/
 # Migration log backups (exclude from git)
 migration-log-backup-*.md
 
+# Packed packages (temporary tarballs for standalone generation)
+.packed-packages/
+
+# Temporary monorepo copy (used during container build)
+.temp-monorepo-copy/
+
 # Intervention protocol (runtime communication files)
 intervention/needed.json
 intervention/response.json
@@ -150,3 +156,5 @@ debug/
 *.debug
 
 storefront-next/
+storefront-next-backup-20260121-210040/
+storefront-reference-architecture/

@@ -1,4 +1,4 @@
-# Micro-Plan 01-01: Analyze SFRA Homepage Baseline
+# Micro-Plan 01-01: Capture and Analyze SFRA Homepage
 
 ## Feature Context
 **Feature ID:** 01-homepage-content
@@ -7,18 +7,22 @@
 - Storefront Next Target: http://localhost:5173/
 
 ## Scope
-Single task: Analyze the SFRA homepage baseline screenshot to understand content structure (excluding header and footer).
+Single task: Capture a screenshot of the SFRA homepage and analyze its content structure (excluding header and footer).
 
 ## Context
-This is the first micro-plan in the homepage content migration. Before writing any code, we need to understand what we're building by examining the SFRA baseline screenshot.
+This is the first micro-plan in the homepage content migration. Before writing any code, we need to capture and understand what we're building by examining the SFRA homepage.
 
-## Reference Screenshot
-`screenshots/baseline/sfra-homepage-baseline.png`
+## Tasks
 
-## Specific Change
-**No code changes in this step.** This is an analysis-only task.
+### 1. Capture SFRA Homepage Screenshot
+Use Playwright to capture a full-page screenshot of the SFRA homepage:
+- URL: https://zzrf-001.dx.commercecloud.salesforce.com/s/RefArchGlobal/en_GB/home
+- Save to: `screenshots/sfra-homepage-baseline.png`
+- Handle any consent modals (dismiss if present)
+- Wait for page to fully load
 
-Read the baseline screenshot and document:
+### 2. Analyze the Screenshot
+After capturing, document:
 1. **Hero Section:**
    - Background styling (color, image, gradient)
    - Title text and styling
@@ -33,19 +37,22 @@ Read the baseline screenshot and document:
    - Product tile content (image, title, price, etc.)
 
 ## Validation
-After analysis:
-1. Document findings in migration-log.md as notes
-2. No build required (no code changes)
-3. No screenshot required (analysis only)
+After completion:
+1. Screenshot captured successfully at `screenshots/sfra-homepage-baseline.png`
+2. Screenshot shows full SFRA homepage (not truncated)
+3. Analysis documented in migration-log.md with key findings
+4. No code changes (screenshot capture + analysis only)
 
 ## Success Criteria
-- Baseline screenshot examined and key content elements identified
-- Clear understanding of hero section structure
-- Clear understanding of featured products layout
-- Notes recorded for reference in subsequent micro-plans
+- ✅ SFRA homepage screenshot captured
+- ✅ Screenshot shows clean page (consent modal dismissed if present)
+- ✅ Key content elements identified and documented
+- ✅ Clear understanding of hero section structure
+- ✅ Clear understanding of featured products layout
+- ✅ Baseline established for comparison in subsequent micro-plans
 
 ## Expected Duration
-~2-3 minutes
+~3-5 minutes (includes screenshot capture and analysis)
 
 ## Next Step
 Proceed to subplan-01-02 (Create homepage route/component)

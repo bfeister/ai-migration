@@ -135,14 +135,16 @@ for (const selector of consentSelectors) {
 
 ### 5. Baseline Screenshots
 
-**Directory:** `screenshots/baseline/`
+**Directory:** `screenshots/`
 
-**Purpose:** Reference screenshots captured before migration starts.
+**Purpose:** Reference screenshots captured during the first micro-plan execution.
 
 **Files Created:**
 - `sfra-homepage-baseline.png` (2.8 MB) - Full SFRA homepage with consent dismissed
+- Captured during subplan-01-01 (first task of migration)
 
 **Usage in Migration Loop:**
+- First micro-plan captures the SFRA homepage as baseline
 - Claude Code compares baseline against incremental screenshots
 - Visual diff shows progress toward SFRA parity
 - Stored in git for reproducibility
@@ -203,7 +205,7 @@ for (const selector of consentSelectors) {
 ┌─────────────────────────────────────────────────┐
 │  Host Filesystem (volume mount)                 │
 │  /workspace/screenshots/                        │
-│    - baseline/sfra-homepage-baseline.png        │
+│    - sfra-homepage-baseline.png                 │
 │    - 20260121-224748-subplan-01-02-source.png   │
 │    - 20260121-224801-subplan-01-02-target.png   │
 └─────────────────────────────────────────────────┘
@@ -259,14 +261,14 @@ Start the dev server and capture dual screenshots:
 - `scripts/capture-screenshots.ts` (225 lines) - Playwright screenshot capture script
 - `scripts/test-playwright-setup.sh` (192 lines) - Validation test suite
 - `url-mappings.json` (76 lines) - SFRA to Storefront Next URL mappings
-- `screenshots/baseline/sfra-homepage-baseline.png` (2.8 MB) - Reference screenshot
+- `screenshots/sfra-homepage-baseline.png` (2.8 MB) - Reference screenshot (captured during subplan-01-01)
 - `scripts/package.json` - Added Playwright dependency
 - `scripts/pnpm-lock.yaml` - Locked Playwright version
 
 ### Modified Files
 - `docker/Dockerfile` - Added Chromium and dependencies
 - `docker/entrypoint.sh` - Added Playwright environment variables
-- `.gitignore` - Removed `screenshots/` from ignore list (track baseline + captures)
+- `.gitignore` - Removed `screenshots/` from ignore list (track screenshots)
 
 ### Dependencies Added
 ```json
@@ -282,7 +284,7 @@ Start the dev server and capture dual screenshots:
 - ✅ Install Playwright + Chromium in Docker
 - ✅ Create screenshot capture script with SFRA support
 - ✅ Define URL mappings for 5 homepage features
-- ✅ Capture baseline SFRA screenshot
+- ✅ Enable baseline SFRA screenshot capture (happens in subplan-01-01)
 - ✅ Validate screenshot capture in container
 - ✅ Document SFRA-specific quirks (consent modal)
 

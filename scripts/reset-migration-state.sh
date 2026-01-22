@@ -54,7 +54,7 @@ Reset migration loop state for fresh testing.
 
 OPTIONS:
     --log               Reset migration-log.md to initial state
-    --screenshots       Delete all captured screenshots (except baseline)
+    --screenshots       Delete all captured screenshots
     --git               Reset git commits in storefront-next (careful!)
     --full              Full reset (all of the above)
     --help              Show this help message
@@ -193,15 +193,15 @@ if [ "$CLEAN_SCREENSHOTS" = true ]; then
     log_info "Cleaning screenshots..."
 
     if [ -d "$SCREENSHOTS_DIR" ]; then
-        # Count screenshots before deletion (exclude baseline)
-        SCREENSHOT_COUNT=$(find "$SCREENSHOTS_DIR" -name "*.png" ! -path "*/baseline/*" -type f 2>/dev/null | wc -l | tr -d ' ')
+        # Count all screenshots
+        SCREENSHOT_COUNT=$(find "$SCREENSHOTS_DIR" -name "*.png" -type f 2>/dev/null | wc -l | tr -d ' ')
 
         if [ "$SCREENSHOT_COUNT" -gt 0 ]; then
-            # Remove all screenshots except baseline
-            find "$SCREENSHOTS_DIR" -name "*.png" ! -path "*/baseline/*" -type f -delete 2>/dev/null || true
-            log_success "  → Deleted $SCREENSHOT_COUNT screenshots (kept baseline)"
+            # Remove all screenshots
+            find "$SCREENSHOTS_DIR" -name "*.png" -type f -delete 2>/dev/null || true
+            log_success "  → Deleted $SCREENSHOT_COUNT screenshots"
         else
-            log_success "  → No screenshots to delete (baseline preserved)"
+            log_success "  → No screenshots to delete"
         fi
     else
         log_success "Screenshots directory doesn't exist (skipped)"
@@ -262,7 +262,7 @@ if [ "$CLEAN_LOG" = true ]; then
 fi
 
 if [ "$CLEAN_SCREENSHOTS" = true ]; then
-    echo "  ✓ Screenshots cleaned (baseline preserved)"
+    echo "  ✓ Screenshots cleaned"
 fi
 
 if [ "$RESET_GIT" = true ]; then

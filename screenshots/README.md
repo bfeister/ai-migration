@@ -6,24 +6,25 @@ This directory contains screenshots captured during the SFRA to Storefront Next 
 
 ```
 screenshots/
-├── baseline/           # Initial SFRA screenshots (source of truth)
-├── test/              # Test screenshots from validation runs
+├── sfra-homepage-baseline.png                    # Initial SFRA homepage capture
+├── test/                                         # Test screenshots from validation runs
 └── {timestamp}-{subplan-id}-{source|target}.png  # Iteration screenshots
 ```
 
-## Baseline Screenshots
+## Screenshot Types
 
-These are reference screenshots of the SFRA site before migration begins. They serve as the visual source of truth for what we're trying to recreate in Storefront Next.
+### 1. Baseline Screenshots
 
-### Current Baselines:
+The first micro-plan captures an initial SFRA homepage screenshot that serves as the visual baseline for the migration:
 
-- **sfra-homepage-baseline.png** (2.0 MB)
+- **sfra-homepage-baseline.png**
   - URL: https://zzrf-001.dx.commercecloud.salesforce.com/s/RefArchGlobal/en_GB/home
-  - Captured: 2026-01-20
+  - Captured: During subplan-01-01 execution
   - Viewport: 1920x1080
   - Full page screenshot of SFRA homepage (UK locale)
+  - Used as reference for all subsequent homepage content changes
 
-## Iteration Screenshots
+### 2. Iteration Screenshots
 
 During migration, the system captures **dual screenshots** at each micro-iteration:
 

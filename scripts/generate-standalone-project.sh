@@ -151,17 +151,34 @@ log_success "Created temporary template repository at: $TEMP_TEMPLATE_DIR"
 
 cd "$WORKSPACE_ROOT"
 
+log_info "Packing monorepo packages to tarballs..."
+echo ""
+
+# Pack packages to tarballs (creates .tgz files with compiled binaries)
+PACK_DIR="$WORKSPACE_ROOT/.packed-packages"
+mkdir -p "$PACK_DIR"
+
+cd "$MONOREPO_PATH/packages/storefront-next-dev"
+TARBALL_DEV=$(pnpm pack --pack-destination "$PACK_DIR" 2>&1 | tail -1)
+log_success "Packed: $TARBALL_DEV"
+
+cd "$MONOREPO_PATH/packages/storefront-next-runtime"
+TARBALL_RUNTIME=$(pnpm pack --pack-destination "$PACK_DIR" 2>&1 | tail -1)
+log_success "Packed: $TARBALL_RUNTIME"
+
+cd "$WORKSPACE_ROOT"
+echo ""
+
 log_info "Running: npx create-storefront (non-interactive mode)"
 log_info "  --name: storefront-next"
 log_info "  --template: file://$TEMP_TEMPLATE_DIR"
-log_info "  --local-packages-dir: $MONOREPO_PATH/packages"
+log_info "  (No --local-packages-dir, will install from tarballs after)"
 echo ""
 
-# Generate standalone project using create-storefront with non-interactive flags
+# Generate standalone project WITHOUT --local-packages-dir
 npx "$MONOREPO_PATH/packages/storefront-next-dev" create-storefront \
     --name storefront-next \
-    --template "file://$TEMP_TEMPLATE_DIR" \
-    --local-packages-dir "$MONOREPO_PATH/packages" 2>&1 | tee /tmp/generate-standalone.log
+    --template "file://$TEMP_TEMPLATE_DIR" 2>&1 | tee /tmp/generate-standalone.log
 
 if [ $? -eq 0 ]; then
     log_success "Standalone project generation completed"
@@ -182,6 +199,7 @@ elif [ -d "$WORKSPACE_ROOT/template-retail-rsc-app" ]; then
     # Sometimes it uses the template name
     GENERATED_DIR="$WORKSPACE_ROOT/template-retail-rsc-app"
     mv "$GENERATED_DIR" "$STOREFRONT_DIR"
+    GENERATED_DIR="$STOREFRONT_DIR"
 else
     # Find most recently created directory (excluding existing ones)
     GENERATED_DIR=$(find "$WORKSPACE_ROOT" -maxdepth 1 -type d \( -name "template-*" -o -name "storefront-*" \) -newer "$SCRIPT_DIR" 2>/dev/null | head -1)
@@ -217,22 +235,58 @@ fi
 
 log_success "Generated standalone project"
 
-# Step 6: Verify dependencies installed
-if [ ! -d "$STOREFRONT_DIR/node_modules" ] || [ ! -f "$STOREFRONT_DIR/node_modules/.bin/sfnext" ]; then
-    log_warning "Dependencies not installed or incomplete, installing now..."
-    cd "$STOREFRONT_DIR"
+# Step 6: Install dependencies from tarballs (avoids file:// symlinks)
+log_info "Installing dependencies from packed tarballs..."
+log_info "This ensures no file:// symlinks to host filesystem"
+echo ""
 
-    # Check if lockfile exists
-    if [ -f "pnpm-lock.yaml" ]; then
-        log_info "Using frozen lockfile..."
-        pnpm install --frozen-lockfile
-    else
-        log_info "No lockfile found, generating new one..."
-        pnpm install
-    fi
+cd "$STOREFRONT_DIR"
 
-    cd "$WORKSPACE_ROOT"
+# Remove any existing file:// dependencies from package.json
+log_info "Cleaning package.json of file:// dependencies..."
+# Use node to safely edit JSON
+node << 'EOF'
+const fs = require('fs');
+const pkg = JSON.parse(fs.readFileSync('./package.json', 'utf8'));
+if (pkg.dependencies) {
+  for (const dep in pkg.dependencies) {
+    if (pkg.dependencies[dep].startsWith('file://')) {
+      console.log('Removing file:// dependency:', dep);
+      delete pkg.dependencies[dep];
+    }
+  }
+}
+fs.writeFileSync('./package.json', JSON.stringify(pkg, null, 2) + '\n');
+EOF
+
+# Install base dependencies
+log_info "Installing base dependencies..."
+if pnpm install; then
+    log_success "Base dependencies installed"
+else
+    log_error "Failed to install dependencies"
+    exit 1
 fi
+
+# Install @salesforce packages from tarballs
+log_info "Installing @salesforce packages from tarballs..."
+for tarball in "$PACK_DIR"/*.tgz; do
+    if [ -f "$tarball" ]; then
+        log_info "  Installing: $(basename $tarball)"
+        pnpm add "file:$tarball" || {
+            log_error "Failed to install $(basename $tarball)"
+            exit 1
+        }
+    fi
+done
+
+log_success "All dependencies installed"
+
+# Cleanup tarballs
+rm -rf "$PACK_DIR"
+
+cd "$WORKSPACE_ROOT"
+echo ""
 
 # Step 7: Verify sfnext CLI
 if [ ! -f "$STOREFRONT_DIR/node_modules/.bin/sfnext" ]; then

@@ -127,6 +127,76 @@ show_summary() {
     echo ""
 }
 
+# Validate workspace and file:// dependencies in monorepo template
+validate_file_dependencies() {
+    local TEMPLATE_PKG="$MONOREPO_PATH/packages/template-retail-rsc-app/package.json"
+
+    if [ ! -f "$TEMPLATE_PKG" ]; then
+        log_error "Template package.json not found at: $TEMPLATE_PKG"
+        exit 1
+    fi
+
+    log_info "Validating workspace and file:// dependencies..."
+
+    # Extract all workspace:* and file:// dependencies
+    local WORKSPACE_DEPS=$(node -e "
+        const pkg = require('$TEMPLATE_PKG');
+        const deps = {...pkg.dependencies, ...pkg.devDependencies};
+        for (const [name, version] of Object.entries(deps)) {
+            if (version.startsWith('workspace:') || version.startsWith('file:')) {
+                console.log(name + '|' + version);
+            }
+        }
+    " 2>/dev/null)
+
+    if [ -z "$WORKSPACE_DEPS" ]; then
+        log_warning "No workspace or file:// dependencies found in template"
+        return
+    fi
+
+    local all_valid=true
+    local dep_count=0
+
+    echo "$WORKSPACE_DEPS" | while IFS='|' read -r name version; do
+        dep_count=$((dep_count + 1))
+
+        # For workspace:* deps, look in monorepo packages/
+        # For file:// deps, resolve the path
+        local PKG_PATH=""
+
+        if [[ "$version" = workspace:* ]]; then
+            # Try to find package in monorepo
+            # Common pattern: @salesforce/storefront-next-dev → storefront-next-dev
+            local pkg_name="${name##*/}"  # Get last part after /
+            PKG_PATH="$MONOREPO_PATH/packages/$pkg_name"
+        elif [[ "$version" = file:* ]]; then
+            local path="${version#file:}"
+            local TEMPLATE_DIR="$MONOREPO_PATH/packages/template-retail-rsc-app"
+
+            if [[ "$path" = /* ]]; then
+                PKG_PATH="$path"
+            else
+                PKG_PATH=$(cd "$TEMPLATE_DIR" 2>/dev/null && cd "$path" 2>/dev/null && pwd || echo "NOT_FOUND")
+            fi
+        fi
+
+        # Check if package directory and package.json exist
+        if [ -d "$PKG_PATH" ] && [ -f "$PKG_PATH/package.json" ]; then
+            log_success "  ✓ $name ($version) → $PKG_PATH"
+        else
+            log_error "  ✗ $name ($version) → $PKG_PATH (NOT FOUND)"
+            all_valid=false
+        fi
+    done
+
+    if [ "$all_valid" = false ]; then
+        log_error "Some workspace/file dependencies are missing"
+        exit 1
+    fi
+
+    log_success "All dependencies validated"
+}
+
 # Check prerequisites
 check_prerequisites() {
     log_header "Checking Prerequisites"
@@ -181,46 +251,39 @@ check_prerequisites() {
     if [ -d "$MONOREPO_PATH" ] && [ -d "$MONOREPO_PATH/packages/storefront-next-dev" ]; then
         log_success "Found storefront monorepo at: $MONOREPO_PATH"
 
-        # Verify monorepo has built packages (needed for standalone generation)
-        if [ -f "$MONOREPO_PATH/packages/storefront-next-dev/dist/cli.js" ]; then
-            log_success "Monorepo packages built (has create-storefront CLI)"
-        else
-            log_warning "Monorepo packages not built"
-            log_info "Building monorepo (this may take 1-2 minutes)..."
-            echo ""
-
-            cd "$MONOREPO_PATH"
-            if pnpm install --frozen-lockfile && pnpm -r build; then
-                log_success "Monorepo built successfully"
-            else
-                log_error "Failed to build monorepo"
-                log_info "Run manually: cd $MONOREPO_PATH && pnpm install && pnpm -r build"
-                exit 1
-            fi
-            cd "$WORKSPACE_ROOT"
-            echo ""
-        fi
+        # Validate file:// dependencies exist in monorepo
+        validate_file_dependencies
 
         # Check if standalone project already exists
         if [ -d "$WORKSPACE_ROOT/storefront-next/node_modules" ] && \
            [ -f "$WORKSPACE_ROOT/storefront-next/node_modules/.bin/sfnext" ]; then
             log_success "Standalone storefront project already exists"
-        else
+
+            # Verify it has correct architecture (Linux binaries)
+            if docker ps -q -f name="$CONTAINER_NAME" | grep -q .; then
+                log_info "Verifying native module architecture..."
+                local rollup_check=$(docker exec -u node "$CONTAINER_NAME" sh -c \
+                    "file /workspace/storefront-next/node_modules/@rollup/rollup-linux-arm64-musl/rollup.linux-arm64-musl.node 2>/dev/null || echo 'NOT_FOUND'" || echo "ERROR")
+
+                if echo "$rollup_check" | grep -q "ELF.*aarch64"; then
+                    log_success "Native modules have correct architecture (Linux ARM64)"
+                else
+                    log_warning "Native modules may have wrong architecture"
+                    log_info "Will rebuild in container to ensure correct binaries..."
+                    rm -rf "$WORKSPACE_ROOT/storefront-next"
+                fi
+            fi
+        fi
+
+        # Generate standalone project if needed
+        if [ ! -d "$WORKSPACE_ROOT/storefront-next/node_modules" ]; then
             log_warning "Standalone project not found"
-            log_info "Generating standalone project on HOST (to avoid Docker limits)..."
+            log_info "Building monorepo and generating standalone project in container..."
+            log_info "(This ensures Linux ARM64 native modules for Docker)"
             echo ""
 
-            if [ -x "$WORKSPACE_ROOT/scripts/generate-standalone-project.sh" ]; then
-                "$WORKSPACE_ROOT/scripts/generate-standalone-project.sh" || {
-                    log_error "Failed to generate standalone project"
-                    log_info "Run manually: ./scripts/generate-standalone-project.sh"
-                    exit 1
-                }
-            else
-                log_error "Generation script not found or not executable"
-                log_info "Run manually: ./scripts/generate-standalone-project.sh"
-                exit 1
-            fi
+            # Note: Container must be running for in-container build
+            # This will be called after start_container() if needed
             echo ""
         fi
     else
@@ -277,6 +340,39 @@ start_container() {
 
     log_success "Container ready"
     echo ""
+
+    # Generate standalone project if needed (must happen after container starts)
+    if [ ! -d "$WORKSPACE_ROOT/storefront-next/node_modules" ]; then
+        log_info "Generating standalone project with in-container build..."
+        echo ""
+
+        # Step 1: Build monorepo inside container (Linux binaries)
+        if [ -x "$SCRIPT_DIR/build-in-container.sh" ]; then
+            "$SCRIPT_DIR/build-in-container.sh" "$CONTAINER_NAME" || {
+                log_error "Failed to build monorepo in container"
+                exit 1
+            }
+        else
+            log_error "build-in-container.sh not found or not executable"
+            exit 1
+        fi
+
+        echo ""
+
+        # Step 2: Generate standalone from container-built packages
+        if [ -x "$SCRIPT_DIR/generate-standalone-in-container.sh" ]; then
+            "$SCRIPT_DIR/generate-standalone-in-container.sh" "$CONTAINER_NAME" || {
+                log_error "Failed to generate standalone project in container"
+                exit 1
+            }
+        else
+            log_error "generate-standalone-in-container.sh not found or not executable"
+            exit 1
+        fi
+
+        log_success "Standalone project generated with Linux ARM64 binaries"
+        echo ""
+    fi
 }
 
 # Launch migration loop
@@ -289,7 +385,7 @@ launch_migration_loop() {
 
     # Launch Claude Code in background
     docker exec -u node "$CONTAINER_NAME" bash -c \
-        "cd /workspace && claude code run --dangerously-skip-permissions < migration-main-plan.md > /tmp/migration-loop.log 2>&1" &
+        "cd /workspace && claude code run --dangerously-skip-permissions < migration-main-plan.md 2>&1 | tee /workspace/claude-output.log" &
 
     LOOP_PID=$!
 
