@@ -13,7 +13,7 @@ Single change: Adjust overall page spacing and section gaps to match SFRA rhythm
 Previous steps improved hero and featured products sections. Now focus on overall page layout spacing.
 
 ## Files to Modify
-- `storefront-next/packages/template-retail-rsc-app/src/routes/_index.tsx`
+- `storefront-next/src/routes/_index.tsx`
 
 ## Specific Change
 Based on SFRA baseline comparison, adjust ONE of the following:

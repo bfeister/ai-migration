@@ -45,8 +45,8 @@ out/
 # Migration Framework Runtime Files
 # ============================================================================
 
-# Migration logs (runtime generated)
-migration-log.md
+# Migration log backups (exclude from git)
+migration-log-backup-*.md
 
 # Intervention protocol (runtime communication files)
 intervention/needed.json
@@ -148,3 +148,5 @@ logs/
 # Debug files
 debug/
 *.debug
+
+storefront-next/

@@ -13,7 +13,7 @@ Single change: Adjust featured products section styling to better match SFRA bas
 Previous step improved hero section. Now focus on the featured products area.
 
 ## Files to Modify
-- `storefront-next/packages/template-retail-rsc-app/src/components/product-carousel/index.tsx` (or similar)
+- `storefront-next/src/components/product-carousel/index.tsx` (or similar)
 - OR adjust featured products section in `_index.tsx`
 
 ## Specific Change

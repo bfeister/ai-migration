@@ -69,6 +69,7 @@ if [ -d "/workspace/mcp-server" ]; then
         log_info "Building MCP server in container..."
         cd /workspace/mcp-server
 
+        # Note: node_modules permissions are fixed by pre-entrypoint.sh
         # Note: node_modules is excluded from volume mount, so we need to install
         log_info "Installing MCP server dependencies..."
         if pnpm install; then
@@ -132,17 +133,40 @@ fi
 
 log_info "Setting up Playwright dependencies..."
 
-# Install dependencies in storefront-next for Playwright support
+# Check storefront-next dependencies
 if [ -d "/workspace/storefront-next" ]; then
-    log_info "Installing storefront-next dependencies..."
     cd /workspace/storefront-next
 
-    # Install root dependencies
-    if pnpm install --frozen-lockfile; then
-        log_success "Storefront Next dependencies installed"
+    # Check if dependencies are already installed (from host)
+    if [ -d "node_modules" ] && [ -f "node_modules/.modules.yaml" ]; then
+        log_success "Storefront Next dependencies already installed (from host)"
     else
-        log_error "Failed to install storefront-next dependencies"
-        log_warning "Screenshot capture may not work properly"
+        log_warning "Storefront Next dependencies not found"
+        log_info "Installing dependencies in container (may hit file limits)..."
+
+        # Note: node_modules permissions are fixed by pre-entrypoint.sh
+        # Attempt install, but don't fail if it hits ENFILE error
+        if pnpm install --frozen-lockfile 2>&1; then
+            log_success "Storefront Next dependencies installed"
+        else
+            log_error "Failed to install storefront-next dependencies"
+            log_warning "Recommendation: Run './scripts/setup-storefront-dependencies.sh' on host"
+            log_warning "Screenshot capture may not work properly"
+        fi
+    fi
+
+    # Configure .env for template-retail-rsc-app if needed
+    APP_DIR="/workspace/storefront-next/packages/template-retail-rsc-app"
+    if [ -d "$APP_DIR" ]; then
+        if [ ! -f "$APP_DIR/.env" ] && [ -f "$APP_DIR/.env.default" ]; then
+            log_info "Creating .env from .env.default for template-retail-rsc-app..."
+            cp "$APP_DIR/.env.default" "$APP_DIR/.env"
+            log_success "Created .env file for dev server"
+        elif [ -f "$APP_DIR/.env" ]; then
+            log_success ".env file already exists for template-retail-rsc-app"
+        else
+            log_warning "No .env or .env.default found in template-retail-rsc-app"
+        fi
     fi
 
     cd /workspace

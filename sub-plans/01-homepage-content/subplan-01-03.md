@@ -13,7 +13,7 @@ Single change: Adjust hero section styling to better match SFRA baseline appeara
 Previous steps documented SFRA baseline and current Storefront Next implementation. This step makes the first targeted improvement to the hero section based on visual comparison.
 
 ## Files to Modify
-- `storefront-next/packages/template-retail-rsc-app/src/components/hero-carousel/index.tsx` (or similar)
+- `storefront-next/src/components/hero-carousel/index.tsx` (or similar)
 - OR adjust styling in `_index.tsx` hero section
 
 ## Specific Change

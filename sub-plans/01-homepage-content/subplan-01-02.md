@@ -10,10 +10,10 @@
 Single task: Document the existing Storefront Next homepage structure and compare to SFRA baseline.
 
 ## Context
-Previous step (subplan-01-01) analyzed the SFRA baseline. Now we need to understand what already exists in Storefront Next before making any changes. The homepage is at `storefront-next/packages/template-retail-rsc-app/src/routes/_index.tsx`.
+Previous step (subplan-01-01) analyzed the SFRA baseline. Now we need to understand what already exists in Storefront Next before making any changes. The homepage is at `storefront-next/src/routes/_index.tsx`.
 
 ## File to Read
-`storefront-next/packages/template-retail-rsc-app/src/routes/_index.tsx`
+`storefront-next/src/routes/_index.tsx`
 
 ## Specific Change
 **No code changes in this step.** This is a documentation task.
