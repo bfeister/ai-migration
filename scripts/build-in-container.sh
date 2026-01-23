@@ -59,7 +59,7 @@ rm -rf "$TEMP_COPY"
 mkdir -p "$TEMP_COPY"
 
 # Copy monorepo excluding node_modules and other unnecessary directories
-log_info "Creating clean copy of monorepo (excluding node_modules, .pnpm-store, dist)..."
+log_info "Creating clean copy of monorepo (excluding node_modules, .pnpm-store, dist, coverage)..."
 rsync -a \
     --exclude='node_modules' \
     --exclude='.pnpm-store' \
@@ -67,6 +67,10 @@ rsync -a \
     --exclude='dist' \
     --exclude='build' \
     --exclude='.next' \
+    --exclude='coverage' \
+    --exclude='.nyc_output' \
+    --exclude='test-results' \
+    --exclude='playwright-report' \
     "$MONOREPO_PATH/" "$TEMP_COPY/"
 
 # Copy to container

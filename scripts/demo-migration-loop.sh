@@ -27,6 +27,7 @@ CONTAINER_NAME="claude-migration-demo"
 MIGRATION_LOG="$WORKSPACE_ROOT/migration-log.md"
 INTERVENTION_DIR="$WORKSPACE_ROOT/intervention"
 SCREENSHOTS_DIR="$WORKSPACE_ROOT/screenshots"
+SESSION_ID_FILE="$WORKSPACE_ROOT/.claude-session-id"
 
 # Flags
 CLEAN_START=false
@@ -35,6 +36,7 @@ STOP_ON_EXIT=false
 # State tracking
 LOOP_PID=""
 MONITOR_PID=""
+CLAUDE_SESSION_ID=""
 START_TIME=$(date +%s)
 
 # Parse command line arguments
@@ -94,7 +96,24 @@ log_intervention() {
 
 # Cleanup function
 cleanup() {
+    # Prevent re-entry
+    if [ "${CLEANUP_IN_PROGRESS:-}" = "true" ]; then
+        return
+    fi
+    CLEANUP_IN_PROGRESS=true
+
+    echo ""
     log_info "Cleaning up..."
+
+    # Kill the docker exec process running Claude
+    if [ -n "$LOOP_PID" ] && kill -0 "$LOOP_PID" 2>/dev/null; then
+        log_info "Stopping Claude Code process..."
+        kill "$LOOP_PID" 2>/dev/null || true
+        # Wait a moment for graceful shutdown
+        sleep 1
+        # Force kill if still running
+        kill -9 "$LOOP_PID" 2>/dev/null || true
+    fi
 
     # Kill monitoring processes
     if [ -n "$MONITOR_PID" ] && kill -0 "$MONITOR_PID" 2>/dev/null; then
@@ -114,9 +133,21 @@ cleanup() {
 
     # Show summary
     show_summary
+
+    # Ensure we exit on SIGINT
+    if [ "${1:-}" = "INT" ]; then
+        exit 130  # Standard exit code for SIGINT
+    fi
 }
 
-trap cleanup EXIT INT TERM
+# Handle signals explicitly
+handle_sigint() {
+    cleanup INT
+    exit 130
+}
+
+trap cleanup EXIT
+trap handle_sigint INT TERM
 
 # Summary function
 show_summary() {
@@ -151,6 +182,12 @@ show_summary() {
     echo -e "${MAGENTA}Interventions Requested:${NC} $intervention_count"
     echo -e "${CYAN}Total Duration:${NC} ${minutes}m ${seconds}s"
     echo ""
+
+    if [ -n "$CLAUDE_SESSION_ID" ]; then
+        echo -e "${YELLOW}Claude Session ID:${NC} $CLAUDE_SESSION_ID"
+        log_info "Resume with: docker exec -it -u node $CONTAINER_NAME claude -r $CLAUDE_SESSION_ID"
+        echo ""
+    fi
 
     if [ -f "$MIGRATION_LOG" ]; then
         log_info "View migration log: $MIGRATION_LOG"
@@ -346,12 +383,15 @@ start_container() {
         # Check if container exists and is running (reuse it)
         if docker ps -q -f name="$CONTAINER_NAME" | grep -q .; then
             log_success "Container already running, reusing: $CONTAINER_NAME"
-            return 0
+            # Continue to setup checks below (don't return early)
         elif docker ps -a -q -f name="$CONTAINER_NAME" | grep -q .; then
             log_info "Container exists but is stopped, removing and recreating"
             docker rm -f "$CONTAINER_NAME" >/dev/null 2>&1 || true
         fi
     fi
+
+    # Only start new container if one isn't already running
+    if ! docker ps -q -f name="$CONTAINER_NAME" | grep -q .; then
 
     # Ensure directories exist
     mkdir -p "$SCREENSHOTS_DIR" "$INTERVENTION_DIR/history"
@@ -367,6 +407,7 @@ start_container() {
         --name "$CONTAINER_NAME" \
         --env-file "$WORKSPACE_ROOT/.env" \
         --network host \
+        --ulimit nofile=65535:65535 \
         -v "$WORKSPACE_ROOT:/workspace" \
         -w /workspace \
         "$DOCKER_IMAGE" \
@@ -378,47 +419,75 @@ start_container() {
     log_info "Waiting for container initialization..."
     sleep 5
 
-    # Verify container is running
-    if ! docker ps -q -f name="$CONTAINER_NAME" | grep -q .; then
-        log_error "Container failed to start"
-        docker logs "$CONTAINER_NAME" 2>&1 | tail -20
-        exit 1
-    fi
+        # Verify container is running
+        if ! docker ps -q -f name="$CONTAINER_NAME" | grep -q .; then
+            log_error "Container failed to start"
+            docker logs "$CONTAINER_NAME" 2>&1 | tail -20
+            exit 1
+        fi
+    fi  # End of container creation block
 
     log_success "Container ready"
     echo ""
 
+    # Check if monorepo is built inside container
+    local monorepo_built=false
+    if docker exec -u node "$CONTAINER_NAME" test -f /tmp/SFCC-Odyssey/packages/storefront-next-dev/dist/cli.js 2>/dev/null; then
+        monorepo_built=true
+        log_success "Monorepo already built in container at /tmp/SFCC-Odyssey"
+    fi
+
     # Generate standalone project if needed (must happen after container starts)
-    if [ ! -d "$WORKSPACE_ROOT/storefront-next/node_modules" ]; then
-        log_info "Generating standalone project with in-container build..."
+    if [ ! -d "$WORKSPACE_ROOT/storefront-next/node_modules" ] || [ "$monorepo_built" = false ]; then
+        if [ "$monorepo_built" = false ]; then
+            log_info "Building monorepo in container (not found at /tmp/SFCC-Odyssey)..."
+        else
+            log_info "Generating standalone project with in-container build..."
+        fi
         echo ""
 
-        # Step 1: Build monorepo inside container (Linux binaries)
-        if [ -x "$SCRIPT_DIR/build-in-container.sh" ]; then
-            "$SCRIPT_DIR/build-in-container.sh" "$CONTAINER_NAME" || {
-                log_error "Failed to build monorepo in container"
+        # Step 1: Build monorepo inside container (Linux binaries) if not already built
+        if [ "$monorepo_built" = false ]; then
+            if [ -x "$SCRIPT_DIR/build-in-container.sh" ]; then
+                "$SCRIPT_DIR/build-in-container.sh" "$CONTAINER_NAME" || {
+                    log_error "Failed to build monorepo in container"
+                    exit 1
+                }
+            else
+                log_error "build-in-container.sh not found or not executable"
                 exit 1
-            }
-        else
-            log_error "build-in-container.sh not found or not executable"
-            exit 1
+            fi
+            echo ""
         fi
 
-        echo ""
-
-        # Step 2: Generate standalone from container-built packages
-        if [ -x "$SCRIPT_DIR/generate-standalone-in-container.sh" ]; then
-            "$SCRIPT_DIR/generate-standalone-in-container.sh" "$CONTAINER_NAME" || {
-                log_error "Failed to generate standalone project in container"
+        # Step 2: Generate standalone from container-built packages (if storefront-next missing)
+        if [ ! -d "$WORKSPACE_ROOT/storefront-next/node_modules" ]; then
+            if [ -x "$SCRIPT_DIR/generate-standalone-in-container.sh" ]; then
+                "$SCRIPT_DIR/generate-standalone-in-container.sh" "$CONTAINER_NAME" || {
+                    log_error "Failed to generate standalone project in container"
+                    exit 1
+                }
+            else
+                log_error "generate-standalone-in-container.sh not found or not executable"
                 exit 1
-            }
-        else
-            log_error "generate-standalone-in-container.sh not found or not executable"
-            exit 1
-        fi
+            fi
 
-        log_success "Standalone project generated with Linux ARM64 binaries"
-        echo ""
+            log_success "Standalone project generated with Linux ARM64 binaries"
+            echo ""
+        else
+            log_success "Standalone project already exists, checking dependencies..."
+
+            # Reinstall dependencies to ensure they're complete and symlinks are valid
+            log_info "Running pnpm install to refresh dependencies..."
+            docker exec -u node "$CONTAINER_NAME" bash -c "cd /workspace/storefront-next && pnpm install" 2>&1 | tail -10
+
+            if [ $? -eq 0 ]; then
+                log_success "Dependencies refreshed successfully"
+            else
+                log_warning "Dependency refresh had issues, but continuing..."
+            fi
+            echo ""
+        fi
     fi
 }
 
@@ -426,27 +495,93 @@ start_container() {
 launch_migration_loop() {
     log_header "Launching Migration Loop"
 
+    # Generate unique session ID (UUID v4) inside container using /dev/urandom
+    CLAUDE_SESSION_ID=$(docker exec -u node "$CONTAINER_NAME" bash -c '
+        printf "%s-%s-%s-%s-%s\n" \
+            $(head -c 4 /dev/urandom | xxd -p) \
+            $(head -c 2 /dev/urandom | xxd -p) \
+            $(head -c 2 /dev/urandom | xxd -p) \
+            $(head -c 2 /dev/urandom | xxd -p) \
+            $(head -c 6 /dev/urandom | xxd -p)
+    ' | tr -d '\r\n')
+
+    # Save session ID to file for persistence
+    echo "$CLAUDE_SESSION_ID" > "$SESSION_ID_FILE"
+
+    log_info "Claude session ID: $CLAUDE_SESSION_ID"
+    log_info "Saved to: $SESSION_ID_FILE"
+    echo ""
+
     log_info "Starting Claude Code with migration-main-plan.md"
     log_info "Claude will read the plan and begin executing micro-plans..."
     echo ""
 
-    # Launch Claude Code in background
+    # Launch Claude Code in background with explicit session ID
     docker exec -u node "$CONTAINER_NAME" bash -c \
-        "cd /workspace && claude code run --dangerously-skip-permissions < migration-main-plan.md 2>&1 | tee /workspace/claude-output.log" &
+        "cd /workspace && claude code run --session-id $CLAUDE_SESSION_ID --dangerously-skip-permissions < migration-main-plan.md 2>&1 | tee /workspace/claude-output.log" &
 
     LOOP_PID=$!
 
     sleep 3
 
-    # Verify Claude Code is running
-    if ! docker exec -u node "$CONTAINER_NAME" pgrep -f "claude" >/dev/null 2>&1; then
-        log_error "Claude Code failed to start"
-        docker exec -u node "$CONTAINER_NAME" cat /tmp/migration-loop.log 2>/dev/null || true
+    # Verify Claude Code started (wait for session file to be created)
+    local startup_attempts=0
+    while [ $startup_attempts -lt 5 ]; do
+        local startup_status=$(get_session_status "$CLAUDE_SESSION_ID")
+        if [ "$startup_status" = "active" ]; then
+            break
+        fi
+        sleep 1
+        startup_attempts=$((startup_attempts + 1))
+    done
+
+    local final_status=$(get_session_status "$CLAUDE_SESSION_ID")
+    if [ "$final_status" != "active" ]; then
+        log_error "Claude Code failed to start (Status: $final_status)"
+        docker exec -u node "$CONTAINER_NAME" cat /workspace/claude-output.log 2>/dev/null | tail -50 || true
         exit 1
     fi
 
-    log_success "Migration loop started (PID: $LOOP_PID)"
+    log_success "Migration loop started (PID: $LOOP_PID, Session: $CLAUDE_SESSION_ID)"
+    log_info "To resume this session: docker exec -u node $CONTAINER_NAME claude -r $CLAUDE_SESSION_ID"
     echo ""
+}
+
+# Query Claude session status by parsing session file
+# Returns: "active", "waiting", "completed", "not_found"
+get_session_status() {
+    local session_id="$1"
+
+    # Find the session file in ~/.claude/projects/
+    local session_file=$(docker exec -u node "$CONTAINER_NAME" bash -c "
+        find ~/.claude/projects -name '${session_id}.jsonl' -type f 2>/dev/null | head -1
+    " 2>/dev/null)
+
+    if [ -z "$session_file" ]; then
+        echo "not_found"
+        return
+    fi
+
+    # Check if Claude process is running
+    if docker exec -u node "$CONTAINER_NAME" pgrep -f "claude.*${session_id}" >/dev/null 2>&1; then
+        echo "active"
+        return
+    fi
+
+    # Parse last few lines of JSONL to determine state
+    local last_message=$(docker exec -u node "$CONTAINER_NAME" bash -c "
+        tail -5 '${session_file}' | grep -o '\"role\":\"[^\"]*\"' | tail -1
+    " 2>/dev/null)
+
+    if echo "$last_message" | grep -q '"role":"assistant"'; then
+        # Last message was from assistant, likely waiting for user
+        echo "waiting"
+    elif echo "$last_message" | grep -q '"role":"user"'; then
+        # Last message was from user, might be processing or completed
+        echo "completed"
+    else
+        echo "waiting"
+    fi
 }
 
 # Monitor migration log
@@ -503,9 +638,28 @@ monitor_migration_log() {
         # Check for interventions
         check_interventions
 
-        # Check if Claude Code is still running
-        if ! docker exec -u node "$CONTAINER_NAME" pgrep -f "claude" >/dev/null 2>&1; then
-            log_info "Migration loop has completed or stopped"
+        # Check Claude session status
+        local session_status=$(get_session_status "$CLAUDE_SESSION_ID")
+
+        if [ "$session_status" != "active" ]; then
+            echo ""
+            log_warning "Claude Code has exited (Status: $session_status)"
+            log_info "Session ID: $CLAUDE_SESSION_ID"
+            echo ""
+
+            if [ "$session_status" = "waiting" ]; then
+                log_info "Session is waiting for input or intervention"
+            elif [ "$session_status" = "completed" ]; then
+                log_info "Session appears to be completed"
+            fi
+
+            echo ""
+            log_info "To resume this session, run:"
+            echo -e "${CYAN}  docker exec -it -u node $CONTAINER_NAME claude -r $CLAUDE_SESSION_ID${NC}"
+            echo ""
+            log_info "Or interactively view all sessions:"
+            echo -e "${CYAN}  docker exec -it -u node $CONTAINER_NAME claude -r${NC}"
+            echo ""
             break
         fi
 
@@ -591,11 +745,54 @@ EOF
 main() {
     log_header "Migration Loop Demo - Automated Execution"
     echo ""
+
+    # Check for existing session ID
+    if [ -f "$SESSION_ID_FILE" ] && [ "$CLEAN_START" != true ]; then
+        EXISTING_SESSION=$(cat "$SESSION_ID_FILE" 2>/dev/null | tr -d '\r\n')
+        if [ -n "$EXISTING_SESSION" ]; then
+            echo -e "${YELLOW}Found existing Claude session: $EXISTING_SESSION${NC}"
+            echo ""
+            echo "Options:"
+            echo "  1. Resume existing session"
+            echo "  2. Start new session (will overwrite)"
+            echo ""
+            read -p "Choose [1/2]: " choice
+            if [ "$choice" = "1" ]; then
+                log_info "To resume manually, run:"
+                echo -e "${CYAN}  docker exec -it -u node $CONTAINER_NAME claude -r $EXISTING_SESSION${NC}"
+                exit 0
+            else
+                log_info "Starting new session (old session ID will be overwritten)"
+            fi
+            echo ""
+        fi
+    fi
+
+    # Clean session ID file if --clean flag
+    if [ "$CLEAN_START" = true ] && [ -f "$SESSION_ID_FILE" ]; then
+        log_info "Removing old session ID file (--clean flag)"
+        rm -f "$SESSION_ID_FILE"
+    fi
+
     echo "This script will:"
-    echo "  1. Start Docker container with Claude Code + Playwright"
+    echo "  1. Start/reuse Docker container with Claude Code + Playwright"
     echo "  2. Launch migration loop with migration-main-plan.md"
     echo "  3. Monitor progress and handle interventions"
     echo "  4. Show summary when complete"
+    echo ""
+
+    if [ "$CLEAN_START" = true ]; then
+        echo -e "${YELLOW}Mode: Clean start (removing existing container)${NC}"
+    else
+        echo -e "${GREEN}Mode: Reuse existing container if available${NC}"
+    fi
+
+    if [ "$STOP_ON_EXIT" = true ]; then
+        echo -e "${YELLOW}Cleanup: Container will be stopped on exit${NC}"
+    else
+        echo -e "${GREEN}Cleanup: Container will remain running (faster restarts)${NC}"
+    fi
+
     echo ""
     read -p "Press Enter to continue, or Ctrl+C to cancel..."
     echo ""

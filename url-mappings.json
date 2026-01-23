@@ -1,5 +1,5 @@
 {
-  "version": "1.0",
+  "version": "2.0",
   "description": "URL mappings for SFRA to Storefront Next migration screenshot capture",
   "default_target_url": "http://localhost:5173",
   "mappings": [
@@ -12,9 +12,15 @@
         "width": 1920,
         "height": 1080
       },
-      "dismiss_consent": true,
-      "consent_button_selector": "button.affirm",
-      "notes": "Homepage URL (UK locale), full viewport to capture hero section. Auto-dismisses tracking consent modal. Baseline: screenshots/baseline/sfra-homepage-baseline.png"
+      "source_config": {
+        "dismiss_consent": true,
+        "consent_button_selector": "button.affirm"
+      },
+      "target_config": {
+        "dismiss_consent": true,
+        "consent_button_selector": "button:has-text('Accept')"
+      },
+      "notes": "Homepage URL (UK locale), full viewport to capture hero section. Auto-dismisses tracking consent modal."
     },
     {
       "feature_id": "02-homepage-featured",
@@ -25,8 +31,16 @@
         "width": 1920,
         "height": 1080
       },
-      "dismiss_consent": true,
-      "scroll_to_selector": ".featured-products",
+      "source_config": {
+        "dismiss_consent": true,
+        "consent_button_selector": "button.affirm",
+        "scroll_to_selector": ".featured-products"
+      },
+      "target_config": {
+        "dismiss_consent": true,
+        "consent_button_selector": "button:has-text('Accept')",
+        "scroll_to_selector": ".featured-products"
+      },
       "notes": "Same homepage URL, scroll to featured section before screenshot"
     },
     {
@@ -38,7 +52,16 @@
         "width": 1920,
         "height": 1080
       },
-      "wait_for_selector": ".product-tile",
+      "source_config": {
+        "dismiss_consent": true,
+        "consent_button_selector": "button.affirm",
+        "wait_for_selector": ".product-tile"
+      },
+      "target_config": {
+        "dismiss_consent": true,
+        "consent_button_selector": "button:has-text('Accept')",
+        "wait_for_selector": ".product-tile"
+      },
       "notes": "Product search results page to show tiles"
     },
     {
@@ -50,12 +73,25 @@
         "width": 1920,
         "height": 200
       },
-      "dismiss_consent": true,
-      "crop": {
-        "x": 0,
-        "y": 0,
-        "width": 1920,
-        "height": 200
+      "source_config": {
+        "dismiss_consent": true,
+        "consent_button_selector": "button.affirm",
+        "crop": {
+          "x": 0,
+          "y": 0,
+          "width": 1920,
+          "height": 200
+        }
+      },
+      "target_config": {
+        "dismiss_consent": true,
+        "consent_button_selector": "button:has-text('Accept')",
+        "crop": {
+          "x": 0,
+          "y": 0,
+          "width": 1920,
+          "height": 200
+        }
       },
       "notes": "Crop to just navbar area at top of page"
     },
@@ -68,8 +104,16 @@
         "width": 1920,
         "height": 1080
       },
-      "dismiss_consent": true,
-      "scroll_to": "bottom",
+      "source_config": {
+        "dismiss_consent": true,
+        "consent_button_selector": "button.affirm",
+        "scroll_to": "bottom"
+      },
+      "target_config": {
+        "dismiss_consent": true,
+        "consent_button_selector": "button:has-text('Accept')",
+        "scroll_to": "bottom"
+      },
       "notes": "Scroll to bottom to capture footer"
     }
   ]

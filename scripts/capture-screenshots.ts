@@ -67,36 +67,29 @@ async function captureScreenshot(options: CaptureOptions): Promise<void> {
     await page.goto(url, { waitUntil: 'networkidle' });
     console.log(`[Screenshot] Page loaded`);
 
-    // Dismiss consent modal if requested (default: true for SFRA sites)
-    const shouldDismissConsent = mapping?.dismiss_consent !== false; // Default to true
-    if (shouldDismissConsent) {
-      console.log(`[Screenshot] Checking for consent modal...`);
+    // Dismiss consent modal if requested and selector provided
+    const shouldDismissConsent = mapping?.dismiss_consent === true;
+    const consentSelector = mapping?.consent_button_selector;
 
-      // Try custom selector first, then common SFRA consent button patterns
-      const consentSelectors = [
-        mapping?.consent_button_selector,
-        'button.affirm', // SFRA consent "Yes" button
-        'button:has-text("Yes")',
-        '.modal-footer button.affirm',
-        '[data-action="consent.submit"]'
-      ].filter(Boolean) as string[];
+    if (shouldDismissConsent && consentSelector) {
+      console.log(`[Screenshot] Checking for consent modal with selector: ${consentSelector}`);
 
-      for (const selector of consentSelectors) {
-        try {
-          const button = await page.locator(selector).first();
-          if (await button.isVisible({ timeout: 2000 })) {
-            console.log(`[Screenshot] Found consent button: ${selector}`);
-            await button.click();
-            console.log(`[Screenshot] ✅ Consent dismissed`);
-            // Wait a moment for modal to close
-            await page.waitForTimeout(1000);
-            break;
-          }
-        } catch (error) {
-          // Button not found or not visible, try next selector
-          continue;
+      try {
+        const button = await page.locator(consentSelector).first();
+        if (await button.isVisible({ timeout: 3000 })) {
+          console.log(`[Screenshot] Found consent button, clicking...`);
+          await button.click();
+          console.log(`[Screenshot] ✅ Consent dismissed`);
+          // Wait a moment for modal to close
+          await page.waitForTimeout(1000);
+        } else {
+          console.log(`[Screenshot] Consent button not visible, skipping`);
         }
+      } catch (error) {
+        console.log(`[Screenshot] Consent button not found (selector: ${consentSelector}), skipping`);
       }
+    } else if (shouldDismissConsent && !consentSelector) {
+      console.warn(`[Screenshot] ⚠️  dismiss_consent is true but no consent_button_selector provided`);
     }
 
     // Wait for specific selector if provided

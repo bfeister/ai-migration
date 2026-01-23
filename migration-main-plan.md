@@ -118,17 +118,39 @@ SUBPLAN_ID="subplan-{XX}-{YY}"  # Replace with actual subplan ID
 # Update target URL with detected port
 TARGET_URL_WITH_PORT=$(echo "$TARGET_URL" | sed "s/:5173/:$PORT/")
 
-# Capture SFRA source screenshot
+# Extract source config (SFRA) - merge viewport + source_config
+SOURCE_MAPPING=$(echo "$MAPPING" | jq '{
+  viewport: .viewport,
+  dismiss_consent: .source_config.dismiss_consent,
+  consent_button_selector: .source_config.consent_button_selector,
+  wait_for_selector: .source_config.wait_for_selector,
+  scroll_to_selector: .source_config.scroll_to_selector,
+  scroll_to: .source_config.scroll_to,
+  crop: .source_config.crop
+}')
+
+# Extract target config (Storefront Next) - merge viewport + target_config
+TARGET_MAPPING=$(echo "$MAPPING" | jq '{
+  viewport: .viewport,
+  dismiss_consent: .target_config.dismiss_consent,
+  consent_button_selector: .target_config.consent_button_selector,
+  wait_for_selector: .target_config.wait_for_selector,
+  scroll_to_selector: .target_config.scroll_to_selector,
+  scroll_to: .target_config.scroll_to,
+  crop: .target_config.crop
+}')
+
+# Capture SFRA source screenshot with source config
 tsx /workspace/scripts/capture-screenshots.ts \
   "$SFRA_URL" \
   "/workspace/screenshots/${TIMESTAMP}-${SUBPLAN_ID}-source.png" \
-  --mapping "$MAPPING"
+  --mapping "$SOURCE_MAPPING"
 
-# Capture Storefront Next target screenshot
+# Capture Storefront Next target screenshot with target config
 tsx /workspace/scripts/capture-screenshots.ts \
   "$TARGET_URL_WITH_PORT" \
   "/workspace/screenshots/${TIMESTAMP}-${SUBPLAN_ID}-target.png" \
-  --mapping "$MAPPING"
+  --mapping "$TARGET_MAPPING"
 
 # Stop dev server
 kill $DEV_PID

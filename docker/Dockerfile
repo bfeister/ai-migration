@@ -20,7 +20,7 @@ ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
 ENV PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium-browser
 
 # Enable and configure pnpm
-RUN corepack enable && corepack prepare pnpm@10.26.1 --activate
+RUN corepack enable && corepack prepare pnpm@10.28.1 --activate
 
 # Install Claude Code CLI
 RUN npm install -g @anthropic-ai/claude-code
