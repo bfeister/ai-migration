@@ -55,16 +55,16 @@ fi
 log_success "Environment validated - container ready"
 
 # ============================================================================
-# Phase 2: MCP Intervention Server Setup
+# Phase 2: MCP Migration Tools Server Setup
 # ============================================================================
 
-log_info "Setting up MCP Intervention Server..."
+log_info "Setting up MCP Migration Tools Server..."
 
 # Build MCP server
 if [ -d "/workspace/mcp-server" ]; then
     # Check if already built (dist/ exists from host build via volume mount)
-    if [ -f "/workspace/mcp-server/dist/intervention-server.js" ]; then
-        log_success "MCP server already built (found dist/intervention-server.js)"
+    if [ -f "/workspace/mcp-server/dist/migration-server.js" ]; then
+        log_success "MCP server already built (found dist/migration-server.js)"
     else
         log_info "Building MCP server in container..."
         cd /workspace/mcp-server
@@ -104,9 +104,9 @@ mkdir -p ~/.config/claude-code
 cat > ~/.config/claude-code/mcp.json <<'EOF'
 {
   "mcpServers": {
-    "intervention": {
+    "migration-tools": {
       "command": "node",
-      "args": ["/workspace/mcp-server/dist/intervention-server.js"],
+      "args": ["/workspace/mcp-server/dist/migration-server.js"],
       "env": {
         "WORKSPACE_ROOT": "/workspace",
         "INTERVENTION_DIR": "/workspace/intervention"
@@ -118,7 +118,14 @@ EOF
 
 if [ -f ~/.config/claude-code/mcp.json ]; then
     log_success "Claude Code MCP configuration created"
-    log_info "MCP server will provide AskUserQuestion tool to Claude"
+    log_info "MCP server will provide migration tools to Claude:"
+    log_info "  - RequestUserIntervention (interventions)"
+    log_info "  - LogMigrationProgress (logging)"
+    log_info "  - ValidateDevServer (Phase 2)"
+    log_info "  - CaptureDualScreenshots (Phase 3)"
+    log_info "  - CommitMigrationProgress (Phase 4)"
+    log_info "  - GetNextMicroPlan (Phase 4)"
+    log_info "  - ParseURLMapping (Phase 3)"
 else
     log_error "Failed to create MCP configuration"
 fi

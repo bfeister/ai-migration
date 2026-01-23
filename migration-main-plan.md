@@ -14,17 +14,10 @@ Read `/workspace/migration-log.md` and extract the **last 5 log entries** to und
 - Current momentum and patterns
 - Any user intervention responses
 
-**If the log file doesn't exist, create it with this header:**
-```markdown
-# Migration Progress Log
-
-**Started:** {current_timestamp}
-**Status:** 🔄 In Progress
-**Completed Micro-Plans:** 0 / TBD
-**Current Feature:** TBD
-
----
-```
+**If the log file doesn't exist:**
+- Don't worry, the `LogMigrationProgress` tool will auto-initialize it on first use
+- Simply proceed to execute the first micro-plan
+- The tool will create the file with proper header formatting
 
 ### 2. Load URL Mapping Configuration
 
@@ -194,37 +187,62 @@ Screenshots:
 
 ### 8. Progress Logging
 
-Append the following to `/workspace/migration-log.md`:
+**Use the MCP LogMigrationProgress tool** to log this iteration to `/workspace/migration-log.md`.
 
-```markdown
----
-## [{timestamp}] subplan-{XX}-{YY}: {Title}
-**Status:** ✅ Success | ❌ Failed | ⏸️ Awaiting Intervention
-**Feature:** {feature_id} ({feature_name})
-**Changes:**
-- {Specific change 1}
-- {Specific change 2}
+**For successful iterations:**
 
-**URLs:**
-- SFRA Source: {sfra_url}
-- Storefront Next Target: {target_url_with_port}
+Use the `LogMigrationProgress` tool with these parameters:
+- `subplan_id`: The subplan identifier (e.g., "01-02" or "subplan-01-02" - will be normalized)
+- `status`: "success"
+- `summary`: One-sentence description of what was implemented (e.g., "Implemented hero section layout matching SFRA baseline")
+- `source_screenshot_url`: The SFRA URL that was captured (from url-mappings.json)
+- `target_screenshot_url`: The Storefront Next URL (e.g., "http://localhost:5173")
+- `commit_sha`: The git commit hash from step 7
+- `duration_seconds`: (Optional) Time spent on this iteration in seconds
 
-**Validation:**
-- Dev Server: ✅ Started (port {port}) | ❌ Failed
-- Screenshots:
-  - Source: `screenshots/{timestamp}-{subplan-id}-source.png`
-  - Target: `screenshots/{timestamp}-{subplan-id}-target.png`
-- Commit: `{git_commit_hash}`
-
-**Notes:** {Any relevant observations or issues}
----
+**Example:**
+```javascript
+await mcp__LogMigrationProgress({
+  subplan_id: "01-02",
+  status: "success",
+  summary: "Implemented hero section layout matching SFRA baseline",
+  source_screenshot_url: "https://zzrf-001.dx.commercecloud.salesforce.com/s/RefArchGlobal/en_GB/home",
+  target_screenshot_url: "http://localhost:5173",
+  commit_sha: "a3f2c1b"
+});
 ```
 
-**Log format rules:**
-- Use ISO timestamp: `YYYY-MM-DD HH:MM:SS`
-- Include all screenshot paths
-- Note build duration
-- Add any warnings or issues in Notes section
+**For failed iterations:**
+
+If dev server failed, compilation errors occurred, or other blocking issues:
+- `subplan_id`: The subplan identifier
+- `status`: "failed"
+- `summary`: Brief description of what was attempted
+- `source_screenshot_url`: "" (empty string)
+- `target_screenshot_url`: "" (empty string)
+- `commit_sha`: "" (empty string)
+- `error_message`: Full error message or description of what went wrong
+
+**Example:**
+```javascript
+await mcp__LogMigrationProgress({
+  subplan_id: "01-03",
+  status: "failed",
+  summary: "Attempted to implement navigation component",
+  source_screenshot_url: "",
+  target_screenshot_url: "",
+  commit_sha: "",
+  error_message: "Dev server failed: Cannot find module 'react'. Tried installing dependencies but error persists."
+});
+```
+
+**Benefits of using this tool:**
+- ✅ Auto-initializes migration-log.md if it doesn't exist
+- ✅ Automatically formats entries with timestamps
+- ✅ Updates header counts (Completed Micro-Plans: X / Y)
+- ✅ Normalizes subplan IDs to standard format
+- ✅ Looks up subplan titles from actual .md files
+- ✅ Consistent formatting for dashboard parsing
 
 ### 9. Loop Decision & Continue
 
@@ -297,11 +315,12 @@ When using `mcp__intervention__RequestUserIntervention`:
 ## Available Tools
 
 You have access to these MCP tools:
-- `mcp__intervention__RequestUserIntervention` - Request user input for decisions
+- `LogMigrationProgress` - Log iteration progress to migration-log.md (auto-initializes if needed)
+- `RequestUserIntervention` - Request user input for decisions
 
 ## First Action
 
-1. Read `/workspace/migration-log.md` (create if missing)
+1. Read `/workspace/migration-log.md` (tool will auto-initialize if missing)
 2. Read `/workspace/url-mappings.json`
 3. Determine next micro-plan to execute (start with subplan-01-01 if none completed)
 4. Execute the micro-plan (steps 4-8)

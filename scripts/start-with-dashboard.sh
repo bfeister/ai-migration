@@ -28,6 +28,15 @@ if [ ! -d "$DASHBOARD_DIR/node_modules" ]; then
     echo ""
 fi
 
+# Check if port 3030 is already in use
+echo -e "${BLUE}Checking for existing dashboard process...${NC}"
+if lsof -ti:3030 > /dev/null 2>&1; then
+    echo -e "${YELLOW}Port 3030 is in use. Stopping existing process...${NC}"
+    lsof -ti:3030 | xargs kill -9 2>/dev/null || true
+    sleep 1
+    echo -e "${GREEN}✓ Cleared port 3030${NC}"
+fi
+
 # Start dashboard in background
 echo -e "${GREEN}Starting dashboard server...${NC}"
 cd "$DASHBOARD_DIR"

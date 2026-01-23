@@ -1,14 +1,15 @@
 {
   "name": "@test-storefront/mcp-intervention-server",
-  "version": "1.0.0",
-  "description": "MCP server providing AskUserQuestion tool for Claude Code intervention protocol",
-  "main": "dist/intervention-server.js",
+  "version": "2.0.0",
+  "description": "MCP server providing intervention and migration tools for Claude Code",
+  "type": "module",
+  "main": "dist/migration-server.js",
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
     "clean": "rm -rf dist"
   },
-  "keywords": ["mcp", "claude", "intervention"],
+  "keywords": ["mcp", "claude", "intervention", "migration"],
   "author": "",
   "license": "ISC",
   "dependencies": {
