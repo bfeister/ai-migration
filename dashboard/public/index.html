@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Migration Dashboard</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="container">
+      <h1 class="header-title">
+        <span class="icon">🚀</span>
+        Migration Dashboard
+      </h1>
+      <div class="header-status">
+        <span class="status-dot" id="connection-status"></span>
+        <span id="connection-text">Connecting...</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="container">
+    <!-- Overview Cards -->
+    <section class="overview">
+      <div class="card card-status">
+        <div class="card-header">
+          <h2>Status</h2>
+          <span class="status-badge" id="overall-status">🔄 In Progress</span>
+        </div>
+        <div class="card-body">
+          <div class="stat">
+            <div class="stat-label">Session ID</div>
+            <div class="stat-value" id="session-id">—</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Last Updated</div>
+            <div class="stat-value" id="last-updated">—</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card card-progress">
+        <div class="card-header">
+          <h2>Progress</h2>
+        </div>
+        <div class="card-body">
+          <div class="progress-stats">
+            <div class="progress-label">
+              <span id="completed-count">0</span> / <span id="total-count">0</span> Micro-Plans
+            </div>
+            <div class="progress-percentage" id="progress-percentage">0%</div>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card card-screenshots">
+        <div class="card-header">
+          <h2>Screenshots</h2>
+        </div>
+        <div class="card-body">
+          <div class="stat-large">
+            <div class="stat-value-large" id="screenshot-count">0</div>
+            <div class="stat-label">Captured</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card card-interventions">
+        <div class="card-header">
+          <h2>Interventions</h2>
+        </div>
+        <div class="card-body">
+          <div class="stat-large">
+            <div class="stat-value-large" id="intervention-count">0</div>
+            <div class="stat-label">Pending</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tabs -->
+    <section class="tabs-container">
+      <div class="tabs">
+        <button class="tab tab-active" data-tab="micro-plans">Micro-Plans</button>
+        <button class="tab" data-tab="screenshots">Screenshots</button>
+        <button class="tab" data-tab="log">Migration Log</button>
+        <button class="tab" data-tab="interventions">Interventions</button>
+      </div>
+
+      <!-- Tab: Micro-Plans -->
+      <div class="tab-content tab-content-active" id="tab-micro-plans">
+        <div class="card">
+          <div class="card-header">
+            <h2>Micro-Plans</h2>
+          </div>
+          <div class="card-body">
+            <div id="micro-plans-list" class="micro-plans-list">
+              <div class="loading">Loading micro-plans...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: Screenshots -->
+      <div class="tab-content" id="tab-screenshots">
+        <div class="card">
+          <div class="card-header">
+            <h2>Screenshot Gallery</h2>
+            <div class="card-header-actions">
+              <label class="toggle-label">
+                <input type="checkbox" id="compare-mode" checked>
+                <span>Compare Mode</span>
+              </label>
+            </div>
+          </div>
+          <div class="card-body">
+            <div id="screenshots-gallery" class="screenshots-gallery">
+              <div class="loading">Loading screenshots...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: Migration Log -->
+      <div class="tab-content" id="tab-log">
+        <div class="card">
+          <div class="card-header">
+            <h2>Migration Log</h2>
+          </div>
+          <div class="card-body">
+            <div id="migration-log-content" class="migration-log">
+              <div class="loading">Loading migration log...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: Interventions -->
+      <div class="tab-content" id="tab-interventions">
+        <div class="card">
+          <div class="card-header">
+            <h2>Interventions</h2>
+          </div>
+          <div class="card-body">
+            <div id="interventions-list" class="interventions-list">
+              <div class="loading">Loading interventions...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Live Updates Feed -->
+    <section class="live-feed">
+      <div class="card">
+        <div class="card-header">
+          <h2>Live Updates</h2>
+          <button class="btn-clear" id="clear-feed">Clear</button>
+        </div>
+        <div class="card-body">
+          <div id="live-feed" class="feed-items">
+            <div class="feed-item feed-item-info">
+              <span class="feed-time">${new Date().toLocaleTimeString()}</span>
+              <span class="feed-message">Waiting for updates...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

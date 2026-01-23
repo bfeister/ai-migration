@@ -1,0 +1,27 @@
+{
+  "name": "migration-dashboard",
+  "version": "1.0.0",
+  "description": "Real-time dashboard for monitoring SFRA to Storefront Next migration progress",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "keywords": [
+    "migration",
+    "dashboard",
+    "monitoring",
+    "sse",
+    "real-time"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "chokidar": "^3.5.3",
+    "marked": "^11.1.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  }
+}
