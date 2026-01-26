@@ -12,7 +12,7 @@ The current migration loop requires Claude to perform many deterministic, repeti
 
 Convert deterministic behaviors into MCP tools that provide simple, reliable interfaces for:
 - **Logging progress** - Atomic iteration logging with dashboard-optimized format
-- **Dev server validation** - Error detection and health checks
+- **Server health checks** - HTTP endpoint polling with configurable timeout/retry
 - **Screenshot capture** - Dual capture (source + target) with ~500KB optimization and metadata
 - **Git commits** - Standardized commit messages and hash tracking
 - **Navigation** - Automatic next micro-plan detection
@@ -20,11 +20,14 @@ Convert deterministic behaviors into MCP tools that provide simple, reliable int
 
 ### Core Principles
 
-1. **Atomic Iterations**: One consolidated log entry per complete iteration (no "started" logs)
-2. **Non-blocking Failures**: Tools return error status, Claude self-corrects (no internal retries)
-3. **Dashboard-First**: Log format and screenshot metadata optimized for dashboard parsing
-4. **Permissive Input**: Accept flexible formats, normalize automatically (e.g., "01-02" → "subplan-01-02")
-5. **Required Steps**: Dev validation, screenshots, and commits are blocking (must succeed to proceed)
+1. **Stateless Tools**: All tools are **filesystem transformations** - no process management, no stream monitoring, no held file descriptors. Tools accept input, perform operations, write to filesystem, and return output. Bash handles process lifecycle.
+2. **Atomic Iterations**: One consolidated log entry per complete iteration (no "started" logs)
+3. **Non-blocking Failures**: Tools return error status, Claude self-corrects (no internal retries)
+4. **Dashboard-First**: Log format and screenshot metadata optimized for dashboard parsing
+5. **Permissive Input**: Accept flexible formats, normalize automatically (e.g., "01-02" → "subplan-01-02")
+6. **Required Steps**: Dev validation, screenshots, and commits are blocking (must succeed to proceed)
+
+**Architecture Philosophy**: Tools are **building blocks**, not orchestrators. Complex workflows (start process, monitor output, manage lifecycle) belong in bash scripts that Claude writes. Tools provide simple, parameterized operations that reduce boilerplate and ensure consistency.
 
 ---
 
@@ -98,58 +101,122 @@ await mcp.call("LogMigrationProgress", {
 
 ---
 
-### Tool 2: `ValidateDevServer`
+### Tool 2: `CheckServerHealth`
 
-**Purpose**: Start dev server, validate it's error-free, return health status
+**Purpose**: Poll HTTP endpoint until healthy or timeout, optionally parse build logs for errors (stateless health check)
+
+**Architecture Note**: This tool is **stateless** - it does NOT manage process lifecycle (start/stop dev server). Bash handles process management. The tool polls an endpoint and optionally **reads build logs from filesystem** to detect compilation errors.
+
+**Key Insight**: A Vite/React dev server can respond HTTP 200 while having TypeScript/build errors. This tool checks both server response AND build status by reading the log file bash wrote.
 
 **Parameters**:
 ```typescript
 {
-  app_dir: string;              // e.g., "/workspace/storefront-next"
-  timeout_seconds?: number;     // Default: 60
-  port?: number;                // Default: 5173
-  check_endpoints?: string[];   // Optional URLs to validate (e.g., ["/", "/search"])
+  url: string;                       // Full URL: "http://localhost:5173"
+  path?: string;                     // Optional path: "/" (default), "/api/health", etc.
+  timeout_seconds?: number;          // Default: 30
+  retry_interval_seconds?: number;   // Default: 1 (poll interval)
+  expected_status_codes?: number[];  // Default: [200, 201, 204, 301, 302, 304]
+  build_log_file?: string;           // Optional: Path to build log (e.g., "/tmp/dev-server.log")
 }
 ```
 
 **Behavior**:
-1. `cd` to app_dir
-2. Check if dev server already running (port check)
-3. If not running, start: `pnpm dev`
-4. Parse output for errors/warnings
-5. Wait for "Local: http://localhost:5173" message
-6. Optionally fetch check_endpoints to verify responses
-7. Return health status
+1. Build full URL: `${url}${path || "/"}`
+2. Loop for up to `timeout_seconds`:
+   - Execute HTTP GET via `fetch()` or `execSync('curl -sf ...')`
+   - If response status in expected_status_codes, server is responding
+   - Otherwise sleep for `retry_interval_seconds` and retry
+3. If `build_log_file` provided:
+   - **Read log file from filesystem** (bash wrote this)
+   - Parse for error patterns: `ERROR`, `Failed to`, `Cannot find`, `Module not found`, `error TS`, etc.
+   - Parse for warning patterns: `WARNING`, `Warning:`, `warn`
+   - Set `healthy = false` if build errors found (even if server responds)
+4. Optionally write result to `/tmp/server-health-check.json` for debugging
 
 **Returns**:
 ```typescript
 {
-  success: boolean;
-  server_running: boolean;
-  errors: string[];           // Compilation errors
-  warnings: string[];         // Warnings
-  server_url: string;         // e.g., "http://localhost:5173"
-  startup_time_seconds: number;
+  healthy: boolean;                  // False if server down OR build errors
+  server_responding: boolean;        // HTTP check result
+  url_checked: string;               // Full URL that was checked
+  response_time_ms: number;          // Time until first success
+  status_code?: number;              // HTTP status code (if reached server)
+  attempts: number;                  // Number of attempts made
+  build_status?: {                   // Only present if build_log_file provided
+    has_errors: boolean;
+    has_warnings: boolean;
+    errors: string[];                // Parsed error lines
+    warnings: string[];              // Parsed warning lines
+  };
+  error?: string;                    // Error message if unhealthy
 }
 ```
 
-**Example call**:
+**Example call** (with build log checking):
 ```javascript
-const result = await mcp.call("ValidateDevServer", {
-  app_dir: "/workspace/storefront-next",
-  check_endpoints: ["/"]
-})
+// Claude starts dev server with bash, captures output to file:
+// cd /workspace/storefront-next && pnpm dev > /tmp/dev-server.log 2>&1 &
+// DEV_PID=$!
 
-if (!result.success) {
-  // Handle errors
+// Tool polls HTTP AND checks build log for errors:
+const health = await mcp.call("CheckServerHealth", {
+  url: "http://localhost:5173",
+  timeout_seconds: 30,
+  build_log_file: "/tmp/dev-server.log"  // Tool reads this file
+});
+
+if (!health.healthy) {
+  if (!health.server_responding) {
+    console.log("Server not responding");
+  }
+  if (health.build_status?.has_errors) {
+    console.log("Build errors detected:", health.build_status.errors);
+    // Claude investigates and fixes TypeScript/compilation errors
+  }
 }
+```
+
+**Example call** (HTTP only, no build check):
+```javascript
+const health = await mcp.call("CheckServerHealth", {
+  url: "http://localhost:5173",
+  timeout_seconds: 30
+  // No build_log_file - only checks if server responds
+});
+```
+
+**Example call** (dynamic port):
+```javascript
+// Claude detects port from logs:
+const port = extractedFromLogs;
+
+const health = await mcp.call("CheckServerHealth", {
+  url: `http://localhost:${port}`,
+  path: "/",
+  timeout_seconds: 30,
+  build_log_file: "/tmp/dev-server.log"
+});
+```
+
+**Example call** (specific route):
+```javascript
+const health = await mcp.call("CheckServerHealth", {
+  url: "http://localhost:5173",
+  path: "/api/products",  // Check specific endpoint
+  timeout_seconds: 30,
+  build_log_file: "/tmp/dev-server.log"
+});
 ```
 
 **Benefits**:
-- Deterministic server validation
-- Captures errors/warnings automatically
-- No need for Claude to parse `pnpm dev` output
-- Returns structured data for decision-making
+- **Stateless**: No process spawning or management - only reads filesystem
+- **Detects build errors**: Catches TypeScript/Vite errors even when server responds HTTP 200
+- **Flexible**: Works with any HTTP endpoint, port, or path
+- **Simple**: HTTP polling + optional log parsing with structured result
+- **No leaks**: No file descriptors held open, no stream monitoring
+- **Parameterized**: Adapts to dynamic ports, non-root routes, custom log paths
+- **Context savings**: Replaces 20-30 line bash polling loop + error parsing logic
 
 ---
 
@@ -407,18 +474,21 @@ const mapping = await mcp.call("ParseURLMapping", {
 - Fall back to `process.cwd()` for local development
 - Support both git clone + Docker and headless GitHub Actions contexts
 
-### Phase 2: Dev Server Validation (1 hour)
+### Phase 2: Server Health Check (30-45 minutes)
 
 **Tools**:
-- `ValidateDevServer`
+- `CheckServerHealth`
 
-**Why second**: Reduces context spent parsing dev server output and checking for errors.
+**Why second**: Reduces context spent on bash polling loops for server readiness AND detecting build errors.
 
 **Implementation**:
-1. Add server validation logic
-2. Parse `pnpm dev` output for errors/warnings
-3. Health check via HTTP fetch
-4. Return structured status
+1. Simple HTTP GET polling with configurable timeout/retry
+2. Use `fetch()` or `execSync('curl -sf ...')`
+3. Optional: Read and parse build log file from filesystem for TypeScript/Vite errors
+4. Return structured health status with both server response and build status
+5. **No process management** - bash handles dev server lifecycle
+
+**Key Design Principle**: Tool is stateless - only checks if endpoint responds and reads log files from filesystem. Doesn't start/stop processes or hold file descriptors. The tool solves the Vite edge case where server responds HTTP 200 but has compilation errors.
 
 ### Phase 3: Screenshot Automation (1-2 hours)
 
@@ -483,24 +553,41 @@ Start the dev server and capture dual screenshots:
 ```markdown
 ### 5. Dev Server Startup & Screenshot Capture
 
-**Validate Dev Server:**
+**Start Dev Server (Bash):**
+```bash
+cd /workspace/storefront-next
+pnpm dev > /tmp/dev-server.log 2>&1 &
+DEV_PID=$!
+```
+
+**Check Server Health (MCP Tool):**
 ```javascript
-const server = await mcp.call("ValidateDevServer", {
-  app_dir: "/workspace/storefront-next"
+const health = await mcp.call("CheckServerHealth", {
+  url: "http://localhost:5173",
+  timeout_seconds: 30,
+  build_log_file: "/tmp/dev-server.log"  // Tool reads and parses for build errors
 });
 
-if (!server.success) {
-  // Log errors and stop iteration
+if (!health.healthy) {
+  // Tool detected either server down OR build errors
+  if (!health.server_responding) {
+    console.log("Server not responding");
+  }
+  if (health.build_status?.has_errors) {
+    console.log("Build errors:", health.build_status.errors);
+  }
+
+  // Log failure and stop iteration
   await mcp.call("LogMigrationProgress", {
     subplan_id: current_subplan,
     status: "failed",
-    error_message: server.errors.join("\n")
+    error_message: `Dev server unhealthy: ${health.error || health.build_status?.errors.join(", ")}`
   });
   return;
 }
 ```
 
-**Capture Screenshots:**
+**Capture Screenshots (MCP Tool):**
 ```javascript
 const screenshots = await mcp.call("CaptureDualScreenshots", {
   feature_id: "01-homepage-hero",
@@ -512,7 +599,13 @@ if (!screenshots.success) {
 }
 ```
 
-**Context saved**: ~400 words → ~50 words (90% reduction)
+**Stop Dev Server (Bash):**
+```bash
+kill $DEV_PID
+```
+
+**Context saved**: ~400 words → ~80 words (80% reduction)
+**Architecture**: Bash handles process lifecycle, tools provide structured operations
 
 ---
 
@@ -536,9 +629,11 @@ if (!screenshots.success) {
 
 1. **Consistent Formatting**: No variation in log entries, filenames, commit messages
 2. **Error Handling**: Built-in validation and error reporting
-3. **Atomic Operations**: Each tool is self-contained and tested
-4. **Type Safety**: TypeScript interfaces ensure correct parameters
-5. **Idempotency**: Safe to retry on failure
+3. **Build Error Detection**: Catches TypeScript/Vite errors even when HTTP server responds (prevents false positives)
+4. **Atomic Operations**: Each tool is self-contained and tested
+5. **Type Safety**: TypeScript interfaces ensure correct parameters
+6. **Idempotency**: Safe to retry on failure
+7. **Stateless Architecture**: No process management, no file descriptor leaks
 
 ### Developer Experience
 
@@ -594,9 +689,15 @@ describe("Migration Loop Integration", () => {
     const next = await GetNextMicroPlan({});
     expect(next.found).toBe(true);
 
-    // 3. Start server
-    const server = await ValidateDevServer({ app_dir: "/workspace/storefront-next" });
-    expect(server.success).toBe(true);
+    // 3. Start server (bash) and check health (tool)
+    // execSync("cd /workspace/storefront-next && pnpm dev > /tmp/dev-server.log 2>&1 &");
+    const health = await CheckServerHealth({
+      url: "http://localhost:5173",
+      timeout_seconds: 30,
+      build_log_file: "/tmp/dev-server.log"  // Check for build errors
+    });
+    expect(health.healthy).toBe(true);
+    expect(health.build_status?.has_errors).toBe(false);
 
     // 4. Capture screenshots
     const screenshots = await CaptureDualScreenshots({
@@ -666,7 +767,7 @@ mcp-server/
 │   │   ├── utils.ts                # Shared utilities (path resolution, normalization)
 │   │   ├── intervention.ts         # RequestUserIntervention (extracted)
 │   │   ├── logging.ts              # LogMigrationProgress
-│   │   ├── dev-server.ts           # ValidateDevServer
+│   │   ├── health-check.ts         # CheckServerHealth (stateless HTTP polling)
 │   │   ├── screenshots.ts          # CaptureDualScreenshots
 │   │   ├── git.ts                  # CommitMigrationProgress
 │   │   ├── navigation.ts           # GetNextMicroPlan
@@ -730,20 +831,30 @@ const next = await mcp.call("GetNextMicroPlan", {});
 // ... edit storefront-next/src/routes/_index.tsx ...
 // ... edit storefront-next/src/components/Hero.tsx ...
 
-// Step 3: Validate dev server
-const server = await mcp.call("ValidateDevServer", {
-  app_dir: "/workspace/storefront-next",
-  timeout_seconds: 60
+// Step 3: Start dev server (bash)
+// cd /workspace/storefront-next && pnpm dev > /tmp/dev-server.log 2>&1 &
+// DEV_PID=$!
+
+// Step 4: Check server health (MCP tool - reads build log from filesystem)
+const health = await mcp.call("CheckServerHealth", {
+  url: "http://localhost:5173",
+  timeout_seconds: 30,
+  build_log_file: "/tmp/dev-server.log"  // Tool reads and parses for errors
 });
 
-if (!server.success) {
+if (!health.healthy) {
   // ❌ FAILURE: Bubble to Claude
-  console.log("Dev server failed:", server.errors);
-  // Claude sees error, fixes compilation issues, retries from Step 2
+  if (!health.server_responding) {
+    console.log("Server not responding:", health.error);
+  }
+  if (health.build_status?.has_errors) {
+    console.log("Build errors:", health.build_status.errors);
+  }
+  // Claude investigates /tmp/dev-server.log, fixes issues, retries from Step 3
   return; // Stop iteration, Claude self-corrects
 }
 
-// Step 4: Capture screenshots (blocking, required)
+// Step 5: Capture screenshots (blocking, required)
 const screenshots = await mcp.call("CaptureDualScreenshots", {
   feature_id: "01-homepage-hero",
   subplan_id: next.subplan_id  // Accepts "01-02", normalizes to "subplan-01-02"
@@ -752,11 +863,11 @@ const screenshots = await mcp.call("CaptureDualScreenshots", {
 if (!screenshots.success) {
   // ❌ FAILURE: Bubble to Claude
   console.log("Screenshot capture failed:", screenshots.error);
-  // Claude investigates (consent modal? timeout?), fixes, retries from Step 4
+  // Claude investigates (consent modal? timeout?), fixes, retries from Step 5
   return; // Stop iteration, Claude self-corrects
 }
 
-// Step 5: Commit changes (blocking, required)
+// Step 6: Commit changes (blocking, required)
 const commit = await mcp.call("CommitMigrationProgress", {
   subplan_id: next.subplan_id,
   title: next.title
@@ -765,11 +876,14 @@ const commit = await mcp.call("CommitMigrationProgress", {
 if (!commit.success) {
   // ❌ FAILURE: Bubble to Claude
   console.log("Git commit failed:", commit.error);
-  // Claude resolves (merge conflict? nothing to commit?), fixes, retries from Step 5
+  // Claude resolves (merge conflict? nothing to commit?), fixes, retries from Step 6
   return; // Stop iteration, Claude self-corrects
 }
 
-// Step 6: Log atomic iteration success (ONLY on full completion)
+// Step 7: Stop dev server (bash)
+// kill $DEV_PID
+
+// Step 8: Log atomic iteration success (ONLY on full completion)
 const log = await mcp.call("LogMigrationProgress", {
   subplan_id: next.subplan_id,
   status: "success",
@@ -788,7 +902,9 @@ const log = await mcp.call("LogMigrationProgress", {
 2. **Non-blocking failures** - Tools return error status, don't retry internally
 3. **Claude self-corrects** - Failures bubble to Claude, which analyzes and fixes
 4. **Atomic logging** - One consolidated log entry with all metadata
-5. **Required steps** - Dev validation, screenshots, commit all blocking (must succeed)
+5. **Required steps** - Server health, screenshots, commit all blocking (must succeed)
+6. **Stateless tools** - No process management, no file descriptor leaks
+7. **Bash for lifecycle** - Process start/stop via bash, tools for structured operations
 
 **Total context**: ~250 words (vs ~1,400 words with bash commands)
 

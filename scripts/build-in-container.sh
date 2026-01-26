@@ -46,21 +46,20 @@ fi
 log_success "Found monorepo at: $MONOREPO_PATH"
 
 # Copy monorepo into container (to /tmp for better performance)
-# Exclude node_modules to avoid copying hundreds of thousands of files
+# Stream directly via tar to avoid host file descriptor exhaustion
 log_info "Copying monorepo into container /tmp/SFCC-Odyssey..."
-log_info "Excluding node_modules directories to speed up copy..."
+log_info "Streaming via tar (no temp files) to avoid FD exhaustion..."
+log_info "Excluding: node_modules, .git, dist, build, .next, coverage, test artifacts"
 echo ""
 
+# Remove old copy in container
 docker exec -u node "$CONTAINER_NAME" rm -rf /tmp/SFCC-Odyssey 2>/dev/null || true
+docker exec -u node "$CONTAINER_NAME" mkdir -p /tmp/SFCC-Odyssey
 
-# Create temporary directory and use rsync-style copy (exclude node_modules)
-TEMP_COPY="$WORKSPACE_ROOT/.temp-monorepo-copy"
-rm -rf "$TEMP_COPY"
-mkdir -p "$TEMP_COPY"
-
-# Copy monorepo excluding node_modules and other unnecessary directories
-log_info "Creating clean copy of monorepo (excluding node_modules, .pnpm-store, dist, coverage)..."
-rsync -a \
+# Stream monorepo directly from host to container via tar
+# This avoids creating any temp files on host, preventing FD exhaustion
+log_info "Streaming files (this takes 30-60 seconds)..."
+tar -C "$MONOREPO_PATH" \
     --exclude='node_modules' \
     --exclude='.pnpm-store' \
     --exclude='.git' \
@@ -71,17 +70,13 @@ rsync -a \
     --exclude='.nyc_output' \
     --exclude='test-results' \
     --exclude='playwright-report' \
-    "$MONOREPO_PATH/" "$TEMP_COPY/"
+    -czf - . | \
+    docker exec -i "$CONTAINER_NAME" tar -C /tmp/SFCC-Odyssey -xzf -
 
-# Copy to container
-log_info "Transferring to container..."
-docker cp "$TEMP_COPY/." "$CONTAINER_NAME:/tmp/SFCC-Odyssey"
+# Fix ownership
 docker exec -u root "$CONTAINER_NAME" chown -R node:node /tmp/SFCC-Odyssey
 
-# Clean up temp directory
-rm -rf "$TEMP_COPY"
-
-log_success "Monorepo copied to container"
+log_success "Monorepo streamed to container (no host temp files created)"
 echo ""
 
 # Build inside container

@@ -9,7 +9,7 @@
  * Tools:
  * - RequestUserIntervention (existing)
  * - LogMigrationProgress
- * - ValidateDevServer
+ * - CheckServerHealth (stateless HTTP polling + build log parsing)
  * - CaptureDualScreenshots (with metadata for dashboard)
  * - CommitMigrationProgress
  * - GetNextMicroPlan
@@ -27,7 +27,7 @@ import {
 // Import tool handlers
 import { REQUEST_USER_INTERVENTION_TOOL, handleRequestUserIntervention } from './tools/intervention.js';
 import { LOG_MIGRATION_PROGRESS_TOOL, handleLogMigrationProgress } from './tools/logging.js';
-import { VALIDATE_DEV_SERVER_TOOL, handleValidateDevServer } from './tools/dev-server.js';
+import { CHECK_SERVER_HEALTH_TOOL, handleCheckServerHealth } from './tools/health-check.js';
 import { CAPTURE_DUAL_SCREENSHOTS_TOOL, handleCaptureDualScreenshots } from './tools/screenshots.js';
 import { COMMIT_MIGRATION_PROGRESS_TOOL, handleCommitMigrationProgress } from './tools/git.js';
 import { GET_NEXT_MICRO_PLAN_TOOL, handleGetNextMicroPlan } from './tools/navigation.js';
@@ -56,7 +56,7 @@ async function main() {
   const tools: Tool[] = [
     REQUEST_USER_INTERVENTION_TOOL,
     LOG_MIGRATION_PROGRESS_TOOL,
-    VALIDATE_DEV_SERVER_TOOL,
+    CHECK_SERVER_HEALTH_TOOL,
     CAPTURE_DUAL_SCREENSHOTS_TOOL,
     COMMIT_MIGRATION_PROGRESS_TOOL,
     GET_NEXT_MICRO_PLAN_TOOL,
@@ -80,8 +80,8 @@ async function main() {
         case 'LogMigrationProgress':
           result = await handleLogMigrationProgress(args as any);
           break;
-        case 'ValidateDevServer':
-          result = await handleValidateDevServer(args as any);
+        case 'CheckServerHealth':
+          result = await handleCheckServerHealth(args as any);
           break;
         case 'CaptureDualScreenshots':
           result = await handleCaptureDualScreenshots(args as any);

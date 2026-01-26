@@ -22,6 +22,12 @@ ENV PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium-browser
 # Enable and configure pnpm
 RUN corepack enable && corepack prepare pnpm@10.28.1 --activate
 
+# Configure pnpm to reduce concurrency and avoid file descriptor exhaustion
+# Note: hardlinks don't work across Docker volumes, so use copy with low concurrency
+RUN pnpm config set network-concurrency 8 --global && \
+    pnpm config set child-concurrency 2 --global && \
+    pnpm config set fetch-retries 3 --global
+
 # Install Claude Code CLI
 RUN npm install -g @anthropic-ai/claude-code
 

@@ -79,37 +79,51 @@ Read the micro-plan file and follow its instructions precisely. Each micro-plan 
 
 **IMPORTANT: Skip production build validation** due to Docker file descriptor limits on Mac. Instead, use `pnpm dev` (development mode) which performs incremental builds and provides sufficient validation for visual migration.
 
-Start the dev server and capture dual screenshots:
+**Step 5.1: Start and validate dev server**
+
+Use the `ValidateDevServer` MCP tool to handle dev server lifecycle:
+
+```javascript
+const devServerResult = await mcp__migration_tools__ValidateDevServer({
+  app_dir: "/workspace/storefront-next",
+  port: 5173,
+  timeout_seconds: 60,
+  check_endpoints: ["/"]  // Optional: validates homepage loads
+});
+
+if (!devServerResult.success) {
+  console.error("Dev server failed:", devServerResult.errors);
+  // Use intervention if blocking errors
+  if (devServerResult.errors.some(e => e.includes("Module not found") || e.includes("Cannot find"))) {
+    await mcp__intervention__RequestUserIntervention({
+      question: `Dev server failed with errors: ${devServerResult.errors.join(", ")}. How should I proceed?`,
+      context: {
+        app_dir: "/workspace/storefront-next",
+        errors: devServerResult.errors,
+        warnings: devServerResult.warnings
+      }
+    });
+  }
+}
+
+// Dev server is now running at devServerResult.server_url
+const SERVER_URL = devServerResult.server_url;  // e.g., "http://localhost:5173"
+```
+
+**What the tool does:**
+- ✅ Checks if dev server already running (reuses if healthy)
+- ✅ Starts `pnpm dev` if needed and monitors output
+- ✅ Parses output for errors/warnings
+- ✅ Validates server responds to HTTP requests
+- ✅ Optionally checks specific endpoints
+- ✅ Returns structured result with server URL, errors, startup time
+
+**Step 5.2: Capture dual screenshots**
 
 ```bash
-cd /workspace/storefront-next
-
-# Start dev server in background
-pnpm dev > /tmp/dev-server.log 2>&1 &
-DEV_PID=$!
-
-# Wait for server ready (poll for up to 30 seconds)
-for i in {1..30}; do
-  # Try to detect port from log
-  if grep -q "Local:" /tmp/dev-server.log; then
-    PORT=$(grep "Local:" /tmp/dev-server.log | grep -oP "localhost:\K\d+" | head -1)
-    PORT=${PORT:-5173}
-
-    # Check if server responds
-    if curl -s http://localhost:$PORT > /dev/null 2>&1; then
-      echo "Dev server ready on port $PORT"
-      break
-    fi
-  fi
-  sleep 1
-done
-
 # Generate timestamp and subplan ID for screenshot filenames
 TIMESTAMP=$(date +%Y%m%d-%H%M%S)
 SUBPLAN_ID="subplan-{XX}-{YY}"  # Replace with actual subplan ID
-
-# Update target URL with detected port
-TARGET_URL_WITH_PORT=$(echo "$TARGET_URL" | sed "s/:5173/:$PORT/")
 
 # Extract source config (SFRA) - merge viewport + source_config
 SOURCE_MAPPING=$(echo "$MAPPING" | jq '{
@@ -141,19 +155,12 @@ tsx /workspace/scripts/capture-screenshots.ts \
 
 # Capture Storefront Next target screenshot with target config
 tsx /workspace/scripts/capture-screenshots.ts \
-  "$TARGET_URL_WITH_PORT" \
+  "$SERVER_URL" \
   "/workspace/screenshots/${TIMESTAMP}-${SUBPLAN_ID}-target.png" \
   --mapping "$TARGET_MAPPING"
-
-# Stop dev server
-kill $DEV_PID
 ```
 
-**If dev server fails to start:**
-1. Check /tmp/dev-server.log for errors
-2. Try killing any existing dev servers: `pkill -f "pnpm dev"`
-3. Retry once
-4. If still fails, use `mcp__intervention__RequestUserIntervention` to ask for help
+**Note:** Dev server continues running in background (managed by ValidateDevServer). It will be reused by next iteration or cleaned up when container stops.
 
 **If screenshot fails:**
 - Log warning but don't block
@@ -249,10 +256,14 @@ await mcp__LogMigrationProgress({
 After logging, **immediately determine the next action and continue**:
 - **If more micro-plans in current feature:** GO BACK TO STEP 1 with the next micro-plan in same directory
 - **If current feature complete:** GO BACK TO STEP 1 with the first micro-plan in next feature directory, reload URL mapping
-- **If all features complete:** Write final summary to log and exit successfully
-- **If error or user intervention needed:** Pause, wait for response, then resume by going back to step 1
+- **If all features complete:** Append completion summary to migration-log.md and exit cleanly. **DO NOT ask user for permission** - just write the summary and exit.
+- **If error or user intervention needed:** Use `RequestUserIntervention` tool (creates intervention/needed-{worker-id}.json), wait for response, then resume by going back to step 1
 
-**CRITICAL:** Do not stop after completing one micro-plan. You must continue executing micro-plans sequentially until all are complete. After each micro-plan, immediately loop back to step 1 to load context and determine the next micro-plan.
+**CRITICAL:**
+1. Do not stop after completing one micro-plan. Continue executing sequentially until all are complete.
+2. After each micro-plan, immediately loop back to step 1 to load context and determine the next micro-plan.
+3. **DO NOT ask the user questions or present checkboxes** unless using the `RequestUserIntervention` tool for actual blockers.
+4. When all work is done, write completion summary to migration-log.md and exit - no user confirmation needed.
 
 ## Critical Rules
 
@@ -261,35 +272,68 @@ After logging, **immediately determine the next action and continue**:
 3. **Always Commit:** Every micro-plan gets a git commit for easy rollback.
 4. **Always Log:** Keep migration-log.md in sync with reality immediately after each iteration.
 5. **Sliding Window Only:** Load last 5 log entries for context, not entire history.
-6. **Dev Server Cleanup:** Always kill dev server before next iteration to avoid port conflicts.
+6. **Dev Server Management:** Bash handles dev server start/stop, CheckServerHealth tool validates health and build errors.
 7. **URL Mapping per Feature:** Reload URL mapping when switching to new feature directory.
+
+## File Naming Conventions & Prohibited Files
+
+**✅ ALWAYS use these files/locations:**
+- **`migration-log.md`** - Primary continuous log (use `LogMigrationProgress` tool)
+- **`intervention/needed-{worker-id}.json`** - For blockers (use `RequestUserIntervention` tool)
+- **`screenshots/YYYYMMDD-HHMMSS-subplan-XX-YY-{source|target}.png`** - Screenshots
+
+**❌ NEVER create these files:**
+- Any ad-hoc markdown files in workspace root - All logs must go through proper tools
+
+**When completely blocked:**
+1. Log failure to `migration-log.md` using `LogMigrationProgress` with `status: "failed"`
+2. Call `RequestUserIntervention` tool with blocker details
+3. DO NOT create `BLOCKER_REPORT.md` or similar files
+
+**When all micro-plans complete:**
+1. Append completion summary to `migration-log.md`
+2. Optionally create `MIGRATION-COMPLETE-SUMMARY.md` if you want, but don't let it replace continuous logging
 
 ## Error Handling
 
-### Dev Server Compilation Errors
+### Dev Server Errors
 **Note:** Production builds are skipped. Dev mode (`pnpm dev`) provides incremental compilation.
 
-- Check /tmp/dev-server.log for TypeScript or compilation errors
-- If dev server shows errors but still starts:
-  - Attempt one fix based on error message
-  - Restart dev server to verify fix
-- If can't fix in one attempt, use `mcp__intervention__RequestUserIntervention` with:
-  - Question: "Dev server showing errors: {error}. How should I fix this?"
-  - Context: Full error output and what was attempted
-- If errors prevent page from loading, don't proceed to screenshot
-- Mark log entry as `❌ Failed` if blocking errors present
+**Dev Server Workflow:**
+1. Bash starts server: `cd /workspace/storefront-next && pnpm dev > /tmp/dev-server.log 2>&1 &`
+2. `CheckServerHealth` tool validates:
+   - ✅ HTTP endpoint responds
+   - ✅ Reads build log for TypeScript/Vite errors
+   - ✅ Catches compilation errors even when server responds HTTP 200
+
+**If CheckServerHealth returns `healthy: false`:**
+1. Check `build_status.errors` for specific issues
+2. If blocking errors (e.g., "Module not found", "Cannot find module"):
+   - Attempt one fix based on error message
+   - Call CheckServerHealth again to verify fix
+3. If can't fix in one attempt, use `mcp__intervention__RequestUserIntervention`:
+   ```javascript
+   await mcp__intervention__RequestUserIntervention({
+     worker_id: "migration-worker",
+     question: `Dev server unhealthy with build errors: ${health.build_status.errors.join(", ")}. How should I fix this?`,
+     options: ["Fix dependencies", "Skip this micro-plan", "Debug manually"],
+     context: JSON.stringify({
+       app_dir: "/workspace/storefront-next",
+       server_responding: health.server_responding,
+       build_errors: health.build_status?.errors || [],
+       build_warnings: health.build_status?.warnings || [],
+       attempted_fix: "description of what was tried"
+     })
+   });
+   ```
+4. Don't proceed to screenshots without working dev server
+5. Mark log entry as `❌ Failed` if blocking errors prevent implementation
 
 ### Screenshot Failure
 - Log warning in migration-log.md Notes section
 - Try to save partial screenshot if possible
 - Don't block workflow - proceed to commit and log
 - User can debug later by checking log and git history
-
-### Dev Server Startup Failure
-- Check /tmp/dev-server.log for errors
-- Try alternative port if port conflict detected
-- After 3 attempts, log error and request intervention
-- Don't proceed without working dev server
 
 ### User Intervention
 When using `mcp__intervention__RequestUserIntervention`:
@@ -316,13 +360,48 @@ When using `mcp__intervention__RequestUserIntervention`:
 
 You have access to these MCP tools:
 - `LogMigrationProgress` - Log iteration progress to migration-log.md (auto-initializes if needed)
-- `RequestUserIntervention` - Request user input for decisions
+- `CheckServerHealth` - Poll HTTP endpoint and parse build logs for errors (stateless, no process management)
+- `CaptureDualScreenshots` - Capture both SFRA source and Storefront Next target screenshots with proper naming
+- `CommitMigrationProgress` - Git commit with standardized message format
+- `GetNextMicroPlan` - Determine next micro-plan to execute based on migration log
+- `ParseURLMapping` - Look up SFRA source + target URLs for a feature
+- `RequestUserIntervention` - Request user input for decisions (creates intervention/needed-{worker-id}.json)
 
-## First Action
+## First Action: Establish Baseline (If Starting Fresh)
+
+**Before executing any micro-plans**, if this is the first time running the migration loop:
+
+1. Read `/workspace/migration-log.md` - if empty or doesn't exist, this is a fresh start
+2. **Capture baseline screenshots** to establish the "before" state:
+   ```javascript
+   // Capture baseline for the first feature (e.g., 01-homepage-content)
+   await CaptureDualScreenshots({
+     feature_id: "01-homepage-hero",  // From url-mappings.json
+     subplan_id: "00-00-baseline"     // Special ID for baseline
+     // URLs will be auto-looked up from url-mappings.json
+   });
+   ```
+   This creates:
+   - `screenshots/{timestamp}-subplan-00-00-baseline-source.png` (SFRA starting state)
+   - `screenshots/{timestamp}-subplan-00-00-baseline-target.png` (Storefront Next starting state)
+
+3. Log the baseline capture (no git commit needed for baseline):
+   ```javascript
+   await LogMigrationProgress({
+     subplan_id: "00-00-baseline",
+     status: "success",
+     summary: "Captured baseline screenshots of SFRA and Storefront Next before migration",
+     source_screenshot_url: "{sfra_url from url-mappings}",
+     target_screenshot_url: "http://localhost:5173",
+     commit_sha: "baseline"  // No code changes yet
+   });
+   ```
+
+**Then proceed to normal iteration loop:**
 
 1. Read `/workspace/migration-log.md` (tool will auto-initialize if missing)
 2. Read `/workspace/url-mappings.json`
-3. Determine next micro-plan to execute (start with subplan-01-01 if none completed)
+3. Determine next micro-plan to execute (start with subplan-01-01 if completed baseline, or continue from last completed)
 4. Execute the micro-plan (steps 4-8)
 5. **IMMEDIATELY loop back to step 1** to execute the next micro-plan
 6. Continue looping until all micro-plans in all feature directories are complete

@@ -5,9 +5,7 @@ This directory contains screenshots captured during the SFRA to Storefront Next 
 ## Directory Structure
 
 ```
-screenshots/
-├── sfra-homepage-baseline.png                    # Initial SFRA homepage capture
-├── test/                                         # Test screenshots from validation runs
+screenshots/                                      # Test screenshots from validation runs
 └── {timestamp}-{subplan-id}-{source|target}.png  # Iteration screenshots
 ```
 

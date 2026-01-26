@@ -25,23 +25,34 @@ export interface LogMigrationProgressResult {
 }
 
 // ==========================================
-// Dev Server Tool Types
+// Server Health Check Tool Types
 // ==========================================
 
-export interface ValidateDevServerArgs {
-  app_dir: string; // e.g., "/workspace/storefront-next"
-  timeout_seconds?: number; // Default: 60
-  port?: number; // Default: 5173
-  check_endpoints?: string[]; // Optional URLs to validate (e.g., ["/", "/search"])
+export interface CheckServerHealthArgs {
+  url: string; // Full URL: "http://localhost:5173"
+  path?: string; // Optional path: "/" (default), "/api/health", etc.
+  timeout_seconds?: number; // Default: 30
+  retry_interval_seconds?: number; // Default: 1 (poll interval)
+  expected_status_codes?: number[]; // Default: [200, 201, 204, 301, 302, 304]
+  build_log_file?: string; // Optional: Path to build log (e.g., "/tmp/dev-server.log")
 }
 
-export interface ValidateDevServerResult {
-  success: boolean;
-  server_running: boolean;
-  errors: string[]; // Compilation errors
-  warnings: string[]; // Warnings
-  server_url: string; // e.g., "http://localhost:5173"
-  startup_time_seconds: number;
+export interface BuildStatus {
+  has_errors: boolean;
+  has_warnings: boolean;
+  errors: string[];
+  warnings: string[];
+}
+
+export interface CheckServerHealthResult {
+  healthy: boolean; // False if server down OR build errors
+  server_responding: boolean; // HTTP check result
+  url_checked: string; // Full URL that was checked
+  response_time_ms: number; // Time until first success
+  status_code?: number; // HTTP status code (if reached server)
+  attempts: number; // Number of attempts made
+  build_status?: BuildStatus; // Only present if build_log_file provided
+  error?: string; // Error message if unhealthy
 }
 
 // ==========================================

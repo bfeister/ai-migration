@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: claude-migration
+    container_name: claude-migration-demo
     # Use host network to access VPN connections (needed for internal Salesforce endpoints)
     # Note: On macOS/Windows, Docker Desktop handles this differently than Linux
     # For customer deployments using public Anthropic API, bridge network is fine
@@ -14,11 +14,16 @@ services:
     volumes:
       # Mount entire project (cached for performance)
       - ..:/workspace:cached
-      # Exclude node_modules from host (let container manage its own)
-      - /workspace/node_modules
+      # Exclude storefront-next/node_modules from host (use named volume to avoid FD exhaustion)
+      - storefront-next-node-modules:/workspace/storefront-next/node_modules
     working_dir: /workspace
     # Keep container running and allow interaction
     stdin_open: true
     tty: true
     # Restart policy
     restart: unless-stopped
+
+# Named volumes
+volumes:
+  storefront-next-node-modules:
+    driver: local
