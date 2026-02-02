@@ -309,10 +309,16 @@ else
 
         cd /workspace
 
-        # Check if project already exists
-        if [ -d "$STANDALONE_PROJECT" ]; then
+        # Check if project already exists and is complete
+        if [ -d "$STANDALONE_PROJECT" ] && [ -f "$STANDALONE_PROJECT/package.json" ]; then
             log_success "Standalone project already exists, skipping generation"
         else
+            # Remove incomplete project directory if it exists
+            if [ -d "$STANDALONE_PROJECT" ]; then
+                log_warning "Incomplete storefront-next found (missing package.json), removing..."
+                rm -rf "$STANDALONE_PROJECT"
+            fi
+
             log_info "Running create-storefront..."
             log_info "  Template: /tmp/template-clean"
             log_info "  Local packages: $MONOREPO_BUILD/packages"

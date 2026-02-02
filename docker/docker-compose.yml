@@ -8,10 +8,11 @@ services:
             context: ..
             dockerfile: docker/Dockerfile
         container_name: claude-migration-demo
-        # Use host network to access VPN connections (needed for internal Salesforce endpoints)
-        # Note: On macOS/Windows, Docker Desktop handles this differently than Linux
-        # For customer deployments using public Anthropic API, bridge network is fine
-        network_mode: host
+        # Note: Using bridge network with explicit port mappings for macOS/Windows compatibility
+        # For VPN access on Linux, change to network_mode: host
+        ports:
+            # Vite dev server (storefront-next)
+            - '5173:5173'
         env_file:
             # Load environment variables from parent directory .env file
             # Variables: AUTO_START, MIGRATION_PLAN, CLEAN_START, KEEPALIVE, ANTHROPIC_*
