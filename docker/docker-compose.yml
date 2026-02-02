@@ -11,8 +11,9 @@ services:
         # Note: Using bridge network with explicit port mappings for macOS/Windows compatibility
         # For VPN access on Linux, change to network_mode: host
         ports:
-            # Vite dev server (storefront-next)
+            # Vite dev server for storefront-next
             - '5173:5173'
+            # pnpm start (prod) server for storefront-next
             - '3009:3000'
         env_file:
             # Load environment variables from parent directory .env file
