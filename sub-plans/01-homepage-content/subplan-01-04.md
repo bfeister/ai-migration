@@ -36,9 +36,8 @@ Example change:
 
 ## Validation
 After making the change:
-1. Build check: `pnpm build`
-2. Dev server: `pnpm dev`
-3. Capture dual screenshots
+1. Build and start: `pnpm build && pnpm start` (port 3000)
+2. Capture dual screenshots
 4. Verify featured products section shows improvement
 
 ## Success Criteria

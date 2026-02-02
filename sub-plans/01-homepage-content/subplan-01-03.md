@@ -36,12 +36,11 @@ Example change:
 
 ## Validation
 After making the change:
-1. Build check: `pnpm build`
-2. Dev server: `pnpm dev`
-3. Capture dual screenshots:
+1. Build and start: `pnpm build && pnpm start` (port 3000)
+2. Capture dual screenshots:
    - SFRA source (baseline reference)
    - Storefront Next target (with new change)
-4. Compare screenshots to verify improvement
+3. Compare screenshots to verify improvement
 
 ## Success Criteria
 - Build passes

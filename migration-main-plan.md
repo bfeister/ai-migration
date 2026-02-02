@@ -75,47 +75,55 @@ Read the micro-plan file and follow its instructions precisely. Each micro-plan 
 
 **Important:** Make ONLY the changes specified in the micro-plan. Do not add extra features or refactoring.
 
-### 5. Dev Server Startup & Screenshot Capture
+### 5. Production Build & Server Startup for Screenshot Capture
 
-**IMPORTANT: Skip production build validation** due to Docker file descriptor limits on Mac. Instead, use `pnpm dev` (development mode) which performs incremental builds and provides sufficient validation for visual migration.
+**IMPORTANT: Use production build (`pnpm build && pnpm start`)** instead of dev mode. Dev server's file watching causes Docker file descriptor overflow on Mac bind mounts. Production server runs on port 3000 and avoids file system watching.
 
-**Step 5.1: Start and validate dev server**
+**Step 5.1: Build and start production server**
 
-Use the `ValidateDevServer` MCP tool to handle dev server lifecycle:
+Use bash to build and start the production server:
+
+```bash
+cd /workspace/storefront-next
+pnpm build && pnpm start > /tmp/prod-server.log 2>&1 &
+```
+
+Then use the `CheckServerHealth` MCP tool to validate:
 
 ```javascript
-const devServerResult = await mcp__migration_tools__ValidateDevServer({
-  app_dir: "/workspace/storefront-next",
-  port: 5173,
+const serverResult = await mcp__migration_tools__CheckServerHealth({
+  url: "http://localhost:3000",
+  path: "/",
   timeout_seconds: 60,
-  check_endpoints: ["/"]  // Optional: validates homepage loads
+  build_log_file: "/tmp/prod-server.log"
 });
 
-if (!devServerResult.success) {
-  console.error("Dev server failed:", devServerResult.errors);
-  // Use intervention if blocking errors
-  if (devServerResult.errors.some(e => e.includes("Module not found") || e.includes("Cannot find"))) {
-    await mcp__intervention__RequestUserIntervention({
-      question: `Dev server failed with errors: ${devServerResult.errors.join(", ")}. How should I proceed?`,
+if (!serverResult.healthy) {
+  console.error("Production server failed:", serverResult.error);
+
+  // Check build status
+  if (serverResult.build_status?.has_errors) {
+    console.error("Build errors:", serverResult.build_status.errors);
+    // Use intervention for build errors
+    await mcp__migration_tools__RequestUserIntervention({
+      question: `Build failed with errors. How should I proceed?`,
       context: {
-        app_dir: "/workspace/storefront-next",
-        errors: devServerResult.errors,
-        warnings: devServerResult.warnings
+        errors: serverResult.build_status.errors,
+        build_log: "/tmp/prod-server.log"
       }
     });
   }
 }
 
-// Dev server is now running at devServerResult.server_url
-const SERVER_URL = devServerResult.server_url;  // e.g., "http://localhost:5173"
+// Production server is now running
+const SERVER_URL = "http://localhost:3000";
 ```
 
-**What the tool does:**
-- ✅ Checks if dev server already running (reuses if healthy)
-- ✅ Starts `pnpm dev` if needed and monitors output
-- ✅ Parses output for errors/warnings
-- ✅ Validates server responds to HTTP requests
-- ✅ Optionally checks specific endpoints
+**What CheckServerHealth does:**
+- ✅ Polls HTTP endpoint until responsive
+- ✅ Reads build log for TypeScript/compilation errors
+- ✅ Returns structured error/warning arrays
+- ✅ Validates server health
 - ✅ Returns structured result with server URL, errors, startup time
 
 **Step 5.2: Capture dual screenshots**
@@ -296,14 +304,14 @@ After logging, **immediately determine the next action and continue**:
 
 ## Error Handling
 
-### Dev Server Errors
-**Note:** Production builds are skipped. Dev mode (`pnpm dev`) provides incremental compilation.
+### Production Server Errors
+**Note:** Using production build (`pnpm build && pnpm start`) to avoid file descriptor overflow from dev server's file watching on bind mounts.
 
-**Dev Server Workflow:**
-1. Bash starts server: `cd /workspace/storefront-next && pnpm dev > /tmp/dev-server.log 2>&1 &`
+**Production Server Workflow:**
+1. Bash builds and starts server: `cd /workspace/storefront-next && pnpm build && pnpm start > /tmp/prod-server.log 2>&1 &`
 2. `CheckServerHealth` tool validates:
-   - ✅ HTTP endpoint responds
-   - ✅ Reads build log for TypeScript/Vite errors
+   - ✅ HTTP endpoint responds (port 3000)
+   - ✅ Reads build log for TypeScript/compilation errors
    - ✅ Catches compilation errors even when server responds HTTP 200
 
 **If CheckServerHealth returns `healthy: false`:**
