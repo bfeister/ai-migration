@@ -337,24 +337,52 @@ After logging, **immediately determine the next action and continue**:
 
 ### User Intervention
 When using `mcp__intervention__RequestUserIntervention`:
-1. The tool will create `/workspace/intervention/needed-{worker-id}.json`
-2. The process will pause and wait for response
-3. User responds via watcher or manual response file
-4. Tool returns user's answer and conversation continues
-5. Log the intervention in migration-log.md:
-   ```markdown
-   **Status:** ⏸️ Awaiting Intervention
-   **Intervention Request:**
-   - Question: "{question}"
-   - Options: ["{option1}", "{option2}", ...]
-   - Intervention ID: `needed-{worker-id}`
-   - Requested at: {timestamp}
-   ```
-6. After receiving response, log the continuation:
-   ```markdown
-   **Status:** ✅ Success (resumed)
-   **User Response:** "{selected_option}" (responded at {timestamp})
-   ```
+
+1. The tool creates `/workspace/intervention/needed-{worker-id}.json` and returns immediately (non-blocking)
+2. **IMPORTANT**: After requesting intervention, Claude MUST:
+   - Log the intervention request to migration-log.md
+   - Exit gracefully to allow external response
+   - Session will be auto-resumed after user responds via dashboard
+
+**Example Flow**:
+```javascript
+// Request intervention (non-blocking - returns immediately)
+await mcp__intervention__RequestUserIntervention({
+    worker_id: 'migration-worker',
+    question: `Dev server failed with errors: ${errors.join(', ')}. How should I proceed?`,
+    options: ['Fix manually', 'Skip this micro-plan', 'Debug manually'],
+    context: JSON.stringify({ app_dir, errors, warnings })
+});
+
+// Log intervention in migration-log.md
+await LogMigrationProgress({
+    subplan_id: '01-03',
+    status: 'failed',
+    summary: 'Dev server failed, awaiting user intervention',
+    error_message: 'Intervention needed: migration-worker',
+    notes: `
+**Status:** ⏸️ Awaiting Intervention
+**Intervention Request:**
+- Question: "Dev server failed with errors: ${errors.join(', ')}. How should I proceed?"
+- Options: ["Fix manually", "Skip this micro-plan", "Debug manually"]
+- Intervention ID: migration-worker
+- Requested at: ${new Date().toISOString()}
+    `
+});
+
+// Exit gracefully - user will respond via dashboard, session will auto-resume
+// DO NOT continue execution - return control to allow intervention response
+return;
+```
+
+**When to Request Intervention**:
+- Blocking errors that cannot be auto-fixed after retry attempts
+- Unclear requirements needing user decision
+- Build/compilation failures that persist after troubleshooting
+- Missing dependencies or configuration issues
+
+**After User Responds** (on session resume):
+Claude will be resumed automatically and should continue from where it left off. The response file will be available at `intervention/response-{worker-id}.json` if needed for reference.
 
 ## Available Tools
 
