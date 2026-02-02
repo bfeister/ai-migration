@@ -1,0 +1,54 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`PromoCallout Snapshots > Default snapshot 1`] = `
+<div>
+  <div>
+    <div
+      class="p-4 border border-dashed"
+    >
+      <div
+        class="items-center gap-2"
+      >
+        <span
+          class="line-clamp-2"
+        >
+          Buy one get one 50% off
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`PromoCallout Snapshots > HtmlContent snapshot 1`] = `
+<div>
+  <div>
+    <div
+      class="p-4 border border-dashed"
+    >
+      <div
+        class="items-center gap-2"
+      >
+        <span
+          class="line-clamp-2"
+        >
+          <strong>
+            Flash Sale!
+          </strong>
+           20% off
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`PromoCallout Snapshots > NoPromo snapshot 1`] = `
+<div>
+  <div>
+    <div
+      class="p-4 border border-dashed"
+    />
+  </div>
+</div>
+`;

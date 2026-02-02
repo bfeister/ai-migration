@@ -1,0 +1,3 @@
+# Ignore artifacts:
+build
+src/components/ui

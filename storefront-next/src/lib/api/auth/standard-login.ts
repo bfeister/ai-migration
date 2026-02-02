@@ -1,0 +1,68 @@
+/**
+ * Copyright 2026 Salesforce, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+import type { ActionFunctionArgs } from 'react-router';
+import type { ShopperLogin } from '@salesforce/storefront-next-runtime/scapi';
+import type { CustomQueryParameters } from '@/lib/api/types';
+import { updateAuth, loginRegisteredUser as authLoginRegisteredUser } from '@/middlewares/auth.server';
+import { getTranslation } from '@/lib/i18next';
+
+export const loginRegisteredUser = async (
+    context: ActionFunctionArgs['context'],
+    credentials: { email: string; password: string },
+    customParameters?: CustomQueryParameters
+): Promise<{
+    success: boolean;
+    error?: string;
+    errorDetails?: string;
+}> => {
+    const { t } = getTranslation(context);
+
+    try {
+        const tokenResponse: ShopperLogin.schemas['TokenResponse'] = await authLoginRegisteredUser(
+            context,
+            credentials.email,
+            credentials.password,
+            {
+                customParameters,
+            }
+        );
+        // Update session with user tokens and info
+        updateAuth(context, tokenResponse);
+        updateAuth(context, (session) => ({
+            ...session,
+            userType: 'registered',
+        }));
+
+        return {
+            success: true,
+        };
+    } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error('[Standard Login] Login error:', error);
+
+        // Capture more detailed error information for debugging
+        const errorDetails = error instanceof Error ? error.message : String(error);
+        // eslint-disable-next-line no-console
+        console.error('[Standard Login] Error details:', errorDetails);
+
+        const errorMessage = t('errors:loginFailed');
+        return {
+            success: false,
+            error: errorMessage,
+            errorDetails, // Include detailed error for debugging
+        };
+    }
+};

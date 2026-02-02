@@ -1,0 +1,311 @@
+/**
+ * Copyright 2026 Salesforce, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import type { Meta, StoryObj } from '@storybook/react-vite';
+import { useEffect, useRef, type ReactElement, type ReactNode } from 'react';
+import { action } from 'storybook/actions';
+import { expect, within } from 'storybook/test';
+import { waitForStorybookReady } from '@storybook/test-utils';
+import type { ShopperProducts } from '@salesforce/storefront-next-runtime/scapi';
+
+import InventoryMessage from '../index';
+
+function ActionLogger({ children }: { children: ReactNode }): ReactElement {
+    const containerRef = useRef<HTMLDivElement | null>(null);
+
+    useEffect(() => {
+        const root = containerRef.current;
+        if (!root) return;
+
+        const logClick = action('inventory-message-click');
+        const logHover = action('inventory-message-hover');
+
+        const isInsideHarness = (element: Element) => root.contains(element);
+
+        const deriveLabel = (element: HTMLElement): string => {
+            const ariaLabel = element.getAttribute('aria-label')?.trim();
+            if (ariaLabel) {
+                return ariaLabel;
+            }
+
+            const textContent = element.textContent?.replace(/\s+/g, ' ').trim();
+            if (textContent) {
+                return textContent;
+            }
+
+            const testId = element.getAttribute('data-testid')?.trim();
+            if (testId) {
+                return testId;
+            }
+
+            return element.tagName.toLowerCase();
+        };
+
+        const findMessageElement = (start: Element | null): HTMLElement | null => {
+            let current: Element | null = start;
+            while (current && current !== root) {
+                if (current instanceof HTMLElement && isInsideHarness(current)) {
+                    return current;
+                }
+                current = current.parentElement;
+            }
+            return null;
+        };
+
+        let lastHoverElement: HTMLElement | null = null;
+
+        const handleClick = (event: Event) => {
+            const target = event.target as Element | null;
+            if (!target) return;
+
+            const message = findMessageElement(target);
+            if (!message) {
+                return;
+            }
+
+            const label = deriveLabel(message);
+            if (!label) {
+                return;
+            }
+
+            logClick({ label });
+        };
+
+        const handlePointerOver = (event: PointerEvent) => {
+            const target = event.target as Element | null;
+            if (!target) return;
+
+            const message = findMessageElement(target);
+            if (!message || message === lastHoverElement) {
+                return;
+            }
+
+            const label = deriveLabel(message);
+            if (!label) {
+                return;
+            }
+
+            lastHoverElement = message;
+            logHover({ label });
+        };
+
+        const handlePointerOut = (event: PointerEvent) => {
+            if (!lastHoverElement) {
+                return;
+            }
+
+            const target = event.target as Element | null;
+            if (!target) return;
+
+            const message = findMessageElement(target);
+            if (!message || message !== lastHoverElement) {
+                return;
+            }
+
+            const related = event.relatedTarget as Element | null;
+            if (related && lastHoverElement.contains(related)) {
+                return;
+            }
+
+            lastHoverElement = null;
+        };
+
+        root.addEventListener('click', handleClick, true);
+        root.addEventListener('pointerover', handlePointerOver, true);
+        root.addEventListener('pointerout', handlePointerOut, true);
+
+        return () => {
+            lastHoverElement = null;
+            root.removeEventListener('click', handleClick, true);
+            root.removeEventListener('pointerover', handlePointerOver, true);
+            root.removeEventListener('pointerout', handlePointerOut, true);
+        };
+    }, []);
+
+    return <div ref={containerRef}>{children}</div>;
+}
+
+/**
+ * The InventoryMessage component displays inventory status messages for products.
+ * It supports four different states: In Stock, Pre-Order, Back Order, and Out of Stock.
+ * Each state has its own color scheme and messaging.
+ */
+const meta: Meta<typeof InventoryMessage> = {
+    title: 'PRODUCTS/Inventory Message',
+    component: InventoryMessage,
+    tags: ['autodocs', 'interaction'],
+    parameters: {
+        layout: 'centered',
+        docs: {
+            description: {
+                component: `
+The Inventory Message component displays real-time inventory status for products on the Product Detail Page (PDP).
+
+**Features:**
+- **In Stock**: Green badge indicating product availability
+- **Pre-Order**: Blue badge for pre-orderable items
+- **Back Order**: Orange badge for back-orderable items  
+- **Out of Stock**: Red badge when product is unavailable
+
+The component uses variant inventory when available, falling back to product-level inventory.
+                `,
+            },
+        },
+    },
+    decorators: [
+        (Story: React.ComponentType) => (
+            <ActionLogger>
+                <div className="p-8">
+                    <Story />
+                </div>
+            </ActionLogger>
+        ),
+    ],
+    argTypes: {
+        product: {
+            description: 'Product data containing inventory information',
+            control: false,
+        },
+        currentVariant: {
+            description: 'Current variant if product has variations',
+            control: false,
+        },
+        className: {
+            description: 'Additional CSS classes to apply',
+            control: 'text',
+        },
+    },
+};
+
+export default meta;
+type Story = StoryObj<typeof meta>;
+
+// Helper function to create mock product data
+const createMockProduct = (
+    inventory?: Partial<ShopperProducts.schemas['Inventory']>
+): ShopperProducts.schemas['Product'] => ({
+    id: 'test-product-123',
+    name: 'Test Product',
+    ...(inventory ? { inventory: inventory as ShopperProducts.schemas['Inventory'] } : {}),
+});
+
+/**
+ * In Stock - Green badge indicating product is available for immediate purchase
+ */
+export const InStock: Story = {
+    args: {
+        product: createMockProduct({
+            orderable: true,
+            ats: 10,
+            backorderable: false,
+            preorderable: false,
+        }),
+    },
+    play: async ({ canvasElement }) => {
+        await waitForStorybookReady(canvasElement);
+        const canvas = within(canvasElement);
+
+        // Test that inventory message displays "In Stock" text
+        const inStockText = canvas.getByText(/in stock/i);
+        await expect(inStockText).toBeInTheDocument();
+
+        // Test that appropriate styling/color is applied (green for in stock)
+        const messageElement = inStockText.closest('[class*="text-"], [class*="bg-"]');
+        void expect(messageElement).toBeInTheDocument();
+
+        // Verify component renders correctly
+        void expect(canvasElement.firstChild).toBeInTheDocument();
+    },
+};
+
+export const PreOrder: Story = {
+    args: {
+        product: createMockProduct({
+            orderable: true,
+            preorderable: true,
+            backorderable: false,
+            ats: 0,
+        }),
+    },
+    play: async ({ canvasElement }) => {
+        await waitForStorybookReady(canvasElement);
+        const canvas = within(canvasElement);
+        const preOrderText = canvas.getByText(/pre-order/i);
+        await expect(preOrderText).toBeInTheDocument();
+
+        const messageElement = preOrderText.closest('div');
+        if (messageElement) {
+            void expect(messageElement).toHaveClass('text-info');
+        }
+    },
+};
+
+export const BackOrder: Story = {
+    args: {
+        product: createMockProduct({
+            orderable: true,
+            preorderable: false,
+            backorderable: true,
+            ats: 0,
+        }),
+    },
+    play: async ({ canvasElement }) => {
+        await waitForStorybookReady(canvasElement);
+        const canvas = within(canvasElement);
+        const backOrderText = canvas.getByText(/back order/i);
+        await expect(backOrderText).toBeInTheDocument();
+
+        const messageElement = backOrderText.closest('div');
+        if (messageElement) {
+            void expect(messageElement).toHaveClass('text-warning');
+        }
+    },
+};
+
+export const OutOfStock: Story = {
+    args: {
+        product: createMockProduct({
+            orderable: false,
+            preorderable: false,
+            backorderable: false,
+            ats: 0,
+        }),
+    },
+    play: async ({ canvasElement }) => {
+        await waitForStorybookReady(canvasElement);
+        const canvas = within(canvasElement);
+        const outOfStockText = canvas.getByText(/out of stock/i);
+        await expect(outOfStockText).toBeInTheDocument();
+
+        const messageElement = outOfStockText.closest('div');
+        if (messageElement) {
+            void expect(messageElement).toHaveClass('text-destructive');
+        }
+    },
+};
+
+export const UnknownVisible: Story = {
+    args: {
+        product: createMockProduct(),
+        showUnknownStatus: true,
+    },
+    play: async ({ canvasElement }) => {
+        await waitForStorybookReady(canvasElement);
+        const canvas = within(canvasElement);
+        const unknownText = canvas.getByText(/inventory unavailable/i);
+        await expect(unknownText).toBeInTheDocument();
+    },
+};

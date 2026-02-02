@@ -1,0 +1,879 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`ProductTile stories snapshot > CustomAction story renders and matches snapshot 1`] = `
+<div>
+  <div
+    class="w-64"
+  >
+    <div
+      class="bg-card text-card-foreground group border rounded-xl overflow-hidden w-full min-w-0 max-w-full flex flex-col-reverse justify-end h-full shadow-sm gap-0 py-0 transition-all duration-200 hover:shadow-md"
+      data-slot="card"
+    >
+      <div
+        class="items-center [.border-t]:pt-6 px-6 pb-6 pt-6 flex-1 flex flex-col justify-end"
+        data-slot="card-footer"
+      >
+        <button
+          class="w-full bg-primary text-primary-foreground p-2 rounded"
+        >
+          Custom Action
+        </button>
+      </div>
+      <div
+        class="px-6"
+        data-slot="card-content"
+      >
+        <div
+          class="items-center gap-2 text-sm mt-2"
+        >
+          <span
+            aria-label="Current price from $143.99"
+            aria-live="polite"
+            class="[&:not(:first-child)]:mt-6 text-card-foreground text-right font-semibold text-sm leading-none relative"
+          >
+            From $143.99
+          </span>
+          <span
+            aria-atomic="true"
+            aria-live="polite"
+            class="sr-only"
+          >
+            Charcoal Single Pleat Wool Suit
+            Current price from $143.99
+          </span>
+           
+          <span
+            aria-label="List price from $320.00"
+            class="[&:not(:first-child)]:mt-6 line-through text-muted-foreground text-right text-sm leading-none relative"
+          >
+            $320.00
+          </span>
+          <span
+            aria-atomic="true"
+            aria-live="polite"
+            class="sr-only"
+          >
+            Charcoal Single Pleat Wool Suit
+            List price: $320.00
+          </span>
+        </div>
+        <div
+          class="items-center gap-2 text-sm mt-2"
+        >
+          <span
+            class="line-clamp-2"
+          >
+            25% off.
+          </span>
+        </div>
+      </div>
+      <div
+        class="px-6 pb-0 pt-0 flex flex-row gap-1.5 items-start justify-start self-stretch relative h-16"
+        data-slot="card-content"
+      >
+        <div
+          class="flex flex-col gap-1 items-start justify-start relative flex-1 min-w-0 h-full"
+        >
+          <div
+            class="h-10 flex items-start"
+          >
+            <a
+              class="text-card-foreground text-left font-semibold text-sm leading-[1.25] relative hover:underline line-clamp-2 overflow-hidden block"
+              href="/product/25686571M"
+              style="display: -webkit-box; -webkit-line-clamp: 2;"
+              to="/product/25686571M"
+            >
+              Charcoal Single Pleat Wool Suit
+            </a>
+          </div>
+          <div
+            class="h-8 flex items-end"
+          >
+            <div
+              class="space-y-3"
+            >
+              <div
+                aria-label="Colour"
+                class="flex flex-col gap-3"
+                role="radiogroup"
+              >
+                <div
+                  class="flex flex-wrap gap-2 focus:outline-none"
+                >
+                  <button
+                    aria-checked="false"
+                    aria-label="Navy"
+                    class="border-2 text-foreground flex-shrink-0 relative group transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 min-w-6 min-h-6 rounded-full w-7 h-7 p-1 cursor-pointer border-transparent"
+                    position="relative"
+                    role="radio"
+                    tabindex="-1"
+                    type="button"
+                  >
+                    <div
+                      class="flex items-center justify-center w-full h-full text-sm font-medium"
+                    >
+                      <div
+                        aria-label="Navy"
+                        class="bg-no-repeat bg-cover bg-center rounded-full w-full h-full"
+                        style="background-color: navy; background-image: url("https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dw7fabf1ff/images/swatch/PG.52002RUBN4Q.NAVYWL.CP.jpg");"
+                      />
+                    </div>
+                  </button>
+                  <button
+                    aria-checked="true"
+                    aria-label="Charcoal"
+                    class="border-2 text-foreground flex-shrink-0 relative group transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 min-w-6 min-h-6 rounded-full w-7 h-7 p-1 cursor-pointer border-black"
+                    position="relative"
+                    role="radio"
+                    tabindex="0"
+                    type="button"
+                  >
+                    <div
+                      class="flex items-center justify-center w-full h-full text-sm font-medium"
+                    >
+                      <div
+                        aria-label="Charcoal"
+                        class="bg-no-repeat bg-cover bg-center rounded-full w-full h-full"
+                        style="background-image: url("https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dw5cb61ec2/images/swatch/PG.33698RUBN4Q.CHARCWL.CP.jpg");"
+                      />
+                    </div>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="flex flex-col gap-2.5 items-end justify-start shrink-0 relative w-max"
+        />
+      </div>
+      <div
+        class="@container/card-header auto-rows-min grid-rows-[auto_auto] has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6 py-8 px-6 flex flex-col gap-4 items-center justify-center"
+        data-slot="card-header"
+      >
+        <div
+          class="bg-background rounded-xl overflow-hidden flex items-center justify-center w-full"
+        >
+          <div
+            class="relative overflow-hidden rounded-lg bg-secondary/20 border-secondary flex flex-col aspect-square w-full aspect-square [&_img]:object-contain! [&_img]:h-full! [&_img]:max-w-full! [&_img]:mx-auto!"
+          >
+            <a
+              aria-label="View Charcoal Single Pleat Wool Suit"
+              class="block w-full h-full flex-1"
+              href="/product/25686571M?color=CHARCWL"
+              to="/product/25686571M?color=CHARCWL"
+            >
+              <div
+                class="w-full h-full object-cover transition-all duration-200 group-hover:scale-105"
+              >
+                <picture>
+                  <source
+                    media="(min-width: 1280px)"
+                    sizes="15vw"
+                    srcset="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dw23283a20/images/medium/PG.33698RUBN4Q.CHARCWL.PZ.webp?sw=230&q=70&sfrm=jpg 230w, https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dw23283a20/images/medium/PG.33698RUBN4Q.CHARCWL.PZ.webp?sw=461&q=70&sfrm=jpg 461w"
+                    type="image/webp"
+                  />
+                  <source
+                    media="(min-width: 1024px)"
+                    sizes="15vw"
+                    srcset="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dw23283a20/images/medium/PG.33698RUBN4Q.CHARCWL.PZ.webp?sw=192&q=70&sfrm=jpg 192w, https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dw23283a20/images/medium/PG.33698RUBN4Q.CHARCWL.PZ.webp?sw=384&q=70&sfrm=jpg 384w"
+                    type="image/webp"
+                  />
+                  <source
+                    media="(min-width: 768px)"
+                    sizes="15vw"
+                    srcset="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dw23283a20/images/medium/PG.33698RUBN4Q.CHARCWL.PZ.webp?sw=154&q=70&sfrm=jpg 154w, https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dw23283a20/images/medium/PG.33698RUBN4Q.CHARCWL.PZ.webp?sw=307&q=70&sfrm=jpg 307w"
+                    type="image/webp"
+                  />
+                  <source
+                    media="(min-width: 640px)"
+                    sizes="50vw"
+                    srcset="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dw23283a20/images/medium/PG.33698RUBN4Q.CHARCWL.PZ.webp?sw=384&q=70&sfrm=jpg 384w, https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dw23283a20/images/medium/PG.33698RUBN4Q.CHARCWL.PZ.webp?sw=768&q=70&sfrm=jpg 768w"
+                    type="image/webp"
+                  />
+                  <source
+                    sizes="50vw"
+                    srcset="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dw23283a20/images/medium/PG.33698RUBN4Q.CHARCWL.PZ.webp?sw=320&q=70&sfrm=jpg 320w, https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dw23283a20/images/medium/PG.33698RUBN4Q.CHARCWL.PZ.webp?sw=640&q=70&sfrm=jpg 640w"
+                    type="image/webp"
+                  />
+                  <img
+                    alt="Charcoal Single Pleat Wool Suit"
+                    fetchpriority="auto"
+                    loading="lazy"
+                    src="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dw23283a20/images/medium/PG.33698RUBN4Q.CHARCWL.PZ.jpg"
+                  />
+                </picture>
+              </div>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`ProductTile stories snapshot > Default story renders and matches snapshot 1`] = `
+<div>
+  <div
+    class="w-64"
+  >
+    <div
+      class="bg-card text-card-foreground group border rounded-xl overflow-hidden w-full min-w-0 max-w-full flex flex-col-reverse justify-end h-full shadow-sm gap-0 py-0 transition-all duration-200 hover:shadow-md"
+      data-slot="card"
+    >
+      <div
+        class="items-center [.border-t]:pt-6 px-6 pb-6 pt-6 flex-1 flex flex-col justify-end"
+        data-slot="card-footer"
+      >
+        <button
+          class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3 w-full text-sm font-normal"
+          data-size="default"
+          data-slot="button"
+          data-variant="default"
+        >
+          More Options
+        </button>
+      </div>
+      <div
+        class="px-6"
+        data-slot="card-content"
+      >
+        <div
+          class="items-center gap-2 text-sm mt-2"
+        >
+          <span
+            aria-label="Current price from $143.99"
+            aria-live="polite"
+            class="[&:not(:first-child)]:mt-6 text-card-foreground text-right font-semibold text-sm leading-none relative"
+          >
+            From $143.99
+          </span>
+          <span
+            aria-atomic="true"
+            aria-live="polite"
+            class="sr-only"
+          >
+            Charcoal Single Pleat Wool Suit
+            Current price from $143.99
+          </span>
+           
+          <span
+            aria-label="List price from $320.00"
+            class="[&:not(:first-child)]:mt-6 line-through text-muted-foreground text-right text-sm leading-none relative"
+          >
+            $320.00
+          </span>
+          <span
+            aria-atomic="true"
+            aria-live="polite"
+            class="sr-only"
+          >
+            Charcoal Single Pleat Wool Suit
+            List price: $320.00
+          </span>
+        </div>
+        <div
+          class="items-center gap-2 text-sm mt-2"
+        >
+          <span
+            class="line-clamp-2"
+          >
+            25% off.
+          </span>
+        </div>
+      </div>
+      <div
+        class="px-6 pb-0 pt-0 flex flex-row gap-1.5 items-start justify-start self-stretch relative h-16"
+        data-slot="card-content"
+      >
+        <div
+          class="flex flex-col gap-1 items-start justify-start relative flex-1 min-w-0 h-full"
+        >
+          <div
+            class="h-10 flex items-start"
+          >
+            <a
+              class="text-card-foreground text-left font-semibold text-sm leading-[1.25] relative hover:underline line-clamp-2 overflow-hidden block"
+              href="/product/25686571M"
+              style="display: -webkit-box; -webkit-line-clamp: 2;"
+              to="/product/25686571M"
+            >
+              Charcoal Single Pleat Wool Suit
+            </a>
+          </div>
+          <div
+            class="h-8 flex items-end"
+          >
+            <div
+              class="space-y-3"
+            >
+              <div
+                aria-label="Colour"
+                class="flex flex-col gap-3"
+                role="radiogroup"
+              >
+                <div
+                  class="flex flex-wrap gap-2 focus:outline-none"
+                >
+                  <button
+                    aria-checked="false"
+                    aria-label="Navy"
+                    class="border-2 text-foreground flex-shrink-0 relative group transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 min-w-6 min-h-6 rounded-full w-7 h-7 p-1 cursor-pointer border-transparent"
+                    position="relative"
+                    role="radio"
+                    tabindex="-1"
+                    type="button"
+                  >
+                    <div
+                      class="flex items-center justify-center w-full h-full text-sm font-medium"
+                    >
+                      <div
+                        aria-label="Navy"
+                        class="bg-no-repeat bg-cover bg-center rounded-full w-full h-full"
+                        style="background-color: navy; background-image: url("https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dw7fabf1ff/images/swatch/PG.52002RUBN4Q.NAVYWL.CP.jpg");"
+                      />
+                    </div>
+                  </button>
+                  <button
+                    aria-checked="true"
+                    aria-label="Charcoal"
+                    class="border-2 text-foreground flex-shrink-0 relative group transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 min-w-6 min-h-6 rounded-full w-7 h-7 p-1 cursor-pointer border-black"
+                    position="relative"
+                    role="radio"
+                    tabindex="0"
+                    type="button"
+                  >
+                    <div
+                      class="flex items-center justify-center w-full h-full text-sm font-medium"
+                    >
+                      <div
+                        aria-label="Charcoal"
+                        class="bg-no-repeat bg-cover bg-center rounded-full w-full h-full"
+                        style="background-image: url("https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dw5cb61ec2/images/swatch/PG.33698RUBN4Q.CHARCWL.CP.jpg");"
+                      />
+                    </div>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="flex flex-col gap-2.5 items-end justify-start shrink-0 relative w-max"
+        />
+      </div>
+      <div
+        class="@container/card-header auto-rows-min grid-rows-[auto_auto] has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6 py-8 px-6 flex flex-col gap-4 items-center justify-center"
+        data-slot="card-header"
+      >
+        <div
+          class="bg-background rounded-xl overflow-hidden flex items-center justify-center w-full"
+        >
+          <div
+            class="relative overflow-hidden rounded-lg bg-secondary/20 border-secondary flex flex-col aspect-square w-full aspect-square [&_img]:object-contain! [&_img]:h-full! [&_img]:max-w-full! [&_img]:mx-auto!"
+          >
+            <a
+              aria-label="View Charcoal Single Pleat Wool Suit"
+              class="block w-full h-full flex-1"
+              href="/product/25686571M?color=CHARCWL"
+              to="/product/25686571M?color=CHARCWL"
+            >
+              <div
+                class="w-full h-full object-cover transition-all duration-200 group-hover:scale-105"
+              >
+                <picture>
+                  <source
+                    media="(min-width: 1280px)"
+                    sizes="15vw"
+                    srcset="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dw23283a20/images/medium/PG.33698RUBN4Q.CHARCWL.PZ.webp?sw=230&q=70&sfrm=jpg 230w, https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dw23283a20/images/medium/PG.33698RUBN4Q.CHARCWL.PZ.webp?sw=461&q=70&sfrm=jpg 461w"
+                    type="image/webp"
+                  />
+                  <source
+                    media="(min-width: 1024px)"
+                    sizes="15vw"
+                    srcset="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dw23283a20/images/medium/PG.33698RUBN4Q.CHARCWL.PZ.webp?sw=192&q=70&sfrm=jpg 192w, https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dw23283a20/images/medium/PG.33698RUBN4Q.CHARCWL.PZ.webp?sw=384&q=70&sfrm=jpg 384w"
+                    type="image/webp"
+                  />
+                  <source
+                    media="(min-width: 768px)"
+                    sizes="15vw"
+                    srcset="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dw23283a20/images/medium/PG.33698RUBN4Q.CHARCWL.PZ.webp?sw=154&q=70&sfrm=jpg 154w, https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dw23283a20/images/medium/PG.33698RUBN4Q.CHARCWL.PZ.webp?sw=307&q=70&sfrm=jpg 307w"
+                    type="image/webp"
+                  />
+                  <source
+                    media="(min-width: 640px)"
+                    sizes="50vw"
+                    srcset="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dw23283a20/images/medium/PG.33698RUBN4Q.CHARCWL.PZ.webp?sw=384&q=70&sfrm=jpg 384w, https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dw23283a20/images/medium/PG.33698RUBN4Q.CHARCWL.PZ.webp?sw=768&q=70&sfrm=jpg 768w"
+                    type="image/webp"
+                  />
+                  <source
+                    sizes="50vw"
+                    srcset="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dw23283a20/images/medium/PG.33698RUBN4Q.CHARCWL.PZ.webp?sw=320&q=70&sfrm=jpg 320w, https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dw23283a20/images/medium/PG.33698RUBN4Q.CHARCWL.PZ.webp?sw=640&q=70&sfrm=jpg 640w"
+                    type="image/webp"
+                  />
+                  <img
+                    alt="Charcoal Single Pleat Wool Suit"
+                    fetchpriority="auto"
+                    loading="lazy"
+                    src="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dw23283a20/images/medium/PG.33698RUBN4Q.CHARCWL.PZ.jpg"
+                  />
+                </picture>
+              </div>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`ProductTile stories snapshot > MasterProductWithSwatches story renders and matches snapshot 1`] = `
+<div>
+  <div
+    class="w-64"
+  >
+    <div
+      class="bg-card text-card-foreground group border rounded-xl overflow-hidden w-full min-w-0 max-w-full flex flex-col-reverse justify-end h-full shadow-sm gap-0 py-0 transition-all duration-200 hover:shadow-md"
+      data-slot="card"
+    >
+      <div
+        class="items-center [.border-t]:pt-6 px-6 pb-6 pt-6 flex-1 flex flex-col justify-end"
+        data-slot="card-footer"
+      >
+        <button
+          class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3 w-full text-sm font-normal"
+          data-size="default"
+          data-slot="button"
+          data-variant="default"
+        >
+          More Options
+        </button>
+      </div>
+      <div
+        class="px-6"
+        data-slot="card-content"
+      >
+        <div
+          class="items-center gap-2 text-sm mt-2"
+        >
+          <span
+            aria-label="Current price from $18.55"
+            aria-live="polite"
+            class="[&:not(:first-child)]:mt-6 text-card-foreground text-right font-semibold text-sm leading-none relative"
+          >
+            From $18.55
+          </span>
+          <span
+            aria-atomic="true"
+            aria-live="polite"
+            class="sr-only"
+          >
+            Long Sleeve Embellished Boat Neck Top
+            Current price from $18.55
+          </span>
+           
+          <span
+            aria-label="List price from $31.36"
+            class="[&:not(:first-child)]:mt-6 line-through text-muted-foreground text-right text-sm leading-none relative"
+          >
+            $31.36
+          </span>
+          <span
+            aria-atomic="true"
+            aria-live="polite"
+            class="sr-only"
+          >
+            Long Sleeve Embellished Boat Neck Top
+            List price: $31.36
+          </span>
+        </div>
+        <div
+          class="items-center gap-2 text-sm mt-2"
+        >
+          <span
+            class="line-clamp-2"
+          >
+            Buy one Long Center Seam Skirt and get 2 tops
+          </span>
+        </div>
+      </div>
+      <div
+        class="px-6 pb-0 pt-0 flex flex-row gap-1.5 items-start justify-start self-stretch relative h-16"
+        data-slot="card-content"
+      >
+        <div
+          class="flex flex-col gap-1 items-start justify-start relative flex-1 min-w-0 h-full"
+        >
+          <div
+            class="h-10 flex items-start"
+          >
+            <a
+              class="text-card-foreground text-left font-semibold text-sm leading-[1.25] relative hover:underline line-clamp-2 overflow-hidden block"
+              href="/product/25518101M"
+              style="display: -webkit-box; -webkit-line-clamp: 2;"
+              to="/product/25518101M"
+            >
+              Long Sleeve Embellished Boat Neck Top
+            </a>
+          </div>
+          <div
+            class="h-8 flex items-end"
+          >
+            <div
+              class="space-y-3"
+            >
+              <div
+                aria-label="Colour"
+                class="flex flex-col gap-3"
+                role="radiogroup"
+              >
+                <div
+                  class="flex flex-wrap gap-2 focus:outline-none"
+                >
+                  <button
+                    aria-checked="false"
+                    aria-label="Begonia Pink"
+                    class="border-2 text-foreground flex-shrink-0 relative group transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 min-w-6 min-h-6 rounded-full w-7 h-7 p-1 cursor-pointer border-transparent"
+                    position="relative"
+                    role="radio"
+                    tabindex="-1"
+                    type="button"
+                  >
+                    <div
+                      class="flex items-center justify-center w-full h-full text-sm font-medium"
+                    >
+                      <div
+                        aria-label="Begonia Pink"
+                        class="bg-no-repeat bg-cover bg-center rounded-full w-full h-full"
+                        style="background-image: url("https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dw2b23d065/images/swatch/PG.10217069.JJ5QZXX.CP.jpg");"
+                      />
+                    </div>
+                  </button>
+                  <button
+                    aria-checked="true"
+                    aria-label="Grey Heather"
+                    class="border-2 text-foreground flex-shrink-0 relative group transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 min-w-6 min-h-6 rounded-full w-7 h-7 p-1 cursor-pointer border-black"
+                    position="relative"
+                    role="radio"
+                    tabindex="0"
+                    type="button"
+                  >
+                    <div
+                      class="flex items-center justify-center w-full h-full text-sm font-medium"
+                    >
+                      <div
+                        aria-label="Grey Heather"
+                        class="bg-no-repeat bg-cover bg-center rounded-full w-full h-full"
+                        style="background-image: url("https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dw747c5f3e/images/swatch/PG.10217069.JJ908XX.CP.jpg");"
+                      />
+                    </div>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="flex flex-col gap-2.5 items-end justify-start shrink-0 relative w-max"
+        />
+      </div>
+      <div
+        class="@container/card-header auto-rows-min grid-rows-[auto_auto] has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6 py-8 px-6 flex flex-col gap-4 items-center justify-center"
+        data-slot="card-header"
+      >
+        <div
+          class="bg-background rounded-xl overflow-hidden flex items-center justify-center w-full"
+        >
+          <div
+            class="relative overflow-hidden rounded-lg bg-secondary/20 border-secondary flex flex-col aspect-square w-full aspect-square [&_img]:object-contain! [&_img]:h-full! [&_img]:max-w-full! [&_img]:mx-auto!"
+          >
+            <a
+              aria-label="View Long Sleeve Embellished Boat Neck Top"
+              class="block w-full h-full flex-1"
+              href="/product/25518101M?color=JJ908XX"
+              to="/product/25518101M?color=JJ908XX"
+            >
+              <div
+                class="w-full h-full object-cover transition-all duration-200 group-hover:scale-105"
+              >
+                <picture>
+                  <source
+                    media="(min-width: 1280px)"
+                    sizes="15vw"
+                    srcset="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dwc9ce7da9/images/medium/PG.10217069.JJ908XX.PZ.webp?sw=230&q=70&sfrm=jpg 230w, https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dwc9ce7da9/images/medium/PG.10217069.JJ908XX.PZ.webp?sw=461&q=70&sfrm=jpg 461w"
+                    type="image/webp"
+                  />
+                  <source
+                    media="(min-width: 1024px)"
+                    sizes="15vw"
+                    srcset="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dwc9ce7da9/images/medium/PG.10217069.JJ908XX.PZ.webp?sw=192&q=70&sfrm=jpg 192w, https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dwc9ce7da9/images/medium/PG.10217069.JJ908XX.PZ.webp?sw=384&q=70&sfrm=jpg 384w"
+                    type="image/webp"
+                  />
+                  <source
+                    media="(min-width: 768px)"
+                    sizes="15vw"
+                    srcset="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dwc9ce7da9/images/medium/PG.10217069.JJ908XX.PZ.webp?sw=154&q=70&sfrm=jpg 154w, https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dwc9ce7da9/images/medium/PG.10217069.JJ908XX.PZ.webp?sw=307&q=70&sfrm=jpg 307w"
+                    type="image/webp"
+                  />
+                  <source
+                    media="(min-width: 640px)"
+                    sizes="50vw"
+                    srcset="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dwc9ce7da9/images/medium/PG.10217069.JJ908XX.PZ.webp?sw=384&q=70&sfrm=jpg 384w, https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dwc9ce7da9/images/medium/PG.10217069.JJ908XX.PZ.webp?sw=768&q=70&sfrm=jpg 768w"
+                    type="image/webp"
+                  />
+                  <source
+                    sizes="50vw"
+                    srcset="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dwc9ce7da9/images/medium/PG.10217069.JJ908XX.PZ.webp?sw=320&q=70&sfrm=jpg 320w, https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dwc9ce7da9/images/medium/PG.10217069.JJ908XX.PZ.webp?sw=640&q=70&sfrm=jpg 640w"
+                    type="image/webp"
+                  />
+                  <img
+                    alt="Long Sleeve Embellished Boat Neck Top"
+                    fetchpriority="auto"
+                    loading="lazy"
+                    src="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dwc9ce7da9/images/medium/PG.10217069.JJ908XX.PZ.jpg"
+                  />
+                </picture>
+              </div>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`ProductTile stories snapshot > WithBadges story renders and matches snapshot 1`] = `
+<div>
+  <div
+    class="w-64"
+  >
+    <div
+      class="bg-card text-card-foreground group border rounded-xl overflow-hidden w-full min-w-0 max-w-full flex flex-col-reverse justify-end h-full shadow-sm gap-0 py-0 transition-all duration-200 hover:shadow-md"
+      data-slot="card"
+    >
+      <div
+        class="items-center [.border-t]:pt-6 px-6 pb-6 pt-6 flex-1 flex flex-col justify-end"
+        data-slot="card-footer"
+      >
+        <button
+          class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3 w-full text-sm font-normal"
+          data-size="default"
+          data-slot="button"
+          data-variant="default"
+        >
+          More Options
+        </button>
+      </div>
+      <div
+        class="px-6"
+        data-slot="card-content"
+      >
+        <div
+          class="items-center gap-2 text-sm mt-2"
+        >
+          <span
+            aria-label="Current price from $143.99"
+            aria-live="polite"
+            class="[&:not(:first-child)]:mt-6 text-card-foreground text-right font-semibold text-sm leading-none relative"
+          >
+            From $143.99
+          </span>
+          <span
+            aria-atomic="true"
+            aria-live="polite"
+            class="sr-only"
+          >
+            Charcoal Single Pleat Wool Suit
+            Current price from $143.99
+          </span>
+           
+          <span
+            aria-label="List price from $320.00"
+            class="[&:not(:first-child)]:mt-6 line-through text-muted-foreground text-right text-sm leading-none relative"
+          >
+            $320.00
+          </span>
+          <span
+            aria-atomic="true"
+            aria-live="polite"
+            class="sr-only"
+          >
+            Charcoal Single Pleat Wool Suit
+            List price: $320.00
+          </span>
+        </div>
+        <div
+          class="items-center gap-2 text-sm mt-2"
+        >
+          <span
+            class="line-clamp-2"
+          >
+            25% off.
+          </span>
+        </div>
+      </div>
+      <div
+        class="px-6 pb-0 pt-0 flex flex-row gap-1.5 items-start justify-start self-stretch relative h-16"
+        data-slot="card-content"
+      >
+        <div
+          class="flex flex-col gap-1 items-start justify-start relative flex-1 min-w-0 h-full"
+        >
+          <div
+            class="h-10 flex items-start"
+          >
+            <a
+              class="text-card-foreground text-left font-semibold text-sm leading-[1.25] relative hover:underline line-clamp-2 overflow-hidden block"
+              href="/product/25686571M"
+              style="display: -webkit-box; -webkit-line-clamp: 2;"
+              to="/product/25686571M"
+            >
+              Charcoal Single Pleat Wool Suit
+            </a>
+          </div>
+          <div
+            class="h-8 flex items-end"
+          >
+            <div
+              class="space-y-3"
+            >
+              <div
+                aria-label="Colour"
+                class="flex flex-col gap-3"
+                role="radiogroup"
+              >
+                <div
+                  class="flex flex-wrap gap-2 focus:outline-none"
+                >
+                  <button
+                    aria-checked="false"
+                    aria-label="Navy"
+                    class="border-2 text-foreground flex-shrink-0 relative group transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 min-w-6 min-h-6 rounded-full w-7 h-7 p-1 cursor-pointer border-transparent"
+                    position="relative"
+                    role="radio"
+                    tabindex="-1"
+                    type="button"
+                  >
+                    <div
+                      class="flex items-center justify-center w-full h-full text-sm font-medium"
+                    >
+                      <div
+                        aria-label="Navy"
+                        class="bg-no-repeat bg-cover bg-center rounded-full w-full h-full"
+                        style="background-color: navy; background-image: url("https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dw7fabf1ff/images/swatch/PG.52002RUBN4Q.NAVYWL.CP.jpg");"
+                      />
+                    </div>
+                  </button>
+                  <button
+                    aria-checked="true"
+                    aria-label="Charcoal"
+                    class="border-2 text-foreground flex-shrink-0 relative group transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 min-w-6 min-h-6 rounded-full w-7 h-7 p-1 cursor-pointer border-black"
+                    position="relative"
+                    role="radio"
+                    tabindex="0"
+                    type="button"
+                  >
+                    <div
+                      class="flex items-center justify-center w-full h-full text-sm font-medium"
+                    >
+                      <div
+                        aria-label="Charcoal"
+                        class="bg-no-repeat bg-cover bg-center rounded-full w-full h-full"
+                        style="background-image: url("https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dw5cb61ec2/images/swatch/PG.33698RUBN4Q.CHARCWL.CP.jpg");"
+                      />
+                    </div>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="flex flex-col gap-2.5 items-end justify-start shrink-0 relative w-max"
+        >
+          <div
+            class="flex flex-row gap-1.5 items-start justify-start shrink-0 relative"
+          >
+            <span
+              class="inline-flex items-center justify-center rounded-full border px-2 py-0.5 w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent bg-primary text-primary-foreground [a&]:hover:bg-primary/90 text-xs leading-3 font-medium"
+              data-slot="badge"
+            >
+              New
+            </span>
+            <span
+              class="inline-flex items-center justify-center rounded-full border px-2 py-0.5 w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent bg-primary text-primary-foreground [a&]:hover:bg-primary/90 text-xs leading-3 font-medium"
+              data-slot="badge"
+            >
+              Sale
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="@container/card-header auto-rows-min grid-rows-[auto_auto] has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6 py-8 px-6 flex flex-col gap-4 items-center justify-center"
+        data-slot="card-header"
+      >
+        <div
+          class="bg-background rounded-xl overflow-hidden flex items-center justify-center w-full"
+        >
+          <div
+            class="relative overflow-hidden rounded-lg bg-secondary/20 border-secondary flex flex-col aspect-square w-full aspect-square [&_img]:object-contain! [&_img]:h-full! [&_img]:max-w-full! [&_img]:mx-auto!"
+          >
+            <a
+              aria-label="View Charcoal Single Pleat Wool Suit"
+              class="block w-full h-full flex-1"
+              href="/product/25686571M?color=CHARCWL"
+              to="/product/25686571M?color=CHARCWL"
+            >
+              <div
+                class="w-full h-full object-cover transition-all duration-200 group-hover:scale-105"
+              >
+                <picture>
+                  <source
+                    media="(min-width: 1280px)"
+                    sizes="15vw"
+                    srcset="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dw23283a20/images/medium/PG.33698RUBN4Q.CHARCWL.PZ.webp?sw=230&q=70&sfrm=jpg 230w, https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dw23283a20/images/medium/PG.33698RUBN4Q.CHARCWL.PZ.webp?sw=461&q=70&sfrm=jpg 461w"
+                    type="image/webp"
+                  />
+                  <source
+                    media="(min-width: 1024px)"
+                    sizes="15vw"
+                    srcset="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dw23283a20/images/medium/PG.33698RUBN4Q.CHARCWL.PZ.webp?sw=192&q=70&sfrm=jpg 192w, https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dw23283a20/images/medium/PG.33698RUBN4Q.CHARCWL.PZ.webp?sw=384&q=70&sfrm=jpg 384w"
+                    type="image/webp"
+                  />
+                  <source
+                    media="(min-width: 768px)"
+                    sizes="15vw"
+                    srcset="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dw23283a20/images/medium/PG.33698RUBN4Q.CHARCWL.PZ.webp?sw=154&q=70&sfrm=jpg 154w, https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dw23283a20/images/medium/PG.33698RUBN4Q.CHARCWL.PZ.webp?sw=307&q=70&sfrm=jpg 307w"
+                    type="image/webp"
+                  />
+                  <source
+                    media="(min-width: 640px)"
+                    sizes="50vw"
+                    srcset="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dw23283a20/images/medium/PG.33698RUBN4Q.CHARCWL.PZ.webp?sw=384&q=70&sfrm=jpg 384w, https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dw23283a20/images/medium/PG.33698RUBN4Q.CHARCWL.PZ.webp?sw=768&q=70&sfrm=jpg 768w"
+                    type="image/webp"
+                  />
+                  <source
+                    sizes="50vw"
+                    srcset="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dw23283a20/images/medium/PG.33698RUBN4Q.CHARCWL.PZ.webp?sw=320&q=70&sfrm=jpg 320w, https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dw23283a20/images/medium/PG.33698RUBN4Q.CHARCWL.PZ.webp?sw=640&q=70&sfrm=jpg 640w"
+                    type="image/webp"
+                  />
+                  <img
+                    alt="Charcoal Single Pleat Wool Suit"
+                    fetchpriority="auto"
+                    loading="lazy"
+                    src="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dw23283a20/images/medium/PG.33698RUBN4Q.CHARCWL.PZ.jpg"
+                  />
+                </picture>
+              </div>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;

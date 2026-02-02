@@ -1,0 +1,13 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`CartQuantityPicker stories snapshot > Default story renders and matches snapshot 1`] = `null`;
+
+exports[`CartQuantityPicker stories snapshot > Disabled story renders and matches snapshot 1`] = `null`;
+
+exports[`CartQuantityPicker stories snapshot > HighQuantity story renders and matches snapshot 1`] = `null`;
+
+exports[`CartQuantityPicker stories snapshot > InCartItem story renders and matches snapshot 1`] = `null`;
+
+exports[`CartQuantityPicker stories snapshot > WithCustomDebounce story renders and matches snapshot 1`] = `null`;
+
+exports[`CartQuantityPicker stories snapshot > WithStockLevel story renders and matches snapshot 1`] = `null`;

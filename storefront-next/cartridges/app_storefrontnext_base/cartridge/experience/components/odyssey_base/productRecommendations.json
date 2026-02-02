@@ -1,0 +1,40 @@
+{
+    "name": "Product Recommendations",
+    "description": "Displays product recommendations. Automatically reads product from context when available on product pages.",
+    "group": "odyssey_base",
+    "arch_type": "headless",
+    "region_definitions": [],
+    "attribute_definition_groups": [
+        {
+            "id": "productRecommendations",
+            "name": "Product Recommendations",
+            "description": "Displays product recommendations. Automatically reads product from context when available on product pages.",
+            "attribute_definitions": [
+                {
+                    "id": "recommenderName",
+                    "name": "Recommender Name",
+                    "type": "enum",
+                    "required": true,
+                    "description": "Unique identifier for the Einstein recommender",
+                    "values": "EINSTEIN_RECOMMENDER_VALUES"
+                },
+                {
+                    "id": "recommenderTitle",
+                    "name": "Recommender Title",
+                    "type": "string",
+                    "required": true,
+                    "description": "Display title for the recommendation section"
+                },
+                {
+                    "id": "recommenderType",
+                    "name": "Recommender Type",
+                    "type": "enum",
+                    "required": false,
+                    "description": "Type of recommendation request. Defaults to \"recommender\" for standard recommenders. Use \"zone\" only for zone-based recommendations.",
+                    "values": ["recommender", "zone"],
+                    "default_value": "recommender"
+                }
+            ]
+        }
+    ]
+}

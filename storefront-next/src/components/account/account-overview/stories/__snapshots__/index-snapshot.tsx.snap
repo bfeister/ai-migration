@@ -1,0 +1,1611 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`AccountOverview stories snapshot > Default story renders and matches snapshot 1`] = `
+<div
+  class="space-y-6"
+>
+  <div
+    class="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm"
+    data-slot="card"
+  >
+    <div
+      class="p-6"
+      data-slot="card-content"
+    >
+      <h1
+        class="text-3xl font-bold text-foreground mb-2"
+      >
+        Welcome back, John!
+      </h1>
+      <p
+        class="text-muted-foreground"
+      >
+        Manage your account, view orders, and discover personalized recommendations.
+      </p>
+    </div>
+  </div>
+  <div
+    class="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm"
+    data-slot="card"
+  >
+    <div
+      class="p-6"
+      data-slot="card-content"
+    />
+  </div>
+  <div
+    class="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm"
+    data-slot="card"
+  >
+    <div
+      class="p-6"
+      data-slot="card-content"
+    >
+      <h2
+        class="text-xl font-semibold text-foreground mb-4"
+      >
+        Quick Links
+      </h2>
+      <div
+        class="grid grid-cols-1 sm:grid-cols-2 gap-4"
+      >
+        <a
+          class="group"
+          data-discover="true"
+          href="/account"
+        >
+          <div
+            class="h-full flex items-center gap-4 p-4 rounded-xl border transition-all duration-200 hover:shadow-md hover:border-primary/50 group-focus-visible:ring-2 group-focus-visible:ring-primary"
+          >
+            <div
+              class="flex-shrink-0 w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center"
+            >
+              <svg
+                aria-hidden="true"
+                class="lucide lucide-user h-6 w-6 text-primary"
+                fill="none"
+                height="24"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"
+                />
+                <circle
+                  cx="12"
+                  cy="7"
+                  r="4"
+                />
+              </svg>
+            </div>
+            <div
+              class="flex-1 min-w-0"
+            >
+              <h3
+                class="font-medium text-foreground group-hover:text-primary transition-colors"
+              >
+                Account Details
+              </h3>
+              <p
+                class="text-sm text-muted-foreground truncate"
+              >
+                View and edit your profile
+              </p>
+            </div>
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-chevron-right h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="m9 18 6-6-6-6"
+              />
+            </svg>
+          </div>
+        </a>
+        <a
+          class="group"
+          data-discover="true"
+          href="/account/orders"
+        >
+          <div
+            class="h-full flex items-center gap-4 p-4 rounded-xl border transition-all duration-200 hover:shadow-md hover:border-primary/50 group-focus-visible:ring-2 group-focus-visible:ring-primary"
+          >
+            <div
+              class="flex-shrink-0 w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center"
+            >
+              <svg
+                aria-hidden="true"
+                class="lucide lucide-receipt h-6 w-6 text-primary"
+                fill="none"
+                height="24"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"
+                />
+                <path
+                  d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"
+                />
+                <path
+                  d="M12 17.5v-11"
+                />
+              </svg>
+            </div>
+            <div
+              class="flex-1 min-w-0"
+            >
+              <h3
+                class="font-medium text-foreground group-hover:text-primary transition-colors"
+              >
+                Order History
+              </h3>
+              <p
+                class="text-sm text-muted-foreground truncate"
+              >
+                Track your orders
+              </p>
+            </div>
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-chevron-right h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="m9 18 6-6-6-6"
+              />
+            </svg>
+          </div>
+        </a>
+        <a
+          class="group"
+          data-discover="true"
+          href="/account/wishlist"
+        >
+          <div
+            class="h-full flex items-center gap-4 p-4 rounded-xl border transition-all duration-200 hover:shadow-md hover:border-primary/50 group-focus-visible:ring-2 group-focus-visible:ring-primary"
+          >
+            <div
+              class="flex-shrink-0 w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center"
+            >
+              <svg
+                aria-hidden="true"
+                class="lucide lucide-heart h-6 w-6 text-primary"
+                fill="none"
+                height="24"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5"
+                />
+              </svg>
+            </div>
+            <div
+              class="flex-1 min-w-0"
+            >
+              <h3
+                class="font-medium text-foreground group-hover:text-primary transition-colors"
+              >
+                Wishlist
+              </h3>
+              <p
+                class="text-sm text-muted-foreground truncate"
+              >
+                Items you've saved
+              </p>
+            </div>
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-chevron-right h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="m9 18 6-6-6-6"
+              />
+            </svg>
+          </div>
+        </a>
+        <a
+          class="group"
+          data-discover="true"
+          href="/account/addresses"
+        >
+          <div
+            class="h-full flex items-center gap-4 p-4 rounded-xl border transition-all duration-200 hover:shadow-md hover:border-primary/50 group-focus-visible:ring-2 group-focus-visible:ring-primary"
+          >
+            <div
+              class="flex-shrink-0 w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center"
+            >
+              <svg
+                aria-hidden="true"
+                class="lucide lucide-map-pin h-6 w-6 text-primary"
+                fill="none"
+                height="24"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"
+                />
+                <circle
+                  cx="12"
+                  cy="10"
+                  r="3"
+                />
+              </svg>
+            </div>
+            <div
+              class="flex-1 min-w-0"
+            >
+              <h3
+                class="font-medium text-foreground group-hover:text-primary transition-colors"
+              >
+                Addresses
+              </h3>
+              <p
+                class="text-sm text-muted-foreground truncate"
+              >
+                Manage your addresses
+              </p>
+            </div>
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-chevron-right h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="m9 18 6-6-6-6"
+              />
+            </svg>
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`AccountOverview stories snapshot > GuestUser story renders and matches snapshot 1`] = `
+<div
+  class="space-y-6"
+>
+  <div
+    class="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm"
+    data-slot="card"
+  >
+    <div
+      class="p-6"
+      data-slot="card-content"
+    >
+      <h1
+        class="text-3xl font-bold text-foreground mb-2"
+      >
+        Welcome back, there!
+      </h1>
+      <p
+        class="text-muted-foreground"
+      >
+        Manage your account, view orders, and discover personalized recommendations.
+      </p>
+    </div>
+  </div>
+  <div
+    class="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm"
+    data-slot="card"
+  >
+    <div
+      class="p-6"
+      data-slot="card-content"
+    />
+  </div>
+  <div
+    class="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm"
+    data-slot="card"
+  >
+    <div
+      class="p-6"
+      data-slot="card-content"
+    >
+      <h2
+        class="text-xl font-semibold text-foreground mb-4"
+      >
+        Quick Links
+      </h2>
+      <div
+        class="grid grid-cols-1 sm:grid-cols-2 gap-4"
+      >
+        <a
+          class="group"
+          data-discover="true"
+          href="/account"
+        >
+          <div
+            class="h-full flex items-center gap-4 p-4 rounded-xl border transition-all duration-200 hover:shadow-md hover:border-primary/50 group-focus-visible:ring-2 group-focus-visible:ring-primary"
+          >
+            <div
+              class="flex-shrink-0 w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center"
+            >
+              <svg
+                aria-hidden="true"
+                class="lucide lucide-user h-6 w-6 text-primary"
+                fill="none"
+                height="24"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"
+                />
+                <circle
+                  cx="12"
+                  cy="7"
+                  r="4"
+                />
+              </svg>
+            </div>
+            <div
+              class="flex-1 min-w-0"
+            >
+              <h3
+                class="font-medium text-foreground group-hover:text-primary transition-colors"
+              >
+                Account Details
+              </h3>
+              <p
+                class="text-sm text-muted-foreground truncate"
+              >
+                View and edit your profile
+              </p>
+            </div>
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-chevron-right h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="m9 18 6-6-6-6"
+              />
+            </svg>
+          </div>
+        </a>
+        <a
+          class="group"
+          data-discover="true"
+          href="/account/orders"
+        >
+          <div
+            class="h-full flex items-center gap-4 p-4 rounded-xl border transition-all duration-200 hover:shadow-md hover:border-primary/50 group-focus-visible:ring-2 group-focus-visible:ring-primary"
+          >
+            <div
+              class="flex-shrink-0 w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center"
+            >
+              <svg
+                aria-hidden="true"
+                class="lucide lucide-receipt h-6 w-6 text-primary"
+                fill="none"
+                height="24"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"
+                />
+                <path
+                  d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"
+                />
+                <path
+                  d="M12 17.5v-11"
+                />
+              </svg>
+            </div>
+            <div
+              class="flex-1 min-w-0"
+            >
+              <h3
+                class="font-medium text-foreground group-hover:text-primary transition-colors"
+              >
+                Order History
+              </h3>
+              <p
+                class="text-sm text-muted-foreground truncate"
+              >
+                Track your orders
+              </p>
+            </div>
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-chevron-right h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="m9 18 6-6-6-6"
+              />
+            </svg>
+          </div>
+        </a>
+        <a
+          class="group"
+          data-discover="true"
+          href="/account/wishlist"
+        >
+          <div
+            class="h-full flex items-center gap-4 p-4 rounded-xl border transition-all duration-200 hover:shadow-md hover:border-primary/50 group-focus-visible:ring-2 group-focus-visible:ring-primary"
+          >
+            <div
+              class="flex-shrink-0 w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center"
+            >
+              <svg
+                aria-hidden="true"
+                class="lucide lucide-heart h-6 w-6 text-primary"
+                fill="none"
+                height="24"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5"
+                />
+              </svg>
+            </div>
+            <div
+              class="flex-1 min-w-0"
+            >
+              <h3
+                class="font-medium text-foreground group-hover:text-primary transition-colors"
+              >
+                Wishlist
+              </h3>
+              <p
+                class="text-sm text-muted-foreground truncate"
+              >
+                Items you've saved
+              </p>
+            </div>
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-chevron-right h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="m9 18 6-6-6-6"
+              />
+            </svg>
+          </div>
+        </a>
+        <a
+          class="group"
+          data-discover="true"
+          href="/account/addresses"
+        >
+          <div
+            class="h-full flex items-center gap-4 p-4 rounded-xl border transition-all duration-200 hover:shadow-md hover:border-primary/50 group-focus-visible:ring-2 group-focus-visible:ring-primary"
+          >
+            <div
+              class="flex-shrink-0 w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center"
+            >
+              <svg
+                aria-hidden="true"
+                class="lucide lucide-map-pin h-6 w-6 text-primary"
+                fill="none"
+                height="24"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"
+                />
+                <circle
+                  cx="12"
+                  cy="10"
+                  r="3"
+                />
+              </svg>
+            </div>
+            <div
+              class="flex-1 min-w-0"
+            >
+              <h3
+                class="font-medium text-foreground group-hover:text-primary transition-colors"
+              >
+                Addresses
+              </h3>
+              <p
+                class="text-sm text-muted-foreground truncate"
+              >
+                Manage your addresses
+              </p>
+            </div>
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-chevron-right h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="m9 18 6-6-6-6"
+              />
+            </svg>
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`AccountOverview stories snapshot > LoadingSkeleton story renders and matches snapshot 1`] = `
+<div
+  class="space-y-6"
+>
+  <div
+    class="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm"
+    data-slot="card"
+  >
+    <div
+      class="p-6"
+      data-slot="card-content"
+    >
+      <div
+        class="bg-accent animate-pulse rounded-md h-9 w-64 mb-2"
+        data-slot="skeleton"
+      />
+      <div
+        class="bg-accent animate-pulse rounded-md h-5 w-96 max-w-full"
+        data-slot="skeleton"
+      />
+    </div>
+  </div>
+  <div
+    class="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm"
+    data-slot="card"
+  >
+    <div
+      class="p-6"
+      data-slot="card-content"
+    >
+      <div
+        class="w-full animate-pulse"
+      >
+        <div
+          class="px-14"
+        >
+          <div
+            class="relative w-full"
+          >
+            <div
+              class="overflow-hidden"
+            >
+              <div
+                class="flex -ml-4 items-stretch flex-nowrap"
+              >
+                <div
+                  class="basis-1/2 sm:basis-1/3 md:basis-1/4 py-1 flex pl-0 min-w-0 shrink-0 grow-0"
+                >
+                  <div
+                    class="w-full max-w-full min-w-0 flex"
+                  >
+                    <div
+                      class="bg-card text-card-foreground border rounded-xl overflow-hidden w-full min-w-0 max-w-full flex flex-col-reverse justify-end h-full shadow-sm gap-0 py-0"
+                      data-slot="card"
+                    >
+                      <div
+                        class="items-center [.border-t]:pt-6 px-6 pb-6 pt-6 flex-1 flex flex-col justify-end"
+                        data-slot="card-footer"
+                      >
+                        <div
+                          class="bg-accent animate-pulse h-9 w-full rounded-md"
+                          data-slot="skeleton"
+                        />
+                      </div>
+                      <div
+                        class="px-6"
+                        data-slot="card-content"
+                      >
+                        <div
+                          class="mt-2"
+                        >
+                          <div
+                            class="bg-accent animate-pulse rounded-md h-5 w-16 ml-auto"
+                            data-slot="skeleton"
+                          />
+                        </div>
+                      </div>
+                      <div
+                        class="px-6 pb-0 pt-0 flex flex-row gap-1.5 items-start justify-start self-stretch relative h-16"
+                        data-slot="card-content"
+                      >
+                        <div
+                          class="flex flex-col gap-1 items-start justify-start relative flex-1 min-w-0 h-full"
+                        >
+                          <div
+                            class="h-10 flex items-start w-full"
+                          >
+                            <div
+                              class="w-full"
+                            >
+                              <div
+                                class="bg-accent animate-pulse rounded-md h-4 w-full mb-1"
+                                data-slot="skeleton"
+                              />
+                              <div
+                                class="bg-accent animate-pulse rounded-md h-4 w-3/4"
+                                data-slot="skeleton"
+                              />
+                            </div>
+                          </div>
+                          <div
+                            class="h-8 flex items-end gap-1"
+                          >
+                            <div
+                              class="bg-accent animate-pulse h-7 w-7 rounded-full"
+                              data-slot="skeleton"
+                            />
+                            <div
+                              class="bg-accent animate-pulse h-7 w-7 rounded-full"
+                              data-slot="skeleton"
+                            />
+                          </div>
+                        </div>
+                        <div
+                          class="flex flex-col gap-2.5 items-end justify-start shrink-0 relative w-max"
+                        >
+                          <div
+                            class="bg-accent animate-pulse h-5 w-12 rounded-full"
+                            data-slot="skeleton"
+                          />
+                        </div>
+                      </div>
+                      <div
+                        class="@container/card-header auto-rows-min grid-rows-[auto_auto] has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6 py-8 px-6 flex flex-col gap-4 items-center justify-center"
+                        data-slot="card-header"
+                      >
+                        <div
+                          class="bg-background rounded-xl overflow-hidden flex items-center justify-center w-full"
+                        >
+                          <div
+                            class="bg-accent animate-pulse aspect-square w-full rounded-lg"
+                            data-slot="skeleton"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="basis-1/2 sm:basis-1/3 md:basis-1/4 py-1 flex pl-0 min-w-0 shrink-0 grow-0"
+                >
+                  <div
+                    class="w-full max-w-full min-w-0 flex"
+                  >
+                    <div
+                      class="bg-card text-card-foreground border rounded-xl overflow-hidden w-full min-w-0 max-w-full flex flex-col-reverse justify-end h-full shadow-sm gap-0 py-0"
+                      data-slot="card"
+                    >
+                      <div
+                        class="items-center [.border-t]:pt-6 px-6 pb-6 pt-6 flex-1 flex flex-col justify-end"
+                        data-slot="card-footer"
+                      >
+                        <div
+                          class="bg-accent animate-pulse h-9 w-full rounded-md"
+                          data-slot="skeleton"
+                        />
+                      </div>
+                      <div
+                        class="px-6"
+                        data-slot="card-content"
+                      >
+                        <div
+                          class="mt-2"
+                        >
+                          <div
+                            class="bg-accent animate-pulse rounded-md h-5 w-16 ml-auto"
+                            data-slot="skeleton"
+                          />
+                        </div>
+                      </div>
+                      <div
+                        class="px-6 pb-0 pt-0 flex flex-row gap-1.5 items-start justify-start self-stretch relative h-16"
+                        data-slot="card-content"
+                      >
+                        <div
+                          class="flex flex-col gap-1 items-start justify-start relative flex-1 min-w-0 h-full"
+                        >
+                          <div
+                            class="h-10 flex items-start w-full"
+                          >
+                            <div
+                              class="w-full"
+                            >
+                              <div
+                                class="bg-accent animate-pulse rounded-md h-4 w-full mb-1"
+                                data-slot="skeleton"
+                              />
+                              <div
+                                class="bg-accent animate-pulse rounded-md h-4 w-3/4"
+                                data-slot="skeleton"
+                              />
+                            </div>
+                          </div>
+                          <div
+                            class="h-8 flex items-end gap-1"
+                          >
+                            <div
+                              class="bg-accent animate-pulse h-7 w-7 rounded-full"
+                              data-slot="skeleton"
+                            />
+                            <div
+                              class="bg-accent animate-pulse h-7 w-7 rounded-full"
+                              data-slot="skeleton"
+                            />
+                          </div>
+                        </div>
+                        <div
+                          class="flex flex-col gap-2.5 items-end justify-start shrink-0 relative w-max"
+                        >
+                          <div
+                            class="bg-accent animate-pulse h-5 w-12 rounded-full"
+                            data-slot="skeleton"
+                          />
+                        </div>
+                      </div>
+                      <div
+                        class="@container/card-header auto-rows-min grid-rows-[auto_auto] has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6 py-8 px-6 flex flex-col gap-4 items-center justify-center"
+                        data-slot="card-header"
+                      >
+                        <div
+                          class="bg-background rounded-xl overflow-hidden flex items-center justify-center w-full"
+                        >
+                          <div
+                            class="bg-accent animate-pulse aspect-square w-full rounded-lg"
+                            data-slot="skeleton"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="basis-1/2 sm:basis-1/3 md:basis-1/4 py-1 flex pl-0 min-w-0 shrink-0 grow-0"
+                >
+                  <div
+                    class="w-full max-w-full min-w-0 flex"
+                  >
+                    <div
+                      class="bg-card text-card-foreground border rounded-xl overflow-hidden w-full min-w-0 max-w-full flex flex-col-reverse justify-end h-full shadow-sm gap-0 py-0"
+                      data-slot="card"
+                    >
+                      <div
+                        class="items-center [.border-t]:pt-6 px-6 pb-6 pt-6 flex-1 flex flex-col justify-end"
+                        data-slot="card-footer"
+                      >
+                        <div
+                          class="bg-accent animate-pulse h-9 w-full rounded-md"
+                          data-slot="skeleton"
+                        />
+                      </div>
+                      <div
+                        class="px-6"
+                        data-slot="card-content"
+                      >
+                        <div
+                          class="mt-2"
+                        >
+                          <div
+                            class="bg-accent animate-pulse rounded-md h-5 w-16 ml-auto"
+                            data-slot="skeleton"
+                          />
+                        </div>
+                      </div>
+                      <div
+                        class="px-6 pb-0 pt-0 flex flex-row gap-1.5 items-start justify-start self-stretch relative h-16"
+                        data-slot="card-content"
+                      >
+                        <div
+                          class="flex flex-col gap-1 items-start justify-start relative flex-1 min-w-0 h-full"
+                        >
+                          <div
+                            class="h-10 flex items-start w-full"
+                          >
+                            <div
+                              class="w-full"
+                            >
+                              <div
+                                class="bg-accent animate-pulse rounded-md h-4 w-full mb-1"
+                                data-slot="skeleton"
+                              />
+                              <div
+                                class="bg-accent animate-pulse rounded-md h-4 w-3/4"
+                                data-slot="skeleton"
+                              />
+                            </div>
+                          </div>
+                          <div
+                            class="h-8 flex items-end gap-1"
+                          >
+                            <div
+                              class="bg-accent animate-pulse h-7 w-7 rounded-full"
+                              data-slot="skeleton"
+                            />
+                            <div
+                              class="bg-accent animate-pulse h-7 w-7 rounded-full"
+                              data-slot="skeleton"
+                            />
+                          </div>
+                        </div>
+                        <div
+                          class="flex flex-col gap-2.5 items-end justify-start shrink-0 relative w-max"
+                        >
+                          <div
+                            class="bg-accent animate-pulse h-5 w-12 rounded-full"
+                            data-slot="skeleton"
+                          />
+                        </div>
+                      </div>
+                      <div
+                        class="@container/card-header auto-rows-min grid-rows-[auto_auto] has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6 py-8 px-6 flex flex-col gap-4 items-center justify-center"
+                        data-slot="card-header"
+                      >
+                        <div
+                          class="bg-background rounded-xl overflow-hidden flex items-center justify-center w-full"
+                        >
+                          <div
+                            class="bg-accent animate-pulse aspect-square w-full rounded-lg"
+                            data-slot="skeleton"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="basis-1/2 sm:basis-1/3 md:basis-1/4 py-1 flex pl-0 min-w-0 shrink-0 grow-0"
+                >
+                  <div
+                    class="w-full max-w-full min-w-0 flex"
+                  >
+                    <div
+                      class="bg-card text-card-foreground border rounded-xl overflow-hidden w-full min-w-0 max-w-full flex flex-col-reverse justify-end h-full shadow-sm gap-0 py-0"
+                      data-slot="card"
+                    >
+                      <div
+                        class="items-center [.border-t]:pt-6 px-6 pb-6 pt-6 flex-1 flex flex-col justify-end"
+                        data-slot="card-footer"
+                      >
+                        <div
+                          class="bg-accent animate-pulse h-9 w-full rounded-md"
+                          data-slot="skeleton"
+                        />
+                      </div>
+                      <div
+                        class="px-6"
+                        data-slot="card-content"
+                      >
+                        <div
+                          class="mt-2"
+                        >
+                          <div
+                            class="bg-accent animate-pulse rounded-md h-5 w-16 ml-auto"
+                            data-slot="skeleton"
+                          />
+                        </div>
+                      </div>
+                      <div
+                        class="px-6 pb-0 pt-0 flex flex-row gap-1.5 items-start justify-start self-stretch relative h-16"
+                        data-slot="card-content"
+                      >
+                        <div
+                          class="flex flex-col gap-1 items-start justify-start relative flex-1 min-w-0 h-full"
+                        >
+                          <div
+                            class="h-10 flex items-start w-full"
+                          >
+                            <div
+                              class="w-full"
+                            >
+                              <div
+                                class="bg-accent animate-pulse rounded-md h-4 w-full mb-1"
+                                data-slot="skeleton"
+                              />
+                              <div
+                                class="bg-accent animate-pulse rounded-md h-4 w-3/4"
+                                data-slot="skeleton"
+                              />
+                            </div>
+                          </div>
+                          <div
+                            class="h-8 flex items-end gap-1"
+                          >
+                            <div
+                              class="bg-accent animate-pulse h-7 w-7 rounded-full"
+                              data-slot="skeleton"
+                            />
+                            <div
+                              class="bg-accent animate-pulse h-7 w-7 rounded-full"
+                              data-slot="skeleton"
+                            />
+                          </div>
+                        </div>
+                        <div
+                          class="flex flex-col gap-2.5 items-end justify-start shrink-0 relative w-max"
+                        >
+                          <div
+                            class="bg-accent animate-pulse h-5 w-12 rounded-full"
+                            data-slot="skeleton"
+                          />
+                        </div>
+                      </div>
+                      <div
+                        class="@container/card-header auto-rows-min grid-rows-[auto_auto] has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6 py-8 px-6 flex flex-col gap-4 items-center justify-center"
+                        data-slot="card-header"
+                      >
+                        <div
+                          class="bg-background rounded-xl overflow-hidden flex items-center justify-center w-full"
+                        >
+                          <div
+                            class="bg-accent animate-pulse aspect-square w-full rounded-lg"
+                            data-slot="skeleton"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              class="absolute -left-14 top-1/2 -translate-y-1/2"
+            >
+              <div
+                class="bg-accent animate-pulse h-8 w-8 rounded-full"
+                data-slot="skeleton"
+              />
+            </div>
+            <div
+              class="absolute -right-14 top-1/2 -translate-y-1/2"
+            >
+              <div
+                class="bg-accent animate-pulse h-8 w-8 rounded-full"
+                data-slot="skeleton"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div
+    class="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm"
+    data-slot="card"
+  >
+    <div
+      class="p-6"
+      data-slot="card-content"
+    >
+      <div
+        class="bg-accent animate-pulse rounded-md h-7 w-32 mb-4"
+        data-slot="skeleton"
+      />
+      <div
+        class="grid grid-cols-1 sm:grid-cols-2 gap-4"
+      >
+        <div
+          class="h-full flex items-center gap-4 p-4 rounded-xl border"
+        >
+          <div
+            class="bg-accent animate-pulse w-12 h-12 rounded-lg"
+            data-slot="skeleton"
+          />
+          <div
+            class="flex-1"
+          >
+            <div
+              class="bg-accent animate-pulse rounded-md h-5 w-24 mb-1"
+              data-slot="skeleton"
+            />
+            <div
+              class="bg-accent animate-pulse rounded-md h-4 w-40"
+              data-slot="skeleton"
+            />
+          </div>
+        </div>
+        <div
+          class="h-full flex items-center gap-4 p-4 rounded-xl border"
+        >
+          <div
+            class="bg-accent animate-pulse w-12 h-12 rounded-lg"
+            data-slot="skeleton"
+          />
+          <div
+            class="flex-1"
+          >
+            <div
+              class="bg-accent animate-pulse rounded-md h-5 w-24 mb-1"
+              data-slot="skeleton"
+            />
+            <div
+              class="bg-accent animate-pulse rounded-md h-4 w-40"
+              data-slot="skeleton"
+            />
+          </div>
+        </div>
+        <div
+          class="h-full flex items-center gap-4 p-4 rounded-xl border"
+        >
+          <div
+            class="bg-accent animate-pulse w-12 h-12 rounded-lg"
+            data-slot="skeleton"
+          />
+          <div
+            class="flex-1"
+          >
+            <div
+              class="bg-accent animate-pulse rounded-md h-5 w-24 mb-1"
+              data-slot="skeleton"
+            />
+            <div
+              class="bg-accent animate-pulse rounded-md h-4 w-40"
+              data-slot="skeleton"
+            />
+          </div>
+        </div>
+        <div
+          class="h-full flex items-center gap-4 p-4 rounded-xl border"
+        >
+          <div
+            class="bg-accent animate-pulse w-12 h-12 rounded-lg"
+            data-slot="skeleton"
+          />
+          <div
+            class="flex-1"
+          >
+            <div
+              class="bg-accent animate-pulse rounded-md h-5 w-24 mb-1"
+              data-slot="skeleton"
+            />
+            <div
+              class="bg-accent animate-pulse rounded-md h-4 w-40"
+              data-slot="skeleton"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`AccountOverview stories snapshot > QuickLinksSectionDefault story renders and matches snapshot 1`] = `
+<div
+  class="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm"
+  data-slot="card"
+>
+  <div
+    class="p-6"
+    data-slot="card-content"
+  >
+    <h2
+      class="text-xl font-semibold text-foreground mb-4"
+    >
+      Quick Links
+    </h2>
+    <div
+      class="grid grid-cols-1 sm:grid-cols-2 gap-4"
+    >
+      <a
+        class="group"
+        data-discover="true"
+        href="/account"
+      >
+        <div
+          class="h-full flex items-center gap-4 p-4 rounded-xl border transition-all duration-200 hover:shadow-md hover:border-primary/50 group-focus-visible:ring-2 group-focus-visible:ring-primary"
+        >
+          <div
+            class="flex-shrink-0 w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center"
+          >
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-user h-6 w-6 text-primary"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"
+              />
+              <circle
+                cx="12"
+                cy="7"
+                r="4"
+              />
+            </svg>
+          </div>
+          <div
+            class="flex-1 min-w-0"
+          >
+            <h3
+              class="font-medium text-foreground group-hover:text-primary transition-colors"
+            >
+              Account Details
+            </h3>
+            <p
+              class="text-sm text-muted-foreground truncate"
+            >
+              View and edit your profile
+            </p>
+          </div>
+          <svg
+            aria-hidden="true"
+            class="lucide lucide-chevron-right h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0"
+            fill="none"
+            height="24"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+            width="24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="m9 18 6-6-6-6"
+            />
+          </svg>
+        </div>
+      </a>
+      <a
+        class="group"
+        data-discover="true"
+        href="/account/orders"
+      >
+        <div
+          class="h-full flex items-center gap-4 p-4 rounded-xl border transition-all duration-200 hover:shadow-md hover:border-primary/50 group-focus-visible:ring-2 group-focus-visible:ring-primary"
+        >
+          <div
+            class="flex-shrink-0 w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center"
+          >
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-receipt h-6 w-6 text-primary"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"
+              />
+              <path
+                d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"
+              />
+              <path
+                d="M12 17.5v-11"
+              />
+            </svg>
+          </div>
+          <div
+            class="flex-1 min-w-0"
+          >
+            <h3
+              class="font-medium text-foreground group-hover:text-primary transition-colors"
+            >
+              Order History
+            </h3>
+            <p
+              class="text-sm text-muted-foreground truncate"
+            >
+              Track your orders
+            </p>
+          </div>
+          <svg
+            aria-hidden="true"
+            class="lucide lucide-chevron-right h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0"
+            fill="none"
+            height="24"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+            width="24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="m9 18 6-6-6-6"
+            />
+          </svg>
+        </div>
+      </a>
+      <a
+        class="group"
+        data-discover="true"
+        href="/account/wishlist"
+      >
+        <div
+          class="h-full flex items-center gap-4 p-4 rounded-xl border transition-all duration-200 hover:shadow-md hover:border-primary/50 group-focus-visible:ring-2 group-focus-visible:ring-primary"
+        >
+          <div
+            class="flex-shrink-0 w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center"
+          >
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-heart h-6 w-6 text-primary"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5"
+              />
+            </svg>
+          </div>
+          <div
+            class="flex-1 min-w-0"
+          >
+            <h3
+              class="font-medium text-foreground group-hover:text-primary transition-colors"
+            >
+              Wishlist
+            </h3>
+            <p
+              class="text-sm text-muted-foreground truncate"
+            >
+              Items you've saved
+            </p>
+          </div>
+          <svg
+            aria-hidden="true"
+            class="lucide lucide-chevron-right h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0"
+            fill="none"
+            height="24"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+            width="24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="m9 18 6-6-6-6"
+            />
+          </svg>
+        </div>
+      </a>
+      <a
+        class="group"
+        data-discover="true"
+        href="/account/addresses"
+      >
+        <div
+          class="h-full flex items-center gap-4 p-4 rounded-xl border transition-all duration-200 hover:shadow-md hover:border-primary/50 group-focus-visible:ring-2 group-focus-visible:ring-primary"
+        >
+          <div
+            class="flex-shrink-0 w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center"
+          >
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-map-pin h-6 w-6 text-primary"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"
+              />
+              <circle
+                cx="12"
+                cy="10"
+                r="3"
+              />
+            </svg>
+          </div>
+          <div
+            class="flex-1 min-w-0"
+          >
+            <h3
+              class="font-medium text-foreground group-hover:text-primary transition-colors"
+            >
+              Addresses
+            </h3>
+            <p
+              class="text-sm text-muted-foreground truncate"
+            >
+              Manage your addresses
+            </p>
+          </div>
+          <svg
+            aria-hidden="true"
+            class="lucide lucide-chevron-right h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0"
+            fill="none"
+            height="24"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+            width="24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="m9 18 6-6-6-6"
+            />
+          </svg>
+        </div>
+      </a>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`AccountOverview stories snapshot > QuickLinksSectionLoading story renders and matches snapshot 1`] = `
+<div
+  class="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm"
+  data-slot="card"
+>
+  <div
+    class="p-6"
+    data-slot="card-content"
+  >
+    <div
+      class="bg-accent animate-pulse rounded-md h-7 w-32 mb-4"
+      data-slot="skeleton"
+    />
+    <div
+      class="grid grid-cols-1 sm:grid-cols-2 gap-4"
+    >
+      <div
+        class="h-full flex items-center gap-4 p-4 rounded-xl border"
+      >
+        <div
+          class="bg-accent animate-pulse w-12 h-12 rounded-lg"
+          data-slot="skeleton"
+        />
+        <div
+          class="flex-1"
+        >
+          <div
+            class="bg-accent animate-pulse rounded-md h-5 w-24 mb-1"
+            data-slot="skeleton"
+          />
+          <div
+            class="bg-accent animate-pulse rounded-md h-4 w-40"
+            data-slot="skeleton"
+          />
+        </div>
+      </div>
+      <div
+        class="h-full flex items-center gap-4 p-4 rounded-xl border"
+      >
+        <div
+          class="bg-accent animate-pulse w-12 h-12 rounded-lg"
+          data-slot="skeleton"
+        />
+        <div
+          class="flex-1"
+        >
+          <div
+            class="bg-accent animate-pulse rounded-md h-5 w-24 mb-1"
+            data-slot="skeleton"
+          />
+          <div
+            class="bg-accent animate-pulse rounded-md h-4 w-40"
+            data-slot="skeleton"
+          />
+        </div>
+      </div>
+      <div
+        class="h-full flex items-center gap-4 p-4 rounded-xl border"
+      >
+        <div
+          class="bg-accent animate-pulse w-12 h-12 rounded-lg"
+          data-slot="skeleton"
+        />
+        <div
+          class="flex-1"
+        >
+          <div
+            class="bg-accent animate-pulse rounded-md h-5 w-24 mb-1"
+            data-slot="skeleton"
+          />
+          <div
+            class="bg-accent animate-pulse rounded-md h-4 w-40"
+            data-slot="skeleton"
+          />
+        </div>
+      </div>
+      <div
+        class="h-full flex items-center gap-4 p-4 rounded-xl border"
+      >
+        <div
+          class="bg-accent animate-pulse w-12 h-12 rounded-lg"
+          data-slot="skeleton"
+        />
+        <div
+          class="flex-1"
+        >
+          <div
+            class="bg-accent animate-pulse rounded-md h-5 w-24 mb-1"
+            data-slot="skeleton"
+          />
+          <div
+            class="bg-accent animate-pulse rounded-md h-4 w-40"
+            data-slot="skeleton"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`AccountOverview stories snapshot > WelcomeSectionDefault story renders and matches snapshot 1`] = `
+<div
+  class="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm"
+  data-slot="card"
+>
+  <div
+    class="p-6"
+    data-slot="card-content"
+  >
+    <h1
+      class="text-3xl font-bold text-foreground mb-2"
+    >
+      Welcome back, John!
+    </h1>
+    <p
+      class="text-muted-foreground"
+    >
+      Manage your account, view orders, and discover personalized recommendations.
+    </p>
+  </div>
+</div>
+`;
+
+exports[`AccountOverview stories snapshot > WelcomeSectionLoading story renders and matches snapshot 1`] = `
+<div
+  class="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm"
+  data-slot="card"
+>
+  <div
+    class="p-6"
+    data-slot="card-content"
+  >
+    <div
+      class="bg-accent animate-pulse rounded-md h-9 w-64 mb-2"
+      data-slot="skeleton"
+    />
+    <div
+      class="bg-accent animate-pulse rounded-md h-5 w-96 max-w-full"
+      data-slot="skeleton"
+    />
+  </div>
+</div>
+`;

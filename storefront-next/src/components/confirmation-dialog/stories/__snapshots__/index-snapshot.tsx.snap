@@ -1,0 +1,15 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`ConfirmationDialog stories snapshot > Closed story renders and matches snapshot 1`] = `
+<div>
+  <button>
+    Open Dialog
+  </button>
+</div>
+`;
+
+exports[`ConfirmationDialog stories snapshot > Default story renders and matches snapshot 1`] = `<div />`;
+
+exports[`ConfirmationDialog stories snapshot > DisabledConfirm story renders and matches snapshot 1`] = `<div />`;
+
+exports[`ConfirmationDialog stories snapshot > RemoveItem story renders and matches snapshot 1`] = `<div />`;

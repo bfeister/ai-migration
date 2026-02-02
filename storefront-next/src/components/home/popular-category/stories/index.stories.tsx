@@ -1,0 +1,358 @@
+/**
+ * Copyright 2026 Salesforce, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+import type { Meta, StoryObj } from '@storybook/react-vite';
+import PopularCategory from '../index';
+import { action } from 'storybook/actions';
+import { useEffect, useRef, type ReactNode, type ReactElement } from 'react';
+import { expect, within, userEvent } from 'storybook/test';
+import { waitForStorybookReady } from '@storybook/test-utils';
+import type { ShopperProducts } from '@salesforce/storefront-next-runtime/scapi';
+// @ts-expect-error Mock data file is JavaScript
+import { mockCategories, mockCategory as mockCategoryTies } from '@/components/__mocks__/mock-data';
+
+/**
+ * ActionLogger wrapper component to capture user interactions
+ */
+function ActionLogger({ children }: { children: ReactNode }): ReactElement {
+    const containerRef = useRef<HTMLDivElement | null>(null);
+
+    useEffect(() => {
+        const root = containerRef.current;
+        if (!root) return;
+
+        const logNavigate = action('navigate');
+        const logClick = action('click');
+        const logCategorySelect = action('category-select');
+
+        const handleClick = (event: Event) => {
+            const target = event.target as HTMLElement | null;
+            if (!target || !root.contains(target)) return;
+
+            const link = target.closest('a[href]');
+            if (link) {
+                const href = link.getAttribute('href') || '';
+                const text = link.textContent?.trim() || '';
+                event.preventDefault();
+
+                // Log specific category selection if it's a category link
+                if (href.startsWith('/category/')) {
+                    const categoryId = href.replace('/category/', '');
+                    logCategorySelect({ categoryId, categoryName: text, href });
+                }
+
+                logNavigate({ href, text });
+                logClick({ type: 'link', href, text });
+                return;
+            }
+
+            const button = target.closest('button');
+            if (button) {
+                const label = button.textContent?.trim() || button.getAttribute('aria-label') || '';
+                logClick({ type: 'button', label });
+            }
+        };
+
+        root.addEventListener('click', handleClick, true);
+
+        return () => {
+            root.removeEventListener('click', handleClick, true);
+        };
+    }, []);
+
+    return <div ref={containerRef}>{children}</div>;
+}
+
+// Use mock data from __mocks__
+const mockCategory = mockCategories.root.categories[0] as ShopperProducts.schemas['Category'];
+const mockCategoryWomens = mockCategoryTies as ShopperProducts.schemas['Category'];
+const mockCategoryNoImage: ShopperProducts.schemas['Category'] = {
+    ...mockCategory,
+    image: undefined,
+    c_slotBannerImage: undefined,
+};
+
+const meta: Meta<typeof PopularCategory> = {
+    title: 'HOME/Popular Category',
+    component: PopularCategory,
+    tags: ['autodocs', 'interaction'],
+    parameters: {
+        layout: 'fullscreen',
+        docs: {
+            description: {
+                component: `
+Popular Category component that displays a single category card.
+
+### Features:
+- Category card with image, title, description, and shop now button
+- Supports data from loader (Page Designer) or direct category prop (programmatic)
+- Automatic image fallback handling
+- Responsive design
+
+### Usage Modes:
+1. **With data prop**: Receives full category object from component loader (Page Designer mode)
+2. **With category prop**: Accepts full category object directly (programmatic use)
+3. **Fallback**: Shows empty card if no data provided
+                `,
+            },
+        },
+    },
+    decorators: [
+        (Story) => (
+            <ActionLogger>
+                <div className="bg-background min-h-screen p-8">
+                    <div className="max-w-md mx-auto">
+                        <Story />
+                    </div>
+                </div>
+            </ActionLogger>
+        ),
+    ],
+    argTypes: {
+        data: {
+            description: 'Full category object from loader (Page Designer mode)',
+            control: 'object',
+        },
+        category: {
+            description: 'Full category object for programmatic use',
+            control: 'object',
+        },
+    },
+};
+
+export default meta;
+type Story = StoryObj<typeof PopularCategory>;
+
+/**
+ * Default story with category data from loader
+ */
+export const Default: Story = {
+    args: {
+        data: mockCategory,
+    },
+    parameters: {
+        docs: {
+            description: {
+                story: 'Standard popular category card with full category data from loader (Page Designer mode).',
+            },
+        },
+    },
+    play: async ({ canvasElement }) => {
+        await waitForStorybookReady(canvasElement);
+        const canvas = within(canvasElement);
+
+        // Verify category name is displayed
+        const title = await canvas.findByText('Mens', {}, { timeout: 3000 });
+        await expect(title).toBeInTheDocument();
+
+        // Verify description is displayed
+        await expect(canvas.getByText(/men's range/i)).toBeInTheDocument();
+
+        // Verify shop now button is present
+        const shopNowButton = await canvas.findByText(/shop now/i, {}, { timeout: 3000 });
+        await expect(shopNowButton).toBeInTheDocument();
+
+        // Verify category link
+        const link = canvas.getByRole('link');
+        await expect(link).toHaveAttribute('href', '/category/mens');
+    },
+};
+
+/**
+ * Category with programmatic category prop
+ */
+export const WithCategoryProp: Story = {
+    args: {
+        category: mockCategoryWomens,
+    },
+    parameters: {
+        docs: {
+            description: {
+                story: 'Category card using category prop (programmatic use, not from loader).',
+            },
+        },
+    },
+    play: async ({ canvasElement }) => {
+        await waitForStorybookReady(canvasElement);
+        const canvas = within(canvasElement);
+
+        await expect(canvas.getByText('Ties')).toBeInTheDocument();
+        await expect(canvas.getByText(/shop mens's ties/i)).toBeInTheDocument();
+        await expect(canvas.getByRole('link')).toHaveAttribute('href', '/category/mens-accessories-ties');
+    },
+};
+
+/**
+ * Category without image (fallback to hero image)
+ */
+export const WithoutImage: Story = {
+    args: {
+        data: mockCategoryNoImage,
+    },
+    parameters: {
+        docs: {
+            description: {
+                story: 'Category card without image - uses fallback hero image.',
+            },
+        },
+    },
+    play: async ({ canvasElement }) => {
+        await waitForStorybookReady(canvasElement);
+        const canvas = within(canvasElement);
+
+        await expect(canvas.getByText('Mens')).toBeInTheDocument();
+        // Image should still be present (fallback)
+        const image = canvas.getByRole('img');
+        await expect(image).toBeInTheDocument();
+    },
+};
+
+/**
+ * Fallback state (no data)
+ */
+export const Fallback: Story = {
+    args: {},
+    parameters: {
+        docs: {
+            description: {
+                story: 'Category card in fallback state when no data is provided.',
+            },
+        },
+    },
+    play: async ({ canvasElement }) => {
+        await waitForStorybookReady(canvasElement);
+        const canvas = within(canvasElement);
+
+        // Should still show shop now button
+        await expect(canvas.getByText(/shop now/i)).toBeInTheDocument();
+        // Link should point to root
+        await expect(canvas.getByRole('link')).toHaveAttribute('href', '/category/root');
+    },
+};
+
+/**
+ * Interactive test - testing user interactions
+ */
+export const InteractionTest: Story = {
+    args: {
+        data: mockCategory,
+    },
+    parameters: {
+        docs: {
+            description: {
+                story: 'Interactive test story for verifying user interactions with category card.',
+            },
+        },
+    },
+    play: async ({ canvasElement }) => {
+        await waitForStorybookReady(canvasElement);
+        const canvas = within(canvasElement);
+
+        // Wait for component to render
+        const title = await canvas.findByText('Mens', {}, { timeout: 3000 });
+        await expect(title).toBeInTheDocument();
+
+        // Find the shop now button/link
+        const shopNowLink = await canvas.findByRole('link', { name: /shop now/i }, { timeout: 3000 });
+        await expect(shopNowLink).toBeInTheDocument();
+
+        // Test clicking the shop now button
+        await userEvent.click(shopNowLink);
+
+        // Test hovering over the card
+        const card = canvas.getByText('Mens').closest('div');
+        if (card) {
+            await userEvent.hover(card);
+        }
+
+        // Verify all elements are present
+        await expect(canvas.getByText('Mens')).toBeInTheDocument();
+        await expect(canvas.getByText(/men's range/i)).toBeInTheDocument();
+        await expect(canvas.getByRole('img')).toBeInTheDocument();
+    },
+};
+
+export const MobileLayout: Story = {
+    args: {
+        data: mockCategory,
+    },
+    parameters: {
+        docs: {
+            description: {
+                story: `
+Popular category card optimized for mobile devices. Shows:
+- Mobile-optimized layout
+- Touch-friendly interactions
+- Responsive image sizing
+
+The component automatically adapts for mobile screens.
+                `,
+            },
+        },
+    },
+    globals: {
+        viewport: 'mobile2',
+    },
+    play: async ({ canvasElement }) => {
+        await waitForStorybookReady(canvasElement);
+        const canvas = within(canvasElement);
+
+        // Verify category name is displayed
+        const title = await canvas.findByText('Mens', {}, { timeout: 3000 });
+        await expect(title).toBeInTheDocument();
+
+        // Verify shop now button is present
+        const shopNowButton = await canvas.findByText(/shop now/i, {}, { timeout: 3000 });
+        await expect(shopNowButton).toBeInTheDocument();
+    },
+};
+
+export const DesktopLayout: Story = {
+    args: {
+        data: mockCategory,
+    },
+    parameters: {
+        docs: {
+            description: {
+                story: `
+Popular category card for desktop devices. Shows:
+- Desktop-optimized layout
+- Proper spacing and sizing
+- All information clearly displayed
+
+The component provides a clean layout for desktop screens.
+                `,
+            },
+        },
+    },
+    globals: {
+        viewport: 'desktop',
+    },
+    play: async ({ canvasElement }) => {
+        await waitForStorybookReady(canvasElement);
+        const canvas = within(canvasElement);
+
+        // Verify category name is displayed
+        const title = await canvas.findByText('Mens', {}, { timeout: 3000 });
+        await expect(title).toBeInTheDocument();
+
+        // Verify description is displayed
+        await expect(canvas.getByText(/men's range/i)).toBeInTheDocument();
+
+        // Verify shop now button is present
+        const shopNowButton = await canvas.findByText(/shop now/i, {}, { timeout: 3000 });
+        await expect(shopNowButton).toBeInTheDocument();
+    },
+};

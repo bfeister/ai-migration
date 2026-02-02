@@ -1,0 +1,178 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`ShareButton stories snapshot > CustomStyling story renders and matches snapshot 1`] = `
+<div
+  data-share-harness="true"
+>
+  <button
+    aria-expanded="false"
+    aria-haspopup="menu"
+    aria-label="Share"
+    class="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border shadow-xs hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-10 rounded-md px-6 has-[>svg]:px-4 bg-blue-600 hover:bg-blue-700 text-white"
+    data-size="lg"
+    data-slot="dropdown-menu-trigger"
+    data-state="closed"
+    data-variant="outline"
+    id="radix-_r_a_"
+    type="button"
+  >
+    Share
+  </button>
+</div>
+`;
+
+exports[`ShareButton stories snapshot > Default story renders and matches snapshot 1`] = `
+<div
+  data-share-harness="true"
+>
+  <button
+    aria-expanded="false"
+    aria-haspopup="menu"
+    aria-label="Share"
+    class="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-10 rounded-md px-6 has-[>svg]:px-4"
+    data-size="lg"
+    data-slot="dropdown-menu-trigger"
+    data-state="closed"
+    data-variant="outline"
+    id="radix-_r_0_"
+    type="button"
+  >
+    Share
+  </button>
+</div>
+`;
+
+exports[`ShareButton stories snapshot > InProductCard story renders and matches snapshot 1`] = `
+<div
+  data-share-harness="true"
+>
+  <div
+    class="w-64 p-4 border rounded-lg shadow-sm"
+  >
+    <div
+      class="mb-4"
+    >
+      <div
+        class="w-full h-48 bg-muted rounded mb-2"
+      />
+      <h3
+        class="font-semibold text-lg"
+      >
+        Premium Cotton T-Shirt
+      </h3>
+      <p
+        class="text-sm text-muted-foreground mb-2"
+      >
+        $29.99
+      </p>
+    </div>
+    <div
+      class="flex justify-between items-center"
+    >
+      <button
+        aria-expanded="false"
+        aria-haspopup="menu"
+        aria-label="Share"
+        class="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-10 rounded-md px-6 has-[>svg]:px-4 text-sm"
+        data-size="lg"
+        data-slot="dropdown-menu-trigger"
+        data-state="closed"
+        data-variant="outline"
+        id="radix-_r_c_"
+        type="button"
+      >
+        Share
+      </button>
+      <button
+        class="px-4 py-2 bg-primary text-primary-foreground rounded"
+      >
+        Add to Cart
+      </button>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`ShareButton stories snapshot > LimitedProviders story renders and matches snapshot 1`] = `
+<div
+  data-share-harness="true"
+>
+  <button
+    aria-expanded="false"
+    aria-haspopup="menu"
+    aria-label="Share"
+    class="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-10 rounded-md px-6 has-[>svg]:px-4"
+    data-size="lg"
+    data-slot="dropdown-menu-trigger"
+    data-state="closed"
+    data-variant="outline"
+    id="radix-_r_4_"
+    type="button"
+  >
+    Share
+  </button>
+</div>
+`;
+
+exports[`ShareButton stories snapshot > NoProviders story renders and matches snapshot 1`] = `
+<div
+  data-share-harness="true"
+>
+  <button
+    aria-expanded="false"
+    aria-haspopup="menu"
+    aria-label="Share"
+    class="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-10 rounded-md px-6 has-[>svg]:px-4"
+    data-size="lg"
+    data-slot="dropdown-menu-trigger"
+    data-state="closed"
+    data-variant="outline"
+    id="radix-_r_8_"
+    type="button"
+  >
+    Share
+  </button>
+</div>
+`;
+
+exports[`ShareButton stories snapshot > SingleProvider story renders and matches snapshot 1`] = `
+<div
+  data-share-harness="true"
+>
+  <button
+    aria-expanded="false"
+    aria-haspopup="menu"
+    aria-label="Share"
+    class="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-10 rounded-md px-6 has-[>svg]:px-4"
+    data-size="lg"
+    data-slot="dropdown-menu-trigger"
+    data-state="closed"
+    data-variant="outline"
+    id="radix-_r_6_"
+    type="button"
+  >
+    Share
+  </button>
+</div>
+`;
+
+exports[`ShareButton stories snapshot > WithCustomProduct story renders and matches snapshot 1`] = `
+<div
+  data-share-harness="true"
+>
+  <button
+    aria-expanded="false"
+    aria-haspopup="menu"
+    aria-label="Share"
+    class="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-10 rounded-md px-6 has-[>svg]:px-4"
+    data-size="lg"
+    data-slot="dropdown-menu-trigger"
+    data-state="closed"
+    data-variant="outline"
+    id="radix-_r_2_"
+    type="button"
+  >
+    Share
+  </button>
+</div>
+`;

@@ -1,0 +1,101 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`CartTitle stories snapshot > DesktopView story renders and matches snapshot 1`] = `
+<div>
+  <h1
+    class="text-3xl font-semibold tracking-tight text-left my-6"
+  >
+    Cart (3 items)
+  </h1>
+</div>
+`;
+
+exports[`CartTitle stories snapshot > EmptyCart story renders and matches snapshot 1`] = `
+<div>
+  <h1
+    class="text-3xl font-semibold tracking-tight text-left my-6"
+  >
+    Cart (0 items)
+  </h1>
+</div>
+`;
+
+exports[`CartTitle stories snapshot > LargeItemCount story renders and matches snapshot 1`] = `
+<div>
+  <h1
+    class="text-3xl font-semibold tracking-tight text-left my-6"
+  >
+    Cart (99 items)
+  </h1>
+</div>
+`;
+
+exports[`CartTitle stories snapshot > MobileView story renders and matches snapshot 1`] = `
+<div>
+  <h1
+    class="text-3xl font-semibold tracking-tight text-left my-6"
+  >
+    Cart (1 item)
+  </h1>
+</div>
+`;
+
+exports[`CartTitle stories snapshot > MultipleItems story renders and matches snapshot 1`] = `
+<div>
+  <h1
+    class="text-3xl font-semibold tracking-tight text-left my-6"
+  >
+    Cart (3 items)
+  </h1>
+</div>
+`;
+
+exports[`CartTitle stories snapshot > SingleItem story renders and matches snapshot 1`] = `
+<div>
+  <h1
+    class="text-3xl font-semibold tracking-tight text-left my-6"
+  >
+    Cart (1 item)
+  </h1>
+</div>
+`;
+
+exports[`CartTitle stories snapshot > TabletView story renders and matches snapshot 1`] = `
+<div>
+  <h1
+    class="text-3xl font-semibold tracking-tight text-left my-6"
+  >
+    Cart (3 items)
+  </h1>
+</div>
+`;
+
+exports[`CartTitle stories snapshot > WithMissingProductItems story renders and matches snapshot 1`] = `
+<div>
+  <h1
+    class="text-3xl font-semibold tracking-tight text-left my-6"
+  >
+    Cart (0 items)
+  </h1>
+</div>
+`;
+
+exports[`CartTitle stories snapshot > WithUndefinedQuantities story renders and matches snapshot 1`] = `
+<div>
+  <h1
+    class="text-3xl font-semibold tracking-tight text-left my-6"
+  >
+    Cart (3 items)
+  </h1>
+</div>
+`;
+
+exports[`CartTitle stories snapshot > WithZeroQuantityItems story renders and matches snapshot 1`] = `
+<div>
+  <h1
+    class="text-3xl font-semibold tracking-tight text-left my-6"
+  >
+    Cart (2 items)
+  </h1>
+</div>
+`;

@@ -1,0 +1,1861 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`OrderSummary stories snapshot > Default story renders and matches snapshot 1`] = `
+<div>
+  <div
+    class="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm"
+    data-slot="card"
+  >
+    <div
+      class="p-6"
+      data-slot="card-content"
+    >
+      <div
+        class="space-y-5"
+        data-testid="sf-order-summary"
+      >
+        <h3
+          class="text-xl font-semibold tracking-tight text-left"
+          id="order-summary-heading"
+        >
+          Summary
+        </h3>
+        <div
+          aria-labelledby="order-summary-heading"
+          class="space-y-4"
+          role="region"
+        >
+          <div
+            class="w-full"
+            data-orientation="vertical"
+            data-slot="accordion"
+          >
+            <div
+              class="border-b last:border-b-0"
+              data-orientation="vertical"
+              data-slot="accordion-item"
+              data-state="closed"
+            >
+              <h3
+                class="flex"
+                data-orientation="vertical"
+                data-state="closed"
+              >
+                <button
+                  aria-controls="radix-«x»"
+                  aria-expanded="false"
+                  class="focus-visible:border-ring focus-visible:ring-ring/50 flex flex-1 items-start justify-between gap-4 rounded-md py-4 text-sm font-medium transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 text-left"
+                  data-orientation="vertical"
+                  data-radix-collection-item=""
+                  data-slot="accordion-trigger"
+                  data-state="closed"
+                  id="radix-«x»"
+                  type="button"
+                >
+                  <span
+                    class="flex-1 text-left text-base text-primary"
+                  >
+                    <svg
+                      aria-hidden="true"
+                      class="lucide lucide-shopping-cart inline mr-2 w-4 h-4"
+                      fill="none"
+                      height="24"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      viewBox="0 0 24 24"
+                      width="24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <circle
+                        cx="8"
+                        cy="21"
+                        r="1"
+                      />
+                      <circle
+                        cx="19"
+                        cy="21"
+                        r="1"
+                      />
+                      <path
+                        d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"
+                      />
+                    </svg>
+                    3 items in cart
+                  </span>
+                  <svg
+                    aria-hidden="true"
+                    class="lucide lucide-chevron-down text-muted-foreground pointer-events-none size-4 shrink-0 translate-y-0.5 transition-transform duration-200"
+                    fill="none"
+                    height="24"
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="m6 9 6 6 6-6"
+                    />
+                  </svg>
+                </button>
+              </h3>
+              <div
+                aria-labelledby="radix-«x»"
+                class="data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down overflow-hidden text-sm"
+                data-orientation="vertical"
+                data-slot="accordion-content"
+                data-state="closed"
+                hidden=""
+                id="radix-«x»"
+                role="region"
+                style="--radix-accordion-content-height: var(--radix-collapsible-content-height); --radix-accordion-content-width: var(--radix-collapsible-content-width);"
+              />
+            </div>
+          </div>
+          <div
+            class="space-y-4 text-sm"
+          >
+            <div
+              class="flex justify-between items-center"
+            >
+              <span>
+                Subtotal
+              </span>
+              <span>
+                $73.57
+              </span>
+            </div>
+            <div
+              class="flex justify-between items-center"
+            >
+              <div
+                class="flex items-center"
+              >
+                <span>
+                  Shipping
+                </span>
+              </div>
+              <span
+                class="text-muted-foreground"
+              >
+                TBD
+              </span>
+            </div>
+            <div
+              class="flex justify-between items-center"
+            >
+              <span>
+                Tax
+              </span>
+              <span
+                class="text-muted-foreground"
+              >
+                TBD
+              </span>
+            </div>
+          </div>
+          <div
+            class="space-y-4 w-full text-sm"
+          >
+            <div
+              class="flex w-full justify-between items-center"
+            >
+              <span
+                class="font-bold"
+              >
+                Order Total
+              </span>
+              <span
+                class="font-bold"
+              >
+                $73.57
+              </span>
+            </div>
+          </div>
+          <div
+            class="bg-border shrink-0 data-[orientation=horizontal]:h-px data-[orientation=horizontal]:w-full data-[orientation=vertical]:h-full data-[orientation=vertical]:w-px w-full"
+            data-orientation="horizontal"
+            data-slot="separator"
+            role="none"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`OrderSummary stories snapshot > EmptyBasket story renders and matches snapshot 1`] = `
+<div>
+  <div
+    class="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm"
+    data-slot="card"
+  >
+    <div
+      class="p-6"
+      data-slot="card-content"
+    >
+      <div
+        class="space-y-5"
+        data-testid="sf-order-summary"
+      >
+        <h3
+          class="text-xl font-semibold tracking-tight text-left"
+          id="order-summary-heading"
+        >
+          Summary
+        </h3>
+        <div
+          aria-labelledby="order-summary-heading"
+          class="space-y-4"
+          role="region"
+        >
+          <div
+            class="w-full"
+            data-orientation="vertical"
+            data-slot="accordion"
+          >
+            <div
+              class="border-b last:border-b-0"
+              data-orientation="vertical"
+              data-slot="accordion-item"
+              data-state="closed"
+            >
+              <h3
+                class="flex"
+                data-orientation="vertical"
+                data-state="closed"
+              >
+                <button
+                  aria-controls="radix-«x»"
+                  aria-expanded="false"
+                  class="focus-visible:border-ring focus-visible:ring-ring/50 flex flex-1 items-start justify-between gap-4 rounded-md py-4 text-sm font-medium transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 text-left"
+                  data-orientation="vertical"
+                  data-radix-collection-item=""
+                  data-slot="accordion-trigger"
+                  data-state="closed"
+                  id="radix-«x»"
+                  type="button"
+                >
+                  <span
+                    class="flex-1 text-left text-base text-primary"
+                  >
+                    <svg
+                      aria-hidden="true"
+                      class="lucide lucide-shopping-cart inline mr-2 w-4 h-4"
+                      fill="none"
+                      height="24"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      viewBox="0 0 24 24"
+                      width="24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <circle
+                        cx="8"
+                        cy="21"
+                        r="1"
+                      />
+                      <circle
+                        cx="19"
+                        cy="21"
+                        r="1"
+                      />
+                      <path
+                        d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"
+                      />
+                    </svg>
+                    0 items in cart
+                  </span>
+                  <svg
+                    aria-hidden="true"
+                    class="lucide lucide-chevron-down text-muted-foreground pointer-events-none size-4 shrink-0 translate-y-0.5 transition-transform duration-200"
+                    fill="none"
+                    height="24"
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="m6 9 6 6 6-6"
+                    />
+                  </svg>
+                </button>
+              </h3>
+              <div
+                aria-labelledby="radix-«x»"
+                class="data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down overflow-hidden text-sm"
+                data-orientation="vertical"
+                data-slot="accordion-content"
+                data-state="closed"
+                hidden=""
+                id="radix-«x»"
+                role="region"
+                style="--radix-accordion-content-height: var(--radix-collapsible-content-height); --radix-accordion-content-width: var(--radix-collapsible-content-width);"
+              />
+            </div>
+          </div>
+          <div
+            class="space-y-4 text-sm"
+          >
+            <div
+              class="flex justify-between items-center"
+            >
+              <span>
+                Subtotal
+              </span>
+              <span>
+                $0.00
+              </span>
+            </div>
+            <div
+              class="flex justify-between items-center"
+            >
+              <div
+                class="flex items-center"
+              >
+                <span>
+                  Shipping
+                </span>
+              </div>
+              <span
+                class="text-primary font-medium"
+              >
+                FREE
+              </span>
+            </div>
+            <div
+              class="flex justify-between items-center"
+            >
+              <span>
+                Tax
+              </span>
+              <span>
+                $0.00
+              </span>
+            </div>
+          </div>
+          <div
+            class="space-y-4 w-full text-sm"
+          >
+            <div
+              class="flex w-full justify-between items-center"
+            >
+              <span
+                class="font-bold"
+              >
+                Order Total
+              </span>
+              <span
+                class="font-bold"
+              >
+                $0.00
+              </span>
+            </div>
+          </div>
+          <div
+            class="bg-border shrink-0 data-[orientation=horizontal]:h-px data-[orientation=horizontal]:w-full data-[orientation=vertical]:h-full data-[orientation=vertical]:w-px w-full"
+            data-orientation="horizontal"
+            data-slot="separator"
+            role="none"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`OrderSummary stories snapshot > EstimateMode story renders and matches snapshot 1`] = `
+<div>
+  <div
+    class="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm"
+    data-slot="card"
+  >
+    <div
+      class="p-6"
+      data-slot="card-content"
+    >
+      <div
+        class="space-y-5"
+        data-testid="sf-order-summary"
+      >
+        <h3
+          class="text-xl font-semibold tracking-tight text-left"
+          id="order-summary-heading"
+        >
+          Summary
+        </h3>
+        <div
+          aria-labelledby="order-summary-heading"
+          class="space-y-4"
+          role="region"
+        >
+          <div
+            class="w-full"
+            data-orientation="vertical"
+            data-slot="accordion"
+          >
+            <div
+              class="border-b last:border-b-0"
+              data-orientation="vertical"
+              data-slot="accordion-item"
+              data-state="closed"
+            >
+              <h3
+                class="flex"
+                data-orientation="vertical"
+                data-state="closed"
+              >
+                <button
+                  aria-controls="radix-«x»"
+                  aria-expanded="false"
+                  class="focus-visible:border-ring focus-visible:ring-ring/50 flex flex-1 items-start justify-between gap-4 rounded-md py-4 text-sm font-medium transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 text-left"
+                  data-orientation="vertical"
+                  data-radix-collection-item=""
+                  data-slot="accordion-trigger"
+                  data-state="closed"
+                  id="radix-«x»"
+                  type="button"
+                >
+                  <span
+                    class="flex-1 text-left text-base text-primary"
+                  >
+                    <svg
+                      aria-hidden="true"
+                      class="lucide lucide-shopping-cart inline mr-2 w-4 h-4"
+                      fill="none"
+                      height="24"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      viewBox="0 0 24 24"
+                      width="24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <circle
+                        cx="8"
+                        cy="21"
+                        r="1"
+                      />
+                      <circle
+                        cx="19"
+                        cy="21"
+                        r="1"
+                      />
+                      <path
+                        d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"
+                      />
+                    </svg>
+                    3 items in cart
+                  </span>
+                  <svg
+                    aria-hidden="true"
+                    class="lucide lucide-chevron-down text-muted-foreground pointer-events-none size-4 shrink-0 translate-y-0.5 transition-transform duration-200"
+                    fill="none"
+                    height="24"
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="m6 9 6 6 6-6"
+                    />
+                  </svg>
+                </button>
+              </h3>
+              <div
+                aria-labelledby="radix-«x»"
+                class="data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down overflow-hidden text-sm"
+                data-orientation="vertical"
+                data-slot="accordion-content"
+                data-state="closed"
+                hidden=""
+                id="radix-«x»"
+                role="region"
+                style="--radix-accordion-content-height: var(--radix-collapsible-content-height); --radix-accordion-content-width: var(--radix-collapsible-content-width);"
+              />
+            </div>
+          </div>
+          <div
+            class="space-y-4 text-sm"
+          >
+            <div
+              class="flex justify-between items-center"
+            >
+              <span>
+                Subtotal
+              </span>
+              <span>
+                $73.57
+              </span>
+            </div>
+            <div
+              class="flex justify-between items-center"
+            >
+              <div
+                class="flex items-center"
+              >
+                <span>
+                  Shipping
+                </span>
+              </div>
+              <span
+                class="text-muted-foreground"
+              >
+                TBD
+              </span>
+            </div>
+            <div
+              class="flex justify-between items-center"
+            >
+              <span>
+                Tax
+              </span>
+              <span
+                class="text-muted-foreground"
+              >
+                TBD
+              </span>
+            </div>
+          </div>
+          <div
+            class="space-y-4 w-full text-sm"
+          >
+            <div
+              class="flex w-full justify-between items-center"
+            >
+              <span
+                class="font-bold"
+              >
+                Estimated Total
+              </span>
+              <span
+                class="font-bold"
+              >
+                $73.57
+              </span>
+            </div>
+          </div>
+          <div
+            class="bg-border shrink-0 data-[orientation=horizontal]:h-px data-[orientation=horizontal]:w-full data-[orientation=vertical]:h-full data-[orientation=vertical]:w-px w-full"
+            data-orientation="horizontal"
+            data-slot="separator"
+            role="none"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`OrderSummary stories snapshot > ItemsExpanded story renders and matches snapshot 1`] = `
+<div>
+  <div
+    class="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm"
+    data-slot="card"
+  >
+    <div
+      class="p-6"
+      data-slot="card-content"
+    >
+      <div
+        class="space-y-5"
+        data-testid="sf-order-summary"
+      >
+        <h3
+          class="text-xl font-semibold tracking-tight text-left"
+          id="order-summary-heading"
+        >
+          Summary
+        </h3>
+        <div
+          aria-labelledby="order-summary-heading"
+          class="space-y-4"
+          role="region"
+        >
+          <div
+            class="w-full"
+            data-orientation="vertical"
+            data-slot="accordion"
+          >
+            <div
+              class="border-b last:border-b-0"
+              data-orientation="vertical"
+              data-slot="accordion-item"
+              data-state="open"
+            >
+              <h3
+                class="flex"
+                data-orientation="vertical"
+                data-state="open"
+              >
+                <button
+                  aria-controls="radix-«x»"
+                  aria-expanded="true"
+                  class="focus-visible:border-ring focus-visible:ring-ring/50 flex flex-1 items-start justify-between gap-4 rounded-md py-4 text-sm font-medium transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 text-left"
+                  data-orientation="vertical"
+                  data-radix-collection-item=""
+                  data-slot="accordion-trigger"
+                  data-state="open"
+                  id="radix-«x»"
+                  type="button"
+                >
+                  <span
+                    class="flex-1 text-left text-base text-primary"
+                  >
+                    <svg
+                      aria-hidden="true"
+                      class="lucide lucide-shopping-cart inline mr-2 w-4 h-4"
+                      fill="none"
+                      height="24"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      viewBox="0 0 24 24"
+                      width="24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <circle
+                        cx="8"
+                        cy="21"
+                        r="1"
+                      />
+                      <circle
+                        cx="19"
+                        cy="21"
+                        r="1"
+                      />
+                      <path
+                        d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"
+                      />
+                    </svg>
+                    3 items in cart
+                  </span>
+                  <svg
+                    aria-hidden="true"
+                    class="lucide lucide-chevron-down text-muted-foreground pointer-events-none size-4 shrink-0 translate-y-0.5 transition-transform duration-200"
+                    fill="none"
+                    height="24"
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="m6 9 6 6 6-6"
+                    />
+                  </svg>
+                </button>
+              </h3>
+              <div
+                aria-labelledby="radix-«x»"
+                class="data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down overflow-hidden text-sm"
+                data-orientation="vertical"
+                data-slot="accordion-content"
+                data-state="open"
+                id="radix-«x»"
+                role="region"
+                style="--radix-accordion-content-height: var(--radix-collapsible-content-height); --radix-accordion-content-width: var(--radix-collapsible-content-width); transition-duration: 0s; animation-name: none;"
+              >
+                <div
+                  class="px-0 py-4"
+                >
+                  <div
+                    class="space-y-5"
+                  >
+                    <div
+                      class="space-y-5"
+                    >
+                      <div>
+                        <div
+                          class="grid md:grid-cols-[112px_1fr] grid-cols-[72px_1fr] gap-4"
+                          data-testid="sf-product-item-summary-029407331227M"
+                        >
+                          <div
+                            class="flex items-center justify-center"
+                          >
+                            <div
+                              class="bg-muted rounded flex-shrink-0 flex items-center justify-center aspect-square overflow-hidden w-16"
+                            >
+                              <img
+                                alt="Solid Silk Tie, Navy, small"
+                                class="h-full w-full object-contain"
+                                src="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dw7832203a/images/small/PG.949432114S.NAVYSI.PZ.jpg?sw=160&q=60"
+                              />
+                            </div>
+                          </div>
+                          <div
+                            class="flex-1 space-y-1 min-w-0"
+                          >
+                            <div
+                              class="mb-4 flex items-start gap-2 min-w-0"
+                            >
+                              <h2
+                                class="font-semibold tracking-tight text-left text-xl min-w-0 flex-1 leading-tight"
+                              >
+                                <a
+                                  class="text-foreground hover:text-primary block break-words"
+                                  href="/product/25752218M"
+                                  title="Solid Silk Tie"
+                                >
+                                  Solid Silk Tie
+                                </a>
+                              </h2>
+                            </div>
+                            <div>
+                              <div
+                                class="text-sm text-muted-foreground"
+                              >
+                                Qty:
+                                 
+                                2
+                              </div>
+                              <div
+                                class="text-sm text-muted-foreground space-y-1 mb-1"
+                              >
+                                <div>
+                                  Color
+                                  : 
+                                  Navy
+                                </div>
+                              </div>
+                            </div>
+                            <div
+                              class="items-center gap-2 text-sm"
+                            >
+                              <span
+                                aria-label="Current price: $19.19"
+                                aria-live="polite"
+                                class="[&:not(:first-child)]:mt-6 text-card-foreground text-right font-semibold text-sm leading-none relative"
+                              >
+                                $19.19
+                              </span>
+                              <span
+                                aria-atomic="true"
+                                aria-live="polite"
+                                class="sr-only"
+                              >
+                                Solid Silk Tie
+                                Current price: $19.19
+                              </span>
+                               
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div>
+                        <div
+                          class="grid md:grid-cols-[112px_1fr] grid-cols-[72px_1fr] gap-4"
+                          data-testid="sf-product-item-summary-701643477180M"
+                        >
+                          <div
+                            class="flex items-center justify-center"
+                          >
+                            <div
+                              class="bg-muted rounded flex-shrink-0 flex items-center justify-center aspect-square overflow-hidden w-16"
+                            >
+                              <img
+                                alt="Floral Ruffle Top, Cardinal Red Multi, small"
+                                class="h-full w-full object-contain"
+                                src="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dw42fb2bdf/images/small/PG.10240939.JJ9DFXX.PZ.jpg?sw=160&q=60"
+                              />
+                            </div>
+                          </div>
+                          <div
+                            class="flex-1 space-y-1 min-w-0"
+                          >
+                            <div
+                              class="mb-4 flex items-start gap-2 min-w-0"
+                            >
+                              <h2
+                                class="font-semibold tracking-tight text-left text-xl min-w-0 flex-1 leading-tight"
+                              >
+                                <a
+                                  class="text-foreground hover:text-primary block break-words"
+                                  href="/product/25591227M"
+                                  title="Floral Ruffle Top"
+                                >
+                                  Floral Ruffle Top
+                                </a>
+                              </h2>
+                            </div>
+                            <div>
+                              <div
+                                class="text-sm text-muted-foreground"
+                              >
+                                Qty:
+                                 
+                                1
+                              </div>
+                              <div
+                                class="text-sm text-muted-foreground space-y-1 mb-1"
+                              >
+                                <div>
+                                  Color
+                                  : 
+                                  Cardinal Red Multi
+                                </div>
+                                <div>
+                                  Size
+                                  : 
+                                  M
+                                </div>
+                              </div>
+                            </div>
+                            <div
+                              class="items-center gap-2 text-sm"
+                            >
+                              <span
+                                aria-label="Current price: $35.19"
+                                aria-live="polite"
+                                class="[&:not(:first-child)]:mt-6 text-card-foreground text-right font-semibold text-sm leading-none relative"
+                              >
+                                $35.19
+                              </span>
+                              <span
+                                aria-atomic="true"
+                                aria-live="polite"
+                                class="sr-only"
+                              >
+                                Floral Ruffle Top
+                                Current price: $35.19
+                              </span>
+                               
+                            </div>
+                            <div
+                              class="items-center gap-2 text-sm"
+                            >
+                              <span
+                                class="line-clamp-2"
+                              >
+                                Buy one Long Center Seam Skirt and get 2 tops
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <a
+                      class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive text-primary underline-offset-4 hover:underline h-9 px-4 py-2 has-[>svg]:px-3 w-full justify-center"
+                      href="/cart"
+                    >
+                      Edit cart
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="space-y-4 text-sm"
+          >
+            <div
+              class="flex justify-between items-center"
+            >
+              <span>
+                Subtotal
+              </span>
+              <span>
+                $73.57
+              </span>
+            </div>
+            <div
+              class="flex justify-between items-center"
+            >
+              <div
+                class="flex items-center"
+              >
+                <span>
+                  Shipping
+                </span>
+              </div>
+              <span
+                class="text-muted-foreground"
+              >
+                TBD
+              </span>
+            </div>
+            <div
+              class="flex justify-between items-center"
+            >
+              <span>
+                Tax
+              </span>
+              <span
+                class="text-muted-foreground"
+              >
+                TBD
+              </span>
+            </div>
+          </div>
+          <div
+            class="space-y-4 w-full text-sm"
+          >
+            <div
+              class="flex w-full justify-between items-center"
+            >
+              <span
+                class="font-bold"
+              >
+                Order Total
+              </span>
+              <span
+                class="font-bold"
+              >
+                $73.57
+              </span>
+            </div>
+          </div>
+          <div
+            class="bg-border shrink-0 data-[orientation=horizontal]:h-px data-[orientation=horizontal]:w-full data-[orientation=vertical]:h-full data-[orientation=vertical]:w-px w-full"
+            data-orientation="horizontal"
+            data-slot="separator"
+            role="none"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`OrderSummary stories snapshot > Minimal story renders and matches snapshot 1`] = `
+<div>
+  <div
+    class="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm"
+    data-slot="card"
+  >
+    <div
+      class="p-6"
+      data-slot="card-content"
+    >
+      <div
+        class="space-y-5"
+        data-testid="sf-order-summary"
+      >
+        <div
+          aria-labelledby="order-summary-heading"
+          class="space-y-4"
+          role="region"
+        >
+          <div
+            class="space-y-4 text-sm"
+          >
+            <div
+              class="flex justify-between items-center"
+            >
+              <span>
+                Subtotal
+              </span>
+              <span>
+                $73.57
+              </span>
+            </div>
+            <div
+              class="flex justify-between items-center"
+            >
+              <div
+                class="flex items-center"
+              >
+                <span>
+                  Shipping
+                </span>
+              </div>
+              <span
+                class="text-muted-foreground"
+              >
+                TBD
+              </span>
+            </div>
+            <div
+              class="flex justify-between items-center"
+            >
+              <span>
+                Tax
+              </span>
+              <span
+                class="text-muted-foreground"
+              >
+                TBD
+              </span>
+            </div>
+          </div>
+          <div
+            class="space-y-4 w-full text-sm"
+          >
+            <div
+              class="flex w-full justify-between items-center"
+            >
+              <span
+                class="font-bold"
+              >
+                Order Total
+              </span>
+              <span
+                class="font-bold"
+              >
+                $73.57
+              </span>
+            </div>
+          </div>
+          <div
+            class="bg-border shrink-0 data-[orientation=horizontal]:h-px data-[orientation=horizontal]:w-full data-[orientation=vertical]:h-full data-[orientation=vertical]:w-px w-full"
+            data-orientation="horizontal"
+            data-slot="separator"
+            role="none"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`OrderSummary stories snapshot > WithAppliedPromotions story renders and matches snapshot 1`] = `
+<div>
+  <div
+    class="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm"
+    data-slot="card"
+  >
+    <div
+      class="p-6"
+      data-slot="card-content"
+    >
+      <div
+        class="space-y-5"
+        data-testid="sf-order-summary"
+      >
+        <h3
+          class="text-xl font-semibold tracking-tight text-left"
+          id="order-summary-heading"
+        >
+          Summary
+        </h3>
+        <div
+          aria-labelledby="order-summary-heading"
+          class="space-y-4"
+          role="region"
+        >
+          <div
+            class="w-full"
+            data-orientation="vertical"
+            data-slot="accordion"
+          >
+            <div
+              class="border-b last:border-b-0"
+              data-orientation="vertical"
+              data-slot="accordion-item"
+              data-state="closed"
+            >
+              <h3
+                class="flex"
+                data-orientation="vertical"
+                data-state="closed"
+              >
+                <button
+                  aria-controls="radix-«x»"
+                  aria-expanded="false"
+                  class="focus-visible:border-ring focus-visible:ring-ring/50 flex flex-1 items-start justify-between gap-4 rounded-md py-4 text-sm font-medium transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 text-left"
+                  data-orientation="vertical"
+                  data-radix-collection-item=""
+                  data-slot="accordion-trigger"
+                  data-state="closed"
+                  id="radix-«x»"
+                  type="button"
+                >
+                  <span
+                    class="flex-1 text-left text-base text-primary"
+                  >
+                    <svg
+                      aria-hidden="true"
+                      class="lucide lucide-shopping-cart inline mr-2 w-4 h-4"
+                      fill="none"
+                      height="24"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      viewBox="0 0 24 24"
+                      width="24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <circle
+                        cx="8"
+                        cy="21"
+                        r="1"
+                      />
+                      <circle
+                        cx="19"
+                        cy="21"
+                        r="1"
+                      />
+                      <path
+                        d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"
+                      />
+                    </svg>
+                    3 items in cart
+                  </span>
+                  <svg
+                    aria-hidden="true"
+                    class="lucide lucide-chevron-down text-muted-foreground pointer-events-none size-4 shrink-0 translate-y-0.5 transition-transform duration-200"
+                    fill="none"
+                    height="24"
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="m6 9 6 6 6-6"
+                    />
+                  </svg>
+                </button>
+              </h3>
+              <div
+                aria-labelledby="radix-«x»"
+                class="data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down overflow-hidden text-sm"
+                data-orientation="vertical"
+                data-slot="accordion-content"
+                data-state="closed"
+                hidden=""
+                id="radix-«x»"
+                role="region"
+                style="--radix-accordion-content-height: var(--radix-collapsible-content-height); --radix-accordion-content-width: var(--radix-collapsible-content-width);"
+              />
+            </div>
+          </div>
+          <div
+            class="space-y-4 text-sm"
+          >
+            <div
+              class="flex justify-between items-center"
+            >
+              <span>
+                Subtotal
+              </span>
+              <span>
+                $73.57
+              </span>
+            </div>
+            <div
+              class="flex justify-between items-center"
+            >
+              <span>
+                20% Off Discount
+              </span>
+              <span
+                class="text-success text-sm font-semibold"
+              >
+                -$59.99
+              </span>
+            </div>
+            <div
+              class="flex justify-between items-center"
+            >
+              <div
+                class="flex items-center"
+              >
+                <span>
+                  Shipping
+                </span>
+              </div>
+              <span
+                class="text-muted-foreground"
+              >
+                TBD
+              </span>
+            </div>
+            <div
+              class="flex justify-between items-center"
+            >
+              <span>
+                Tax
+              </span>
+              <span
+                class="text-muted-foreground"
+              >
+                TBD
+              </span>
+            </div>
+          </div>
+          <div
+            class="space-y-4 w-full text-sm"
+          >
+            <div
+              class="flex w-full justify-between items-center"
+            >
+              <span
+                class="font-bold"
+              >
+                Order Total
+              </span>
+              <span
+                class="font-bold"
+              >
+                $73.57
+              </span>
+            </div>
+          </div>
+          <div
+            class="w-full"
+          >
+            <div
+              class="mb-3"
+              data-orientation="vertical"
+              data-slot="accordion"
+            >
+              <div
+                class="border-b last:border-b-0"
+                data-orientation="vertical"
+                data-slot="accordion-item"
+                data-state="closed"
+              >
+                <h3
+                  class="flex"
+                  data-orientation="vertical"
+                  data-state="closed"
+                >
+                  <button
+                    aria-controls="radix-«x»"
+                    aria-expanded="false"
+                    class="focus-visible:border-ring focus-visible:ring-ring/50 flex flex-1 items-start justify-between gap-4 rounded-md text-left text-sm font-medium transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 py-2"
+                    data-orientation="vertical"
+                    data-radix-collection-item=""
+                    data-slot="accordion-trigger"
+                    data-state="closed"
+                    id="radix-«x»"
+                    type="button"
+                  >
+                    <span
+                      class="flex-1 text-left text-sm font-medium"
+                    >
+                      Enter a Promotion Code
+                    </span>
+                    <svg
+                      aria-hidden="true"
+                      class="lucide lucide-chevron-down text-muted-foreground pointer-events-none size-4 shrink-0 translate-y-0.5 transition-transform duration-200"
+                      fill="none"
+                      height="24"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      viewBox="0 0 24 24"
+                      width="24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="m6 9 6 6 6-6"
+                      />
+                    </svg>
+                  </button>
+                </h3>
+                <div
+                  aria-labelledby="radix-«x»"
+                  class="data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down overflow-hidden text-sm"
+                  data-orientation="vertical"
+                  data-slot="accordion-content"
+                  data-state="closed"
+                  hidden=""
+                  id="radix-«x»"
+                  role="region"
+                  style="--radix-accordion-content-height: var(--radix-collapsible-content-height); --radix-accordion-content-width: var(--radix-collapsible-content-width);"
+                />
+              </div>
+            </div>
+            <div
+              class="space-y-2"
+            >
+              <div
+                class="flex justify-between"
+              >
+                <span
+                  class="px-2 text-sm rounded-md bg-secondary"
+                >
+                  SAVE20
+                </span>
+                <svg
+                  aria-hidden="true"
+                  class="lucide lucide-x cursor-pointer hover:bg-secondary"
+                  fill="none"
+                  height="15"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  viewBox="0 0 24 24"
+                  width="15"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M18 6 6 18"
+                  />
+                  <path
+                    d="m6 6 12 12"
+                  />
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`OrderSummary stories snapshot > WithPromoCodeForm story renders and matches snapshot 1`] = `
+<div>
+  <div
+    class="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm"
+    data-slot="card"
+  >
+    <div
+      class="p-6"
+      data-slot="card-content"
+    >
+      <div
+        class="space-y-5"
+        data-testid="sf-order-summary"
+      >
+        <h3
+          class="text-xl font-semibold tracking-tight text-left"
+          id="order-summary-heading"
+        >
+          Summary
+        </h3>
+        <div
+          aria-labelledby="order-summary-heading"
+          class="space-y-4"
+          role="region"
+        >
+          <div
+            class="w-full"
+            data-orientation="vertical"
+            data-slot="accordion"
+          >
+            <div
+              class="border-b last:border-b-0"
+              data-orientation="vertical"
+              data-slot="accordion-item"
+              data-state="closed"
+            >
+              <h3
+                class="flex"
+                data-orientation="vertical"
+                data-state="closed"
+              >
+                <button
+                  aria-controls="radix-«x»"
+                  aria-expanded="false"
+                  class="focus-visible:border-ring focus-visible:ring-ring/50 flex flex-1 items-start justify-between gap-4 rounded-md py-4 text-sm font-medium transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 text-left"
+                  data-orientation="vertical"
+                  data-radix-collection-item=""
+                  data-slot="accordion-trigger"
+                  data-state="closed"
+                  id="radix-«x»"
+                  type="button"
+                >
+                  <span
+                    class="flex-1 text-left text-base text-primary"
+                  >
+                    <svg
+                      aria-hidden="true"
+                      class="lucide lucide-shopping-cart inline mr-2 w-4 h-4"
+                      fill="none"
+                      height="24"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      viewBox="0 0 24 24"
+                      width="24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <circle
+                        cx="8"
+                        cy="21"
+                        r="1"
+                      />
+                      <circle
+                        cx="19"
+                        cy="21"
+                        r="1"
+                      />
+                      <path
+                        d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"
+                      />
+                    </svg>
+                    3 items in cart
+                  </span>
+                  <svg
+                    aria-hidden="true"
+                    class="lucide lucide-chevron-down text-muted-foreground pointer-events-none size-4 shrink-0 translate-y-0.5 transition-transform duration-200"
+                    fill="none"
+                    height="24"
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="m6 9 6 6 6-6"
+                    />
+                  </svg>
+                </button>
+              </h3>
+              <div
+                aria-labelledby="radix-«x»"
+                class="data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down overflow-hidden text-sm"
+                data-orientation="vertical"
+                data-slot="accordion-content"
+                data-state="closed"
+                hidden=""
+                id="radix-«x»"
+                role="region"
+                style="--radix-accordion-content-height: var(--radix-collapsible-content-height); --radix-accordion-content-width: var(--radix-collapsible-content-width);"
+              />
+            </div>
+          </div>
+          <div
+            class="space-y-4 text-sm"
+          >
+            <div
+              class="flex justify-between items-center"
+            >
+              <span>
+                Subtotal
+              </span>
+              <span>
+                $73.57
+              </span>
+            </div>
+            <div
+              class="flex justify-between items-center"
+            >
+              <div
+                class="flex items-center"
+              >
+                <span>
+                  Shipping
+                </span>
+              </div>
+              <span
+                class="text-muted-foreground"
+              >
+                TBD
+              </span>
+            </div>
+            <div
+              class="flex justify-between items-center"
+            >
+              <span>
+                Tax
+              </span>
+              <span
+                class="text-muted-foreground"
+              >
+                TBD
+              </span>
+            </div>
+          </div>
+          <div
+            class="space-y-4 w-full text-sm"
+          >
+            <div
+              class="flex w-full justify-between items-center"
+            >
+              <span
+                class="font-bold"
+              >
+                Order Total
+              </span>
+              <span
+                class="font-bold"
+              >
+                $73.57
+              </span>
+            </div>
+          </div>
+          <div
+            class="w-full"
+          >
+            <div
+              class="mb-3"
+              data-orientation="vertical"
+              data-slot="accordion"
+            >
+              <div
+                class="border-b last:border-b-0"
+                data-orientation="vertical"
+                data-slot="accordion-item"
+                data-state="closed"
+              >
+                <h3
+                  class="flex"
+                  data-orientation="vertical"
+                  data-state="closed"
+                >
+                  <button
+                    aria-controls="radix-«x»"
+                    aria-expanded="false"
+                    class="focus-visible:border-ring focus-visible:ring-ring/50 flex flex-1 items-start justify-between gap-4 rounded-md text-left text-sm font-medium transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 py-2"
+                    data-orientation="vertical"
+                    data-radix-collection-item=""
+                    data-slot="accordion-trigger"
+                    data-state="closed"
+                    id="radix-«x»"
+                    type="button"
+                  >
+                    <span
+                      class="flex-1 text-left text-sm font-medium"
+                    >
+                      Enter a Promotion Code
+                    </span>
+                    <svg
+                      aria-hidden="true"
+                      class="lucide lucide-chevron-down text-muted-foreground pointer-events-none size-4 shrink-0 translate-y-0.5 transition-transform duration-200"
+                      fill="none"
+                      height="24"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      viewBox="0 0 24 24"
+                      width="24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="m6 9 6 6 6-6"
+                      />
+                    </svg>
+                  </button>
+                </h3>
+                <div
+                  aria-labelledby="radix-«x»"
+                  class="data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down overflow-hidden text-sm"
+                  data-orientation="vertical"
+                  data-slot="accordion-content"
+                  data-state="closed"
+                  hidden=""
+                  id="radix-«x»"
+                  role="region"
+                  style="--radix-accordion-content-height: var(--radix-collapsible-content-height); --radix-accordion-content-width: var(--radix-collapsible-content-width);"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`OrderSummary stories snapshot > WithoutCartItems story renders and matches snapshot 1`] = `
+<div>
+  <div
+    class="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm"
+    data-slot="card"
+  >
+    <div
+      class="p-6"
+      data-slot="card-content"
+    >
+      <div
+        class="space-y-5"
+        data-testid="sf-order-summary"
+      >
+        <h3
+          class="text-xl font-semibold tracking-tight text-left"
+          id="order-summary-heading"
+        >
+          Summary
+        </h3>
+        <div
+          aria-labelledby="order-summary-heading"
+          class="space-y-4"
+          role="region"
+        >
+          <div
+            class="space-y-4 text-sm"
+          >
+            <div
+              class="flex justify-between items-center"
+            >
+              <span>
+                Subtotal
+              </span>
+              <span>
+                $73.57
+              </span>
+            </div>
+            <div
+              class="flex justify-between items-center"
+            >
+              <div
+                class="flex items-center"
+              >
+                <span>
+                  Shipping
+                </span>
+              </div>
+              <span
+                class="text-muted-foreground"
+              >
+                TBD
+              </span>
+            </div>
+            <div
+              class="flex justify-between items-center"
+            >
+              <span>
+                Tax
+              </span>
+              <span
+                class="text-muted-foreground"
+              >
+                TBD
+              </span>
+            </div>
+          </div>
+          <div
+            class="space-y-4 w-full text-sm"
+          >
+            <div
+              class="flex w-full justify-between items-center"
+            >
+              <span
+                class="font-bold"
+              >
+                Order Total
+              </span>
+              <span
+                class="font-bold"
+              >
+                $73.57
+              </span>
+            </div>
+          </div>
+          <div
+            class="bg-border shrink-0 data-[orientation=horizontal]:h-px data-[orientation=horizontal]:w-full data-[orientation=vertical]:h-full data-[orientation=vertical]:w-px w-full"
+            data-orientation="horizontal"
+            data-slot="separator"
+            role="none"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`OrderSummary stories snapshot > WithoutHeading story renders and matches snapshot 1`] = `
+<div>
+  <div
+    class="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm"
+    data-slot="card"
+  >
+    <div
+      class="p-6"
+      data-slot="card-content"
+    >
+      <div
+        class="space-y-5"
+        data-testid="sf-order-summary"
+      >
+        <div
+          aria-labelledby="order-summary-heading"
+          class="space-y-4"
+          role="region"
+        >
+          <div
+            class="w-full"
+            data-orientation="vertical"
+            data-slot="accordion"
+          >
+            <div
+              class="border-b last:border-b-0"
+              data-orientation="vertical"
+              data-slot="accordion-item"
+              data-state="closed"
+            >
+              <h3
+                class="flex"
+                data-orientation="vertical"
+                data-state="closed"
+              >
+                <button
+                  aria-controls="radix-«x»"
+                  aria-expanded="false"
+                  class="focus-visible:border-ring focus-visible:ring-ring/50 flex flex-1 items-start justify-between gap-4 rounded-md py-4 text-sm font-medium transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 text-left"
+                  data-orientation="vertical"
+                  data-radix-collection-item=""
+                  data-slot="accordion-trigger"
+                  data-state="closed"
+                  id="radix-«x»"
+                  type="button"
+                >
+                  <span
+                    class="flex-1 text-left text-base text-primary"
+                  >
+                    <svg
+                      aria-hidden="true"
+                      class="lucide lucide-shopping-cart inline mr-2 w-4 h-4"
+                      fill="none"
+                      height="24"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      viewBox="0 0 24 24"
+                      width="24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <circle
+                        cx="8"
+                        cy="21"
+                        r="1"
+                      />
+                      <circle
+                        cx="19"
+                        cy="21"
+                        r="1"
+                      />
+                      <path
+                        d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"
+                      />
+                    </svg>
+                    3 items in cart
+                  </span>
+                  <svg
+                    aria-hidden="true"
+                    class="lucide lucide-chevron-down text-muted-foreground pointer-events-none size-4 shrink-0 translate-y-0.5 transition-transform duration-200"
+                    fill="none"
+                    height="24"
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="m6 9 6 6 6-6"
+                    />
+                  </svg>
+                </button>
+              </h3>
+              <div
+                aria-labelledby="radix-«x»"
+                class="data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down overflow-hidden text-sm"
+                data-orientation="vertical"
+                data-slot="accordion-content"
+                data-state="closed"
+                hidden=""
+                id="radix-«x»"
+                role="region"
+                style="--radix-accordion-content-height: var(--radix-collapsible-content-height); --radix-accordion-content-width: var(--radix-collapsible-content-width);"
+              />
+            </div>
+          </div>
+          <div
+            class="space-y-4 text-sm"
+          >
+            <div
+              class="flex justify-between items-center"
+            >
+              <span>
+                Subtotal
+              </span>
+              <span>
+                $73.57
+              </span>
+            </div>
+            <div
+              class="flex justify-between items-center"
+            >
+              <div
+                class="flex items-center"
+              >
+                <span>
+                  Shipping
+                </span>
+              </div>
+              <span
+                class="text-muted-foreground"
+              >
+                TBD
+              </span>
+            </div>
+            <div
+              class="flex justify-between items-center"
+            >
+              <span>
+                Tax
+              </span>
+              <span
+                class="text-muted-foreground"
+              >
+                TBD
+              </span>
+            </div>
+          </div>
+          <div
+            class="space-y-4 w-full text-sm"
+          >
+            <div
+              class="flex w-full justify-between items-center"
+            >
+              <span
+                class="font-bold"
+              >
+                Order Total
+              </span>
+              <span
+                class="font-bold"
+              >
+                $73.57
+              </span>
+            </div>
+          </div>
+          <div
+            class="bg-border shrink-0 data-[orientation=horizontal]:h-px data-[orientation=horizontal]:w-full data-[orientation=vertical]:h-full data-[orientation=vertical]:w-px w-full"
+            data-orientation="horizontal"
+            data-slot="separator"
+            role="none"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;

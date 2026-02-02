@@ -1,0 +1,171 @@
+/**
+ * Copyright 2026 Salesforce, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+'use client';
+
+import { type ReactElement } from 'react';
+import type { ShopperProducts } from '@salesforce/storefront-next-runtime/scapi';
+import { Button } from '@/components/ui/button';
+import { useProductView } from '@/providers/product-view';
+import { useCurrentVariant } from '@/hooks/product/use-current-variant';
+import { isProductSet, isProductBundle } from '@/lib/product-utils';
+import { ShareButton } from '@/components/buttons/share-button';
+import { useCheckAndExecutePendingAction } from '@/hooks/check-and-execute-pending-action';
+import { useTranslation } from 'react-i18next';
+import { PluginComponent } from '@/plugins/plugin-component';
+import BuyNowPayLater from '@/components/buy-now-pay-later';
+
+interface ProductCartActionsProps {
+    product: ShopperProducts.schemas['Product'];
+    /** Called immediately before cart action starts (add or update) - useful for optimistic UI like closing modal */
+    onBeforeCartAction?: () => void;
+    /** Called after successful cart operation completes (add or update) */
+    onCartSuccess?: () => void;
+    /** Called if cart operation fails (add or update) */
+    onCartError?: (error: unknown) => void;
+    /** Called immediately before add to wishlist action starts */
+    onBeforeAddToWishlist?: () => void;
+    /** Called after successful add to wishlist action completes */
+    onAddToWishlistSuccess?: () => void;
+    /** Called if add to wishlist operation fails */
+    onAddToWishlistError?: (error: unknown) => void;
+}
+
+export default function ProductCartActions({
+    product,
+    onBeforeCartAction,
+    onCartSuccess,
+    onCartError,
+    onBeforeAddToWishlist,
+    onAddToWishlistSuccess,
+    onAddToWishlistError,
+}: ProductCartActionsProps): ReactElement {
+    const { t } = useTranslation('product');
+    const isProductASet = isProductSet(product);
+    const isProductABundle = isProductBundle(product);
+
+    const currentVariant = useCurrentVariant({ product });
+
+    // Get shared state from context
+    const {
+        mode,
+        isAddingToOrUpdatingCart,
+        isAddingToWishlist,
+        canAddToCart,
+        isMasterOrVariantProduct,
+        handleAddToCart,
+        handleUpdateCart,
+        handleAddToWishlist,
+    } = useProductView();
+
+    const isEditMode = mode === 'edit';
+
+    // Get product ID for pending action matching
+    const productToCheck = isMasterOrVariantProduct ? currentVariant : product;
+    const currentProductId = productToCheck?.productId || productToCheck?.id || product.id;
+
+    // Check for pending actions and execute if they match this product
+    // This handles actions that were initiated before authentication (e.g., addToWishlist)
+    useCheckAndExecutePendingAction({
+        actionName: 'addToWishlist',
+        shouldExecute: (params) => params.productId === currentProductId,
+        onMatch: async () => {
+            const productToAdd = isMasterOrVariantProduct ? currentVariant : product;
+            // Call before callback
+            onBeforeAddToWishlist?.();
+            try {
+                await handleAddToWishlist(productToAdd as ShopperProducts.schemas['Variant']);
+                // Call success callback after API completes
+                onAddToWishlistSuccess?.();
+            } catch (error) {
+                onAddToWishlistError?.(error);
+                throw error;
+            }
+        },
+    });
+
+    const onAddOrUpdateToCart = async () => {
+        // Call before callback (e.g., for optimistic UI like closing modal in edit mode)
+        onBeforeCartAction?.();
+
+        try {
+            // Use handleUpdateCart in edit mode, handleAddToCart in add mode
+            if (isEditMode) {
+                await handleUpdateCart();
+            } else {
+                await handleAddToCart();
+            }
+            // Call success callback after API completes
+            onCartSuccess?.();
+        } catch (error) {
+            onCartError?.(error);
+        }
+    };
+
+    const onAddToWishlist = async () => {
+        const productToAdd = isMasterOrVariantProduct ? currentVariant : product;
+
+        // Call before callback
+        onBeforeAddToWishlist?.();
+
+        try {
+            await handleAddToWishlist(productToAdd as ShopperProducts.schemas['Variant']);
+            // Call success callback after API completes
+            onAddToWishlistSuccess?.();
+        } catch (error) {
+            onAddToWishlistError?.(error);
+        }
+    };
+
+    return (
+        <div className="mt-6">
+            {/* Options Selection Message */}
+            {isMasterOrVariantProduct && !currentVariant && !isProductASet && !isProductABundle && (
+                <div className="text-destructive font-medium">{t('selectAllOptions')}</div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex flex-col gap-3">
+                {!isProductASet && !isProductABundle && (
+                    <Button
+                        onClick={() => void onAddOrUpdateToCart()}
+                        disabled={!canAddToCart || isAddingToOrUpdatingCart}
+                        className="w-full"
+                        size="lg">
+                        {isEditMode ? t('updateCart') : isAddingToOrUpdatingCart ? t('addingToCart') : t('addToCart')}
+                    </Button>
+                )}
+                <PluginComponent pluginId="pdp.after.addToCart">
+                    <BuyNowPayLater />
+                </PluginComponent>
+
+                {!isEditMode && (
+                    <div className="grid grid-cols-2 gap-3">
+                        <Button
+                            onClick={() => void onAddToWishlist()}
+                            disabled={isAddingToWishlist}
+                            variant="outline"
+                            className="w-full"
+                            size="lg">
+                            {isAddingToWishlist ? t('addingToWishlist') : t('addToWishlist')}
+                        </Button>
+                        <ShareButton product={product} className="w-full" />
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+}

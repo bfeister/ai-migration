@@ -1,0 +1,84 @@
+/**
+ * Copyright 2026 Salesforce, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+'use client';
+
+/*
+ * Copyright (c) 2025, Salesforce, Inc.
+ * All rights reserved.
+ * SPDX-License-Identifier: BSD-3-Clause
+ * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+
+// React
+import { type ReactElement, useState } from 'react';
+
+// Types
+import type { ShopperBasketsV2, ShopperProducts } from '@salesforce/storefront-next-runtime/scapi';
+
+// Components
+import { Button } from '@/components/ui/button';
+import { CartItemEditModal } from '@/components/cart-item-edit-modal';
+import { useTranslation } from 'react-i18next';
+
+// Constants
+
+interface CartItemEditButtonProps {
+    product: ShopperBasketsV2.schemas['ProductItem'] & Partial<ShopperProducts.schemas['Product']>;
+    className?: string;
+}
+
+/**
+ * CartItemEditButton component that renders an edit button with product modal
+ *
+ * This component provides:
+ * - Edit item functionality with product modal
+ * - Same styling as RemoveItemButtonWithConfirmation for consistency
+ * - Modal for editing cart item with product variants
+ *
+ * Used by cart-content components for consistent edit item behavior.
+ *
+ * @param props - Component props
+ * @returns JSX element with edit button and product modal
+ */
+export function CartItemEditButton({ product, className = '' }: CartItemEditButtonProps): ReactElement {
+    // Modal state management
+    const { t } = useTranslation('actionCard');
+    const [isOpen, setIsOpen] = useState(false);
+
+    return (
+        <>
+            <Button
+                variant="link"
+                size="sm"
+                className={`font-bold ${className ?? ''}`}
+                title={t('edit')}
+                data-testid={`edit-item-${product.itemId}`}
+                onClick={() => setIsOpen(true)}>
+                {t('edit')}
+            </Button>
+
+            {product.itemId && (
+                <CartItemEditModal
+                    open={isOpen}
+                    onOpenChange={setIsOpen}
+                    product={product as ShopperProducts.schemas['Product']}
+                    initialQuantity={product.quantity || 1}
+                    itemId={product.itemId}
+                />
+            )}
+        </>
+    );
+}

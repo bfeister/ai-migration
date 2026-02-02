@@ -1,0 +1,15 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`AccountNavList stories snapshot > Default story renders and matches snapshot 1`] = `null`;
+
+exports[`AccountNavList stories snapshot > Empty story renders and matches snapshot 1`] = `null`;
+
+exports[`AccountNavList stories snapshot > Interactive story renders and matches snapshot 1`] = `null`;
+
+exports[`AccountNavList stories snapshot > SingleItem story renders and matches snapshot 1`] = `null`;
+
+exports[`AccountNavList stories snapshot > WithDisabledItem story renders and matches snapshot 1`] = `null`;
+
+exports[`AccountNavList stories snapshot > WithLogout story renders and matches snapshot 1`] = `null`;
+
+exports[`AccountNavList stories snapshot > WithManyItems story renders and matches snapshot 1`] = `null`;

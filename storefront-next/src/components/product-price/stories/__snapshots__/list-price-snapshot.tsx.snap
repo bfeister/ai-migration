@@ -1,0 +1,41 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`ListPrice Snapshots > Default snapshot 1`] = `
+<div>
+  <div>
+    <span
+      aria-label="List price: $129.99"
+      class="leading-7 [&:not(:first-child)]:mt-6 text-left text-muted-foreground line-through"
+    >
+      $129.99
+    </span>
+    <span
+      aria-atomic="true"
+      aria-live="polite"
+      class="sr-only"
+    >
+      List price: $129.99
+    </span>
+  </div>
+</div>
+`;
+
+exports[`ListPrice Snapshots > Range snapshot 1`] = `
+<div>
+  <div>
+    <span
+      aria-label="List price from $89.99"
+      class="leading-7 [&:not(:first-child)]:mt-6 text-left text-muted-foreground line-through"
+    >
+      $89.99
+    </span>
+    <span
+      aria-atomic="true"
+      aria-live="polite"
+      class="sr-only"
+    >
+      List price: $89.99
+    </span>
+  </div>
+</div>
+`;

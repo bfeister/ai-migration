@@ -1,0 +1,317 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`PopularCategories stories snapshot > CustomPadding story renders and matches snapshot 1`] = `
+<div>
+  <div
+    class="bg-background min-h-screen"
+  >
+    <div
+      class="pb-16"
+    >
+      <div
+        class="max-w-screen-2xl mx-auto px-2"
+      >
+        <div
+          class="text-center mb-8"
+        >
+          <h2
+            class="tracking-tight text-center text-3xl font-extrabold text-foreground sm:text-4xl"
+          >
+            Step into Elegance
+          </h2>
+        </div>
+        <div
+          class="grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-[var(--grid-cols)]"
+          style="--grid-cols: repeat(4, minmax(0, 1fr));"
+        >
+          <div
+            data-testid="content-card"
+          >
+            {"title":"Jewelry","description":"Elegant jewelry pieces to complement any outfit","imageUrl":"https://zzrf-001.dx.commercecloud.salesforce.com/on/demandware.static/-/Sites-storefront-catalog-m-non-en/default/dw14ce9267/images/slot/sub_banners/cat-banner-womens-jewelry.jpg","imageAlt":"Jewelry","buttonText":"Shop Now","buttonLink":"/category/womens-jewelry","showBackground":true,"showBorder":true,"loading":"eager"}
+          </div>
+          <div
+            data-testid="content-card"
+          >
+            {"title":"Clothing","description":"Stylish and comfortable men's clothing for every occasion","imageUrl":"https://zzrf-001.dx.commercecloud.salesforce.com/on/demandware.static/-/Sites-storefront-catalog-m-non-en/default/dw56b28e03/images/slot/sub_banners/cat-banner-mens-clothing.jpg","imageAlt":"Clothing","buttonText":"Shop Now","buttonLink":"/category/mens-clothing","showBackground":true,"showBorder":true,"loading":"eager"}
+          </div>
+          <div
+            data-testid="content-card"
+          >
+            {"title":"Electronics","description":"Latest electronics and tech gadgets","imageUrl":"https://zzrf-001.dx.commercecloud.salesforce.com/on/demandware.static/-/Sites-storefront-catalog-m-non-en/default/dw98765432/images/slot/sub_banners/cat-banner-electronics.jpg","imageAlt":"Electronics","buttonText":"Shop Now","buttonLink":"/category/electronics","showBackground":true,"showBorder":true,"loading":"eager"}
+          </div>
+          <div
+            data-testid="content-card"
+          >
+            {"title":"Home & Living","description":"Transform your space with our home and living collection","imageUrl":"https://zzrf-001.dx.commercecloud.salesforce.com/on/demandware.static/-/Sites-storefront-catalog-m-non-en/default/dw11223344/images/slot/sub_banners/cat-banner-home-living.jpg","imageAlt":"Home & Living","buttonText":"Shop Now","buttonLink":"/category/home-living","showBackground":true,"showBorder":true,"loading":"eager"}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`PopularCategories stories snapshot > Default story renders and matches snapshot 1`] = `
+<div>
+  <div
+    class="bg-background min-h-screen"
+  >
+    <div
+      class="pb-16"
+    >
+      <div
+        class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8"
+      >
+        <div
+          class="text-center mb-8"
+        >
+          <h2
+            class="tracking-tight text-center text-3xl font-extrabold text-foreground sm:text-4xl"
+          >
+            Step into Elegance
+          </h2>
+        </div>
+        <div
+          class="grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-[var(--grid-cols)]"
+          style="--grid-cols: repeat(4, minmax(0, 1fr));"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`PopularCategories stories snapshot > Empty story renders and matches snapshot 1`] = `
+<div>
+  <div
+    class="bg-background min-h-screen"
+  >
+    <div
+      class="pb-16"
+    >
+      <div
+        class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8"
+      >
+        <div
+          class="text-center mb-8"
+        >
+          <h2
+            class="tracking-tight text-center text-3xl font-extrabold text-foreground sm:text-4xl"
+          >
+            Step into Elegance
+          </h2>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`PopularCategories stories snapshot > Loading story renders and matches snapshot 1`] = `
+<div>
+  <div
+    class="bg-background min-h-screen"
+  >
+    <div
+      class="pb-16"
+    >
+      <div
+        class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8"
+      >
+        <div
+          class="text-center mb-8"
+        >
+          <h2
+            class="tracking-tight text-center text-3xl font-extrabold text-foreground sm:text-4xl"
+          >
+            Step into Elegance
+          </h2>
+        </div>
+        <div
+          class="grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-[var(--grid-cols)]"
+          style="--grid-cols: repeat(4, minmax(0, 1fr));"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`PopularCategories stories snapshot > MoreThanFourCategories story renders and matches snapshot 1`] = `
+<div>
+  <div
+    class="bg-background min-h-screen"
+  >
+    <div
+      class="pb-16"
+    >
+      <div
+        class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8"
+      >
+        <div
+          class="text-center mb-8"
+        >
+          <h2
+            class="tracking-tight text-center text-3xl font-extrabold text-foreground sm:text-4xl"
+          >
+            Step into Elegance
+          </h2>
+        </div>
+        <div
+          class="grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-[var(--grid-cols)]"
+          style="--grid-cols: repeat(4, minmax(0, 1fr));"
+        >
+          <div
+            data-testid="content-card"
+          >
+            {"title":"Jewelry","description":"Elegant jewelry pieces to complement any outfit","imageUrl":"https://zzrf-001.dx.commercecloud.salesforce.com/on/demandware.static/-/Sites-storefront-catalog-m-non-en/default/dw14ce9267/images/slot/sub_banners/cat-banner-womens-jewelry.jpg","imageAlt":"Jewelry","buttonText":"Shop Now","buttonLink":"/category/womens-jewelry","showBackground":true,"showBorder":true,"loading":"eager"}
+          </div>
+          <div
+            data-testid="content-card"
+          >
+            {"title":"Clothing","description":"Stylish and comfortable men's clothing for every occasion","imageUrl":"https://zzrf-001.dx.commercecloud.salesforce.com/on/demandware.static/-/Sites-storefront-catalog-m-non-en/default/dw56b28e03/images/slot/sub_banners/cat-banner-mens-clothing.jpg","imageAlt":"Clothing","buttonText":"Shop Now","buttonLink":"/category/mens-clothing","showBackground":true,"showBorder":true,"loading":"eager"}
+          </div>
+          <div
+            data-testid="content-card"
+          >
+            {"title":"Electronics","description":"Latest electronics and tech gadgets","imageUrl":"https://zzrf-001.dx.commercecloud.salesforce.com/on/demandware.static/-/Sites-storefront-catalog-m-non-en/default/dw98765432/images/slot/sub_banners/cat-banner-electronics.jpg","imageAlt":"Electronics","buttonText":"Shop Now","buttonLink":"/category/electronics","showBackground":true,"showBorder":true,"loading":"eager"}
+          </div>
+          <div
+            data-testid="content-card"
+          >
+            {"title":"Home & Living","description":"Transform your space with our home and living collection","imageUrl":"https://zzrf-001.dx.commercecloud.salesforce.com/on/demandware.static/-/Sites-storefront-catalog-m-non-en/default/dw11223344/images/slot/sub_banners/cat-banner-home-living.jpg","imageAlt":"Home & Living","buttonText":"Shop Now","buttonLink":"/category/home-living","showBackground":true,"showBorder":true,"loading":"eager"}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`PopularCategories stories snapshot > SkeletonState story renders and matches snapshot 1`] = `
+<div>
+  <div
+    class="bg-background min-h-screen"
+  >
+    <div
+      class="pb-16"
+    >
+      <div
+        class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8"
+      >
+        <div
+          class="text-center mb-8"
+        >
+          <h2
+            class="tracking-tight text-center text-3xl font-extrabold text-foreground sm:text-4xl"
+          >
+            Step into Elegance
+          </h2>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`PopularCategories stories snapshot > WithDirectData story renders and matches snapshot 1`] = `
+<div>
+  <div
+    class="bg-background min-h-screen"
+  >
+    <div
+      class="pb-16"
+    >
+      <div
+        class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8"
+      >
+        <div
+          class="text-center mb-8"
+        >
+          <h2
+            class="tracking-tight text-center text-3xl font-extrabold text-foreground sm:text-4xl"
+          >
+            Step into Elegance
+          </h2>
+        </div>
+        <div
+          class="grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-[var(--grid-cols)]"
+          style="--grid-cols: repeat(4, minmax(0, 1fr));"
+        >
+          <div
+            data-testid="content-card"
+          >
+            {"title":"Jewelry","description":"Elegant jewelry pieces to complement any outfit","imageUrl":"https://zzrf-001.dx.commercecloud.salesforce.com/on/demandware.static/-/Sites-storefront-catalog-m-non-en/default/dw14ce9267/images/slot/sub_banners/cat-banner-womens-jewelry.jpg","imageAlt":"Jewelry","buttonText":"Shop Now","buttonLink":"/category/womens-jewelry","showBackground":true,"showBorder":true,"loading":"eager"}
+          </div>
+          <div
+            data-testid="content-card"
+          >
+            {"title":"Clothing","description":"Stylish and comfortable men's clothing for every occasion","imageUrl":"https://zzrf-001.dx.commercecloud.salesforce.com/on/demandware.static/-/Sites-storefront-catalog-m-non-en/default/dw56b28e03/images/slot/sub_banners/cat-banner-mens-clothing.jpg","imageAlt":"Clothing","buttonText":"Shop Now","buttonLink":"/category/mens-clothing","showBackground":true,"showBorder":true,"loading":"eager"}
+          </div>
+          <div
+            data-testid="content-card"
+          >
+            {"title":"Electronics","description":"Latest electronics and tech gadgets","imageUrl":"https://zzrf-001.dx.commercecloud.salesforce.com/on/demandware.static/-/Sites-storefront-catalog-m-non-en/default/dw98765432/images/slot/sub_banners/cat-banner-electronics.jpg","imageAlt":"Electronics","buttonText":"Shop Now","buttonLink":"/category/electronics","showBackground":true,"showBorder":true,"loading":"eager"}
+          </div>
+          <div
+            data-testid="content-card"
+          >
+            {"title":"Home & Living","description":"Transform your space with our home and living collection","imageUrl":"https://zzrf-001.dx.commercecloud.salesforce.com/on/demandware.static/-/Sites-storefront-catalog-m-non-en/default/dw11223344/images/slot/sub_banners/cat-banner-home-living.jpg","imageAlt":"Home & Living","buttonText":"Shop Now","buttonLink":"/category/home-living","showBackground":true,"showBorder":true,"loading":"eager"}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`PopularCategories stories snapshot > WithoutImages story renders and matches snapshot 1`] = `
+<div>
+  <div
+    class="bg-background min-h-screen"
+  >
+    <div
+      class="pb-16"
+    >
+      <div
+        class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8"
+      >
+        <div
+          class="text-center mb-8"
+        >
+          <h2
+            class="tracking-tight text-center text-3xl font-extrabold text-foreground sm:text-4xl"
+          >
+            Step into Elegance
+          </h2>
+        </div>
+        <div
+          class="grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-[var(--grid-cols)]"
+          style="--grid-cols: repeat(4, minmax(0, 1fr));"
+        >
+          <div
+            data-testid="content-card"
+          >
+            {"title":"Category One","description":"Description for category one","imageUrl":"/images/hero-cube.webp","imageAlt":"Category One","buttonText":"Shop Now","buttonLink":"/category/category-1","showBackground":true,"showBorder":true,"loading":"eager"}
+          </div>
+          <div
+            data-testid="content-card"
+          >
+            {"title":"Category Two","description":"Description for category two","imageUrl":"/images/hero-cube.webp","imageAlt":"Category Two","buttonText":"Shop Now","buttonLink":"/category/category-2","showBackground":true,"showBorder":true,"loading":"eager"}
+          </div>
+          <div
+            data-testid="content-card"
+          >
+            {"title":"Category Three","description":"Description for category three","imageUrl":"/images/hero-cube.webp","imageAlt":"Category Three","buttonText":"Shop Now","buttonLink":"/category/category-3","showBackground":true,"showBorder":true,"loading":"eager"}
+          </div>
+          <div
+            data-testid="content-card"
+          >
+            {"title":"Category Four","description":"Description for category four","imageUrl":"/images/hero-cube.webp","imageAlt":"Category Four","buttonText":"Shop Now","buttonLink":"/category/category-4","showBackground":true,"showBorder":true,"loading":"eager"}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;

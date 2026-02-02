@@ -1,0 +1,206 @@
+/**
+ * Copyright 2026 Salesforce, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+import Cookies from 'js-cookie';
+import { getCookieConfig } from '@/lib/cookie-utils';
+
+export type StoreLocatorConfig = {
+    supportedCountries: Array<{ countryCode: string; countryName: string }>;
+    radius: number;
+    radiusUnit: 'mi' | 'km';
+    limit: number;
+    geoTimeout: number;
+};
+
+export type GeoCoordinates = {
+    latitude: number | null;
+    longitude: number | null;
+};
+
+export type FormSearchParams = {
+    countryCode: string;
+    postalCode: string;
+};
+
+export type SelectedStoreInfo = {
+    id: string;
+    name?: string;
+    inventoryId?: string;
+};
+
+type StoreLocatorState = {
+    isOpen: boolean;
+    mode: 'input' | 'device';
+    shouldSearch: boolean;
+    searchParams: FormSearchParams | null;
+    deviceCoordinates: GeoCoordinates;
+    geoError: boolean;
+    selectedStoreInfo: SelectedStoreInfo | null;
+    config: StoreLocatorConfig;
+};
+
+type StoreLocatorActions = {
+    open: () => void;
+    close: () => void;
+    searchByForm: (params: FormSearchParams) => void;
+    setShouldSearch: (should: boolean) => void;
+    setDeviceCoordinates: (coords: GeoCoordinates) => void;
+    setGeoError: (value: boolean) => void;
+    setSelectedStoreInfo: (
+        info: SelectedStoreInfo | ShopperStores.schemas['Store'] | Partial<ShopperStores.schemas['Store']> | null
+    ) => void;
+};
+
+export type StoreLocatorStore = StoreLocatorState & StoreLocatorActions;
+
+const defaultConfig: StoreLocatorConfig = {
+    supportedCountries: [
+        { countryCode: 'US', countryName: 'United States' },
+        { countryCode: 'GB', countryName: 'United Kingdom' },
+    ],
+    radius: 100,
+    radiusUnit: 'km',
+    limit: 200, // This is an API limit and is therefore not configurable
+    geoTimeout: 10000,
+};
+
+import { getSelectedStoreInfoCookieName } from '@/extensions/store-locator/utils';
+import type { ShopperStores } from '@salesforce/storefront-next-runtime/scapi';
+
+/**
+ * Normalizes a store object to SelectedStoreInfo format.
+ * Strips out extra fields and applies default name logic (name || id).
+ *
+ * @param store - Store object from API or SelectedStoreInfo, or null
+ * @returns Normalized SelectedStoreInfo or null
+ */
+const normalizeStoreInfo = (
+    store: SelectedStoreInfo | ShopperStores.schemas['Store'] | Partial<ShopperStores.schemas['Store']> | null
+): SelectedStoreInfo | null => {
+    if (!store || !store.id) {
+        return null;
+    }
+
+    return {
+        id: store.id,
+        name: store.name || store.id,
+        inventoryId: store.inventoryId,
+    };
+};
+
+/**
+ * Persist the selected store info cookie (client-only). Clears cookie when info is null.
+ * Saves full store object including id, name, and inventoryId.
+ * Throws on server to highlight accidental invocation in SSR.
+ *
+ * @param info - Selected store info or null to clear
+ */
+const writeSelectedStoreInfoCookie = (info: SelectedStoreInfo | null) => {
+    try {
+        const cookieName = getSelectedStoreInfoCookieName();
+        const cookieConfig = getCookieConfig();
+
+        if (info) {
+            Cookies.set(cookieName, JSON.stringify(info), cookieConfig);
+        } else {
+            // Use same config for removal to ensure path and domain match
+            Cookies.remove(cookieName, cookieConfig);
+        }
+    } catch (e) {
+        // draw attention to failed attempts to write cookie on server
+        if (typeof window === 'undefined') {
+            throw e;
+        }
+    }
+};
+
+/**
+ * Store API interface for subscription-based state management.
+ * Compatible with React's useSyncExternalStore hook.
+ */
+export type StoreApi<T> = {
+    getState: () => T;
+    setState: (partial: Partial<T> | ((state: T) => Partial<T>)) => void;
+    subscribe: (listener: () => void) => () => void;
+};
+
+/**
+ * Create a vanilla store for the store locator feature.
+ * Allows overriding parts of initial state via `init` for hydration and tests.
+ * Compatible with React's useSyncExternalStore for selector-based subscriptions.
+ *
+ * @param init - Partial initial state overrides
+ * @returns Store instance with getState, setState, and subscribe methods
+ */
+export const createStoreLocatorStore = (init?: Partial<StoreLocatorState>): StoreApi<StoreLocatorStore> => {
+    const listeners = new Set<() => void>();
+
+    const initialState: StoreLocatorState = {
+        isOpen: false,
+        mode: 'input',
+        shouldSearch: false,
+        searchParams: null,
+        deviceCoordinates: { latitude: null, longitude: null },
+        geoError: false,
+        selectedStoreInfo: null,
+        config: defaultConfig,
+        ...init,
+    };
+
+    const actions: StoreLocatorActions = {
+        open: () => store.setState({ isOpen: true }),
+        close: () => store.setState({ isOpen: false }),
+        searchByForm: (params) =>
+            store.setState({ mode: 'input', searchParams: params, shouldSearch: true, geoError: false }),
+        setDeviceCoordinates: (coords) =>
+            store.setState({
+                mode: 'device',
+                deviceCoordinates: coords,
+                searchParams: null,
+                shouldSearch: true,
+                geoError: false,
+            }),
+        setGeoError: (value) => store.setState({ geoError: value }),
+        setShouldSearch: (should) => store.setState({ shouldSearch: should }),
+        setSelectedStoreInfo: (info) => {
+            const normalized = normalizeStoreInfo(info);
+            writeSelectedStoreInfoCookie(normalized);
+            store.setState({ selectedStoreInfo: normalized });
+        },
+    };
+
+    let state: StoreLocatorStore = {
+        ...initialState,
+        ...actions,
+    };
+
+    const store: StoreApi<StoreLocatorStore> = {
+        getState: () => state,
+        setState: (partial) => {
+            const nextPartial = typeof partial === 'function' ? partial(state) : partial;
+            const nextState = { ...state, ...nextPartial };
+            if (!Object.is(state, nextState)) {
+                state = nextState;
+                listeners.forEach((listener) => listener());
+            }
+        },
+        subscribe: (listener) => {
+            listeners.add(listener);
+            return () => listeners.delete(listener);
+        },
+    };
+
+    return store;
+};

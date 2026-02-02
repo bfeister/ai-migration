@@ -1,0 +1,89 @@
+/**
+ * Copyright 2026 Salesforce, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+import type { ReactElement } from 'react';
+import { NavLink, Form } from 'react-router';
+import type { LucideIcon } from 'lucide-react';
+import { Button } from '../ui/button';
+
+interface AccountNavItemProps {
+    item: {
+        path: string;
+        icon: LucideIcon;
+        label: string;
+        disabled?: boolean;
+        action?: string;
+        method?: 'post' | 'get';
+    };
+    isMobile?: boolean;
+}
+
+export function AccountNavItem({ item, isMobile = false }: AccountNavItemProps): ReactElement {
+    const Icon = item.icon;
+    const baseClasses = 'w-full px-3 py-2 text-left font-medium rounded-md flex items-center gap-2';
+    const mobileClasses = `${baseClasses} border`;
+    const disabledClasses = 'opacity-50 cursor-not-allowed pointer-events-none';
+
+    if (item.disabled) {
+        return (
+            <Button
+                className={`${isMobile ? mobileClasses : baseClasses} ${disabledClasses} text-muted-foreground`}
+                disabled
+                variant="ghost"
+                size="sm">
+                <Icon data-testid={`${item.label}-icon`} className="h-5 w-5" />
+                {item.label}
+            </Button>
+        );
+    }
+
+    // If item has an action, render as a form (e.g., for logout)
+    if (item.action) {
+        const containerClasses = isMobile ? mobileClasses : baseClasses;
+        const activeClasses = isMobile
+            ? 'bg-transparent text-muted-foreground hover:text-foreground'
+            : 'text-muted-foreground hover:text-foreground hover:bg-muted/30';
+
+        return (
+            <Form method={item.method || 'post'} action={item.action} className="w-full">
+                <button type="submit" className={`${containerClasses} ${activeClasses} cursor-pointer`}>
+                    <Icon data-testid={`${item.label}-icon`} className="h-5 w-5" />
+                    {item.label}
+                </button>
+            </Form>
+        );
+    }
+
+    return (
+        <NavLink
+            key={item.path}
+            to={item.path}
+            className={({ isActive }) => {
+                const containerClasses = isMobile ? mobileClasses : baseClasses;
+                const activeClasses = isActive
+                    ? isMobile
+                        ? 'bg-background text-foreground'
+                        : 'bg-muted/50 text-foreground'
+                    : isMobile
+                      ? 'bg-transparent text-muted-foreground hover:text-foreground'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-muted/30';
+
+                return `${containerClasses} ${activeClasses}`;
+            }}>
+            <Icon data-testid={`${item.label}-icon`} className="h-5 w-5" />
+            {item.label}
+        </NavLink>
+    );
+}

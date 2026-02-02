@@ -1,0 +1,13 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`FormSubmitButton stories snapshot > CustomStyling story renders and matches snapshot 1`] = `null`;
+
+exports[`FormSubmitButton stories snapshot > Default story renders and matches snapshot 1`] = `null`;
+
+exports[`FormSubmitButton stories snapshot > Disabled story renders and matches snapshot 1`] = `null`;
+
+exports[`FormSubmitButton stories snapshot > InRegistrationForm story renders and matches snapshot 1`] = `null`;
+
+exports[`FormSubmitButton stories snapshot > WithCustomText story renders and matches snapshot 1`] = `null`;
+
+exports[`FormSubmitButton stories snapshot > WithFetcher story renders and matches snapshot 1`] = `null`;

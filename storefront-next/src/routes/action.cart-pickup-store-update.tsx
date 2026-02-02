@@ -1,0 +1,238 @@
+/**
+ * Copyright 2026 Salesforce, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+// @sfdc-extension-file SFDC_EXT_BOPIS
+// React Router
+import type { ClientActionFunctionArgs } from 'react-router';
+
+// Middlewares
+import { getBasket, updateBasket } from '@/middlewares/basket.client';
+
+// Utils
+import { extractResponseError } from '@/lib/utils';
+import { createApiClients } from '@/lib/api-clients';
+import {
+    type BasketActionResponse,
+    createBasketSuccessResponse,
+    createBasketErrorResponse,
+} from './types/action-responses';
+import { getTranslation } from '@/lib/i18next';
+import { currencyContext } from '@/lib/currency';
+
+import { updateShipmentForPickup } from '@/extensions/bopis/lib/api/shipment';
+import { isStoreOutOfStock } from '@/lib/inventory-utils';
+import { getFirstPickupStoreId, getPickupProductItemsForStore } from '@/extensions/bopis/lib/basket-utils';
+import { pickupStoreUpdateSchema, parsePickupStoreUpdateFromFormData } from '@/lib/basket-schemas';
+
+/**
+ * Client action for changing the pickup store for all pickup items in the basket.
+ *
+ * This action handles changing the pickup store for all items currently set for store pickup.
+ * It performs the following operations:
+ * - Validates the request method (PATCH only)
+ * - Extracts store information from form data
+ * - Validates inventory availability at the new store BEFORE updating the basket
+ * - Updates the shipment with the new store ID (only if validation passes)
+ * - Updates all pickup items in the basket with the new inventory ID
+ * - Returns standardized success/error response
+ *
+ * Inventory validation:
+ * - Fetches product data with the new store's inventory ID
+ * - Checks if all pickup items (including bundle children) are in stock at the new store
+ * - Returns an error if any items are out of stock, preventing basket update
+ *
+ * Used by the pickup store info card component when user changes the pickup store.
+ *
+ * @returns Promise resolving to BasketActionResponse
+ * @returns success - Boolean indicating if the operation was successful
+ * @returns basket - Updated basket object (on success)
+ * @returns error - Error message string (on failure, including out-of-stock validation errors)
+ *
+ * @throws Response with 405 status if request method is not PATCH
+ * @throws Error if form data validation fails (invalid storeId or inventoryId)
+ * @throws Error if no basket is found in the session
+ * @throws Error if any items are out of stock at the selected store
+ */
+// eslint-disable-next-line custom/no-client-actions
+export async function clientAction({ request, context }: ClientActionFunctionArgs): Promise<BasketActionResponse> {
+    const { t } = getTranslation();
+
+    if (request.method !== 'PATCH') {
+        throw new Response(t('errors:methodNotAllowed'), { status: 405 });
+    }
+
+    const { basketId } = getBasket(context);
+    if (!basketId) {
+        return createBasketErrorResponse(t('errors:noBasketFound'));
+    }
+
+    let originalStoreId = '';
+    let shipmentUpdated = false;
+
+    try {
+        const formData = await request.formData();
+
+        // Parse and validate form data for pickup store update
+        const rawData = parsePickupStoreUpdateFromFormData(formData);
+        const validationResult = pickupStoreUpdateSchema.safeParse(rawData);
+
+        if (!validationResult.success) {
+            return createBasketErrorResponse(
+                validationResult.error.issues[0]?.message ||
+                    t('extBopis:cart.pickupStoreInfo.missingStoreIdOrInventoryIdError')
+            );
+        }
+
+        // Extract the validated fields
+        const { storeId, inventoryId, storeName } = validationResult.data;
+
+        const clients = createApiClients(context);
+        const basket = getBasket(context);
+
+        // Validate basket exists
+        if (!basket) {
+            return createBasketErrorResponse(t('errors:noBasketFound'));
+        }
+
+        // Capture the original store ID from the first pickup shipment for potential rollback
+        // Validate that there's an existing pickup store before allowing change
+        const storeIdFromShipment = getFirstPickupStoreId(basket);
+        if (!storeIdFromShipment) {
+            return createBasketErrorResponse('No pickup store is currently set. Cannot change pickup store.');
+        }
+        originalStoreId = storeIdFromShipment;
+
+        // TODO: Need to verify inventory check for bundle support W-20159731
+        // Get pickup items from the current basket that belong to the original store
+        // Since a basket has a single store pickup shipment, get items for that store
+        const currentPickupItems = getPickupProductItemsForStore(basket, storeIdFromShipment);
+
+        // Validate inventory availability before updating
+        if (currentPickupItems && currentPickupItems.length > 0) {
+            // Collect all product IDs (parent products only - bundles have their own inventory)
+            const productIds = currentPickupItems
+                .map((item) => item.productId)
+                .filter((id): id is string => Boolean(id));
+
+            const currency = context.get(currencyContext) as string;
+
+            // Fetch products with the new store's inventory ID to validate availability
+            const productsResponse = await clients.shopperProducts.getProducts({
+                params: {
+                    query: {
+                        ids: [...new Set(productIds)], // Remove duplicates
+                        allImages: true,
+                        perPricebook: true,
+                        inventoryIds: [inventoryId], // Include new store's inventory
+                        ...(currency ? { currency } : {}),
+                    },
+                },
+            });
+
+            if (productsResponse.data) {
+                const productsMap = new Map(productsResponse.data.map((product) => [product.id, product]));
+
+                // TODO: Need to verify inventory check for bundle support W-20159731
+                // Validate each pickup item's inventory
+                // isStoreOutOfStock handles all product types:
+                // - Regular items: checks product's own inventory
+                // - Product sets: automatically checks all setProducts
+                // - Bundles: checks bundle product's own inventory (bundle has its own inventory)
+                const outOfStockItems: string[] = [];
+                for (const item of currentPickupItems) {
+                    if (!item.productId) continue;
+
+                    const product = productsMap.get(item.productId);
+                    const quantity = item.quantity || 1;
+
+                    if (!product) {
+                        outOfStockItems.push(item.productId);
+                        continue;
+                    }
+
+                    if (isStoreOutOfStock(product, inventoryId, quantity)) {
+                        outOfStockItems.push(item.productId);
+                    }
+                }
+
+                // If any items are out of stock, return error
+                if (outOfStockItems.length > 0) {
+                    // Use store name from form data, fall back to storeId if not provided
+                    const displayStoreName = storeName || storeId;
+                    const errorMessage = t('extBopis:cart.pickupStoreInfo.itemsOutOfStock', {
+                        storeName: displayStoreName,
+                    });
+                    return createBasketErrorResponse(errorMessage);
+                }
+            }
+        }
+
+        // All items are in stock - proceed with the update
+        // Update the shipment with the new store ID
+        let updatedBasket = await updateShipmentForPickup(context, basketId, 'me', storeId);
+        shipmentUpdated = true;
+
+        // Get pickup items from the updated basket for the new store
+        const pickupItems = getPickupProductItemsForStore(updatedBasket, storeId);
+
+        // Update all pickup items with the new inventory ID
+        // Note: If any item is missing itemId, the API call will fail with a 400 error.
+        if (pickupItems && pickupItems.length > 0) {
+            const itemsToUpdate = pickupItems.map((item) => ({
+                itemId: item.itemId,
+                productId: item.productId,
+                quantity: item.quantity,
+                inventoryId,
+            }));
+
+            if (itemsToUpdate.length > 0) {
+                // This may fail if the inventory check is stale, but we will handle that in the catch block
+                await clients.shopperBasketsV2.updateItemsInBasket({
+                    params: {
+                        path: { basketId },
+                    },
+                    body: itemsToUpdate,
+                });
+
+                // Get the updated basket after items update
+                const { data: refreshedBasket } = await clients.shopperBasketsV2.getBasket({
+                    params: {
+                        path: { basketId },
+                    },
+                });
+                updatedBasket = refreshedBasket;
+            }
+        }
+
+        // Update the basket cache to reflect the changes
+        updateBasket(context, updatedBasket);
+
+        return createBasketSuccessResponse(updatedBasket);
+    } catch (error) {
+        // Rollback shipment update if it was already updated
+        if (shipmentUpdated && originalStoreId) {
+            try {
+                await updateShipmentForPickup(context, basketId, 'me', originalStoreId);
+            } catch {
+                // Silently handle rollback error - original error is more important
+                // Rollback failure doesn't affect the user-facing error response
+            }
+        }
+
+        const { responseMessage } = await extractResponseError(error as Error);
+        const errorMsg = responseMessage || t('extBopis:cart.pickupStoreInfo.changeStoreError');
+        return createBasketErrorResponse(errorMsg);
+    }
+}

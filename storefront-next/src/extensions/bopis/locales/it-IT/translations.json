@@ -1,0 +1,64 @@
+{
+    "deliveryOptions": {
+        "title": "Consegna:",
+        "pickupOrDelivery": {
+            "shipToAddress": "Spedisci a indirizzo",
+            "pickUpInStore": "Ritiro gratuito in",
+            "unavailablePickUpIn": "Ritiro non disponibile presso",
+            "selectStore": "Seleziona negozio",
+            "inStockAtStore": "Ora disponibile per il ritiro oggi.",
+            "outOfStockAtStore": "Provi un altro negozio o selezioni la consegna.",
+            "storePickup": "Ritiro in negozio",
+            "delivery": "Consegna"
+        }
+    },
+    "storeInventoryFilter": {
+        "heading": "Acquista per disponibilità",
+        "label": "Disponibile presso {{storeName}}",
+        "inStock": "Disponibile",
+        "checkboxAriaLabel": "Filtra prodotti per disponibilità nel negozio presso {{storeName}}",
+        "selectStore": "Seleziona negozio",
+        "changeStore": "Cambia negozio",
+        "openStoreLocator": "Apri localizzatore negozi per {{action}}",
+        "selectStoreLink": "Seleziona un negozio"
+    },
+    "storePickup": {
+        "title": "Dettagli ritiro in negozio",
+        "pickupLocationTitle": "Luogo di ritiro",
+        "viewButton": "Visualizza",
+        "closeButton": "Chiudi",
+        "pickupDetailsTitle": "Dettagli luogo di ritiro",
+        "phoneLabel": "Telefono:",
+        "storeHoursTitle": "Orari del negozio",
+        "pickupLastName": "Ritiro"
+    },
+    "cart": {
+        "deliveryItemsHeading": "Consegna - {{deliveryCount}} di {{totalCount}} articoli",
+        "pickupStoreInfo": {
+            "pickupInStore": "Ritira presso {{storeName}}",
+            "changeStore": "Cambia negozio",
+            "storeChanged": "Negozio di ritiro cambiato con successo",
+            "changeStoreError": "Impossibile cambiare negozio di ritiro",
+            "itemsOutOfStock": "Alcuni articoli non sono disponibili presso {{storeName}}. Selezioni un negozio diverso.",
+            "missingStoreIdOrInventoryIdError": "ID negozio o ID inventario mancante. Selezioni un negozio valido."
+        },
+        "deliveryOptionChangeError": "Impossibile cambiare opzione di consegna. {{error}}",
+        "addToCartValidation": {
+            "changeStoreError": "Ha già un articolo nel carrello da un negozio diverso.",
+            "changeToDeliveryError": "Ha già un articolo nel carrello contrassegnato per il ritiro.",
+            "changeToPickupError": "Ha già un articolo nel carrello contrassegnato per la consegna.",
+            "mixedPickupDeliveryError": "Impossibile mescolare articoli per ritiro e consegna nello stesso set."
+        }
+    },
+    "checkout": {
+        "contactInfo": {
+            "continueToPickup": "Continua al ritiro"
+        },
+        "pickUp": {
+            "title": "Dettagli ritiro in negozio",
+            "pickupLocationTitle": "Luogo di ritiro",
+            "continueToPayment": "Continua al pagamento",
+            "continueToShipping": "Continua alla spedizione"
+        }
+    }
+}

@@ -1,0 +1,58 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`WithSuspense stories snapshot > Default story renders and matches snapshot 1`] = `
+<div>
+  <div
+    class="p-6"
+  >
+    <h2
+      class="text-xl font-bold mb-2"
+    >
+      Default Component
+    </h2>
+    <p
+      class="text-muted-foreground"
+    >
+      This component was loaded with Suspense.
+    </p>
+  </div>
+</div>
+`;
+
+exports[`WithSuspense stories snapshot > WithCustomFallback story renders and matches snapshot 1`] = `
+<div>
+  <div
+    class="p-6"
+  >
+    <h2
+      class="text-xl font-bold mb-2"
+    >
+      Custom Fallback
+    </h2>
+    <p
+      class="text-muted-foreground"
+    >
+      This component was loaded with Suspense.
+    </p>
+  </div>
+</div>
+`;
+
+exports[`WithSuspense stories snapshot > WithPromise story renders and matches snapshot 1`] = `
+<div>
+  <div
+    class="p-6"
+  >
+    <h2
+      class="text-xl font-bold mb-2"
+    >
+      Resolved Data
+    </h2>
+    <p
+      class="text-muted-foreground"
+    >
+      This component was loaded with Suspense.
+    </p>
+  </div>
+</div>
+`;

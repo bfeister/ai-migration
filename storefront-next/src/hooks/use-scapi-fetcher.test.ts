@@ -1,0 +1,305 @@
+/**
+ * Copyright 2026 Salesforce, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { renderHook, act } from '@testing-library/react';
+import { useScapiFetcher } from './use-scapi-fetcher';
+
+// Mock React Router's useFetcher
+const mockFetcher = {
+    state: 'idle' as 'idle' | 'loading' | 'submitting',
+    data: null as any,
+    load: vi.fn(),
+    submit: vi.fn(),
+    success: false,
+    errors: undefined,
+};
+
+vi.mock('react-router', () => ({
+    useFetcher: vi.fn(() => mockFetcher),
+}));
+
+// Mock dependencies
+vi.mock('@/lib/url', () => ({
+    encodeBase64Url: vi.fn((str) => btoa(str)),
+}));
+
+describe('useScapiFetcher', () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+        mockFetcher.state = 'idle';
+        mockFetcher.data = null;
+        // Configure mocks to return promises
+        mockFetcher.load.mockReturnValue(Promise.resolve());
+        mockFetcher.submit.mockReturnValue(Promise.resolve());
+    });
+
+    afterEach(() => {
+        vi.clearAllMocks();
+    });
+
+    describe('load method', () => {
+        it('should call fetcher.load with correct resource URL', () => {
+            const { result } = renderHook(() =>
+                useScapiFetcher('shopperCustomers', 'getCustomer', {
+                    params: {
+                        path: { organizationId: 'org-123', customerId: 'test' },
+                        query: { siteId: 'site-123' },
+                    },
+                })
+            );
+
+            act(() => {
+                void result.current.load();
+            });
+
+            expect(mockFetcher.load).toHaveBeenCalled();
+            const callArg = mockFetcher.load.mock.calls[0][0];
+            expect(callArg).toEqual(
+                '/resource/api/client/WyJzaG9wcGVyQ3VzdG9tZXJzIiwiZ2V0Q3VzdG9tZXIiLHsicGFyYW1zIjp7InBhdGgiOnsib3JnYW5pemF0aW9uSWQiOiJvcmctMTIzIiwiY3VzdG9tZXJJZCI6InRlc3QifSwicXVlcnkiOnsic2l0ZUlkIjoic2l0ZS0xMjMifX19XQ=='
+            );
+        });
+
+        it('should call fetcher.load and return a promise', () => {
+            const { result } = renderHook(() =>
+                useScapiFetcher('shopperCustomers', 'getCustomer', {
+                    params: {
+                        path: { organizationId: 'org-123', customerId: 'test' },
+                        query: { siteId: 'site-123' },
+                    },
+                })
+            );
+
+            const returnValue = result.current.load();
+            expect(returnValue).toBeInstanceOf(Promise);
+        });
+
+        it('should handle timeout configuration', () => {
+            const { result } = renderHook(() =>
+                useScapiFetcher('shopperCustomers', 'getCustomer', {
+                    params: {
+                        path: { organizationId: 'org-123', customerId: 'test' },
+                        query: { siteId: 'site-123' },
+                    },
+                })
+            );
+
+            act(() => {
+                void result.current.load();
+            });
+
+            expect(mockFetcher.load).toHaveBeenCalled();
+            const callArg = mockFetcher.load.mock.calls[0][0];
+            expect(callArg).toEqual(
+                '/resource/api/client/WyJzaG9wcGVyQ3VzdG9tZXJzIiwiZ2V0Q3VzdG9tZXIiLHsicGFyYW1zIjp7InBhdGgiOnsib3JnYW5pemF0aW9uSWQiOiJvcmctMTIzIiwiY3VzdG9tZXJJZCI6InRlc3QifSwicXVlcnkiOnsic2l0ZUlkIjoic2l0ZS0xMjMifX19XQ=='
+            );
+        });
+    });
+
+    describe('submit method', () => {
+        it('should call fetcher.submit with correct resource URL and POST method', () => {
+            const { result } = renderHook(() =>
+                useScapiFetcher('shopperCustomers', 'updateCustomer', {
+                    params: {
+                        path: { organizationId: 'org-123', customerId: 'test' },
+                        query: { siteId: 'site-123' },
+                    },
+                    body: {},
+                })
+            );
+
+            const submitData = { email: 'new@example.com' };
+
+            act(() => {
+                void result.current.submit(submitData);
+            });
+
+            expect(mockFetcher.submit).toHaveBeenCalledWith(submitData, {
+                method: 'POST',
+                action: '/resource/api/client/WyJzaG9wcGVyQ3VzdG9tZXJzIiwidXBkYXRlQ3VzdG9tZXIiLHsicGFyYW1zIjp7InBhdGgiOnsib3JnYW5pemF0aW9uSWQiOiJvcmctMTIzIiwiY3VzdG9tZXJJZCI6InRlc3QifSwicXVlcnkiOnsic2l0ZUlkIjoic2l0ZS0xMjMifX0sImJvZHkiOnt9fV0=',
+            });
+        });
+
+        it('should call fetcher.submit and return a promise', () => {
+            const { result } = renderHook(() =>
+                useScapiFetcher('shopperCustomers', 'updateCustomer', {
+                    params: {
+                        path: { organizationId: 'org-123', customerId: 'test' },
+                        query: { siteId: 'site-123' },
+                    },
+                    body: {},
+                })
+            );
+
+            const returnValue = result.current.submit({ email: 'new@example.com' });
+            expect(returnValue).toBeInstanceOf(Promise);
+        });
+
+        it('should handle timeout configuration', () => {
+            const { result } = renderHook(() =>
+                useScapiFetcher('shopperCustomers', 'updateCustomer', {
+                    params: {
+                        path: { organizationId: 'org-123', customerId: 'test' },
+                        query: { siteId: 'site-123' },
+                    },
+                    body: {},
+                })
+            );
+
+            const submitData = { email: 'new@example.com' };
+
+            act(() => {
+                void result.current.submit(submitData);
+            });
+
+            expect(mockFetcher.submit).toHaveBeenCalledWith(submitData, {
+                method: 'POST',
+                action: '/resource/api/client/WyJzaG9wcGVyQ3VzdG9tZXJzIiwidXBkYXRlQ3VzdG9tZXIiLHsicGFyYW1zIjp7InBhdGgiOnsib3JnYW5pemF0aW9uSWQiOiJvcmctMTIzIiwiY3VzdG9tZXJJZCI6InRlc3QifSwicXVlcnkiOnsic2l0ZUlkIjoic2l0ZS0xMjMifX0sImJvZHkiOnt9fV0=',
+            });
+        });
+
+        it('should use empty object when no target is provided', () => {
+            const { result } = renderHook(() =>
+                useScapiFetcher('shopperCustomers', 'updateCustomer', {
+                    params: {
+                        path: { organizationId: 'org-123', customerId: 'test' },
+                        query: { siteId: 'site-123' },
+                    },
+                    body: {},
+                })
+            );
+
+            act(() => {
+                void result.current.submit({});
+            });
+
+            expect(mockFetcher.submit).toHaveBeenCalledWith(
+                {},
+                {
+                    method: 'POST',
+                    action: '/resource/api/client/WyJzaG9wcGVyQ3VzdG9tZXJzIiwidXBkYXRlQ3VzdG9tZXIiLHsicGFyYW1zIjp7InBhdGgiOnsib3JnYW5pemF0aW9uSWQiOiJvcmctMTIzIiwiY3VzdG9tZXJJZCI6InRlc3QifSwicXVlcnkiOnsic2l0ZUlkIjoic2l0ZS0xMjMifX0sImJvZHkiOnt9fV0=',
+                }
+            );
+        });
+
+        it('should use empty object when target is null', () => {
+            const { result } = renderHook(() =>
+                useScapiFetcher('shopperCustomers', 'updateCustomer', {
+                    params: {
+                        path: { organizationId: 'org-123', customerId: 'test' },
+                        query: { siteId: 'site-123' },
+                    },
+                    body: {},
+                })
+            );
+
+            act(() => {
+                void result.current.submit(null as any);
+            });
+
+            expect(mockFetcher.submit).toHaveBeenCalledWith(
+                {},
+                {
+                    method: 'POST',
+                    action: '/resource/api/client/WyJzaG9wcGVyQ3VzdG9tZXJzIiwidXBkYXRlQ3VzdG9tZXIiLHsicGFyYW1zIjp7InBhdGgiOnsib3JnYW5pemF0aW9uSWQiOiJvcmctMTIzIiwiY3VzdG9tZXJJZCI6InRlc3QifSwicXVlcnkiOnsic2l0ZUlkIjoic2l0ZS0xMjMifX0sImJvZHkiOnt9fV0=',
+                }
+            );
+        });
+
+        it('should use empty object when target is undefined', () => {
+            const { result } = renderHook(() =>
+                useScapiFetcher('shopperCustomers', 'updateCustomer', {
+                    params: {
+                        path: { organizationId: 'org-123', customerId: 'test' },
+                        query: { siteId: 'site-123' },
+                    },
+                    body: {},
+                })
+            );
+
+            act(() => {
+                void result.current.submit(undefined as any);
+            });
+
+            expect(mockFetcher.submit).toHaveBeenCalledWith(
+                {},
+                {
+                    method: 'POST',
+                    action: '/resource/api/client/WyJzaG9wcGVyQ3VzdG9tZXJzIiwidXBkYXRlQ3VzdG9tZXIiLHsicGFyYW1zIjp7InBhdGgiOnsib3JnYW5pemF0aW9uSWQiOiJvcmctMTIzIiwiY3VzdG9tZXJJZCI6InRlc3QifSwicXVlcnkiOnsic2l0ZUlkIjoic2l0ZS0xMjMifX0sImJvZHkiOnt9fV0=',
+                }
+            );
+        });
+    });
+
+    describe('state property', () => {
+        it('should return fetcher state', () => {
+            mockFetcher.state = 'loading';
+
+            const { result } = renderHook(() =>
+                useScapiFetcher('shopperCustomers', 'getCustomer', {
+                    params: {
+                        path: { organizationId: 'org-123', customerId: 'test' },
+                        query: { siteId: 'site-123' },
+                    },
+                })
+            );
+
+            expect(result.current.state).toBe('loading');
+        });
+    });
+
+    describe('data property', () => {
+        it('should return fetcher data', () => {
+            const mockData = { customerId: 'test', email: 'test@example.com' };
+            mockFetcher.data = { success: true, data: mockData };
+            mockFetcher.success = true;
+
+            const { result } = renderHook(() =>
+                useScapiFetcher('shopperCustomers', 'getCustomer', {
+                    params: {
+                        path: { organizationId: 'org-123', customerId: 'test' },
+                        query: { siteId: 'site-123' },
+                    },
+                })
+            );
+
+            expect(result.current.data).toBe(mockData);
+        });
+    });
+
+    describe('request cancellation', () => {
+        it('should handle multiple concurrent requests', () => {
+            const { result } = renderHook(() =>
+                useScapiFetcher('shopperCustomers', 'getCustomer', {
+                    params: {
+                        path: { organizationId: 'org-123', customerId: 'test' },
+                        query: { siteId: 'site-123' },
+                    },
+                })
+            );
+
+            act(() => {
+                // Start first request
+                void result.current.load();
+                // Start second request immediately
+                void result.current.load();
+            });
+
+            // Both should return promises
+            expect(result.current.load()).toBeInstanceOf(Promise);
+            expect(result.current.load()).toBeInstanceOf(Promise);
+        });
+    });
+});

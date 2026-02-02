@@ -1,0 +1,45 @@
+{
+    "extensions": {
+        "SFDC_EXT_STORE_LOCATOR": {
+            "name": "Store Locator",
+            "description": "Store Locator allows a shopper to find the closest store to them.",
+            "installationInstructions": "instructions/install-store-locator.mdc",
+            "uninstallationInstructions": "instructions/uninstall-store-locator.mdc",
+            "folder": "store-locator",
+            "dependencies": []
+        },
+        "SFDC_EXT_BOPIS": {
+            "name": "Buy Online Pickup In Store",
+            "description": "Buy Online Pickup In Store allows a shopper to pick up their order at a store. Requires the Store Locator and Multiship extensions to be installed.",
+            "installationInstructions": "instructions/install-buy-online-pickup-in-store.mdc",
+            "uninstallationInstructions": "instructions/uninstall-buy-online-pickup-in-store.mdc",
+            "folder": "bopis",
+            "dependencies": ["SFDC_EXT_STORE_LOCATOR"]
+        },
+        "SFDC_EXT_MULTISHIP": {
+            "name": "Multiship",
+            "description": "Multiship allows shoppers to ship items to multiple different addresses in a single order.",
+            "installationInstructions": "instructions/install-multiship.mdc",
+            "uninstallationInstructions": "instructions/uninstall-multiship.mdc",
+            "folder": "multiship"
+        },
+        "SFDC_EXT_INTERNAL_THEME_SWITCHER": {
+            "name": "Theme Switcher",
+            "description": "Theme Switcher allows a developer to switch the theme of the store.",
+            "installationInstructions": "instructions/install-theme-switcher.mdc",
+            "uninstallationInstructions": "instructions/uninstall-theme-switcher.mdc",
+            "folder": "theme-switcher",
+            "defaultOn": false,
+            "dependencies": []
+        },
+        "SFDC_EXT_HYBRID_PROXY": {
+            "name": "Hybrid Proxy",
+            "description": "Proxies specific routes to an SFRA instance for hybrid deployments",
+            "installationInstructions": "instructions/install-hybrid-proxy.mdc",
+            "uninstallationInstructions": "instructions/uninstall-hybrid-proxy.mdc",
+            "folder": "hybrid-proxy",
+            "defaultOn": false,
+            "dependencies": []
+        }
+    }
+}

@@ -1,0 +1,185 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`ProductImage stories snapshot > CustomAspectRatio story renders and matches snapshot 1`] = `
+<div>
+  <div
+    class="w-64 h-64"
+  >
+    <div
+      class="relative overflow-hidden rounded-lg bg-secondary/20 border-secondary flex flex-col  "
+      style="aspect-ratio: 0.75; padding-bottom: 133.33333333333331%;"
+    >
+      <a
+        aria-label="View Laptop Briefcase with wheels (37L)"
+        class="block w-full h-full flex-1"
+        href="/product/P0048M"
+        to="/product/P0048M"
+      >
+        <div
+          class="w-full h-full object-cover transition-all duration-200 group-hover:scale-105"
+        >
+          <picture>
+            <source
+              media="(min-width: 1280px)"
+              sizes="15vw"
+              srcset="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dwcc8912f4/images/medium/P0048_001.webp?sw=230&q=60&sfrm=jpg 230w, https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dwcc8912f4/images/medium/P0048_001.webp?sw=461&q=60&sfrm=jpg 461w"
+              type="image/webp"
+            />
+            <source
+              media="(min-width: 1024px)"
+              sizes="15vw"
+              srcset="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dwcc8912f4/images/medium/P0048_001.webp?sw=192&q=60&sfrm=jpg 192w, https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dwcc8912f4/images/medium/P0048_001.webp?sw=384&q=60&sfrm=jpg 384w"
+              type="image/webp"
+            />
+            <source
+              media="(min-width: 768px)"
+              sizes="15vw"
+              srcset="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dwcc8912f4/images/medium/P0048_001.webp?sw=154&q=60&sfrm=jpg 154w, https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dwcc8912f4/images/medium/P0048_001.webp?sw=307&q=60&sfrm=jpg 307w"
+              type="image/webp"
+            />
+            <source
+              media="(min-width: 640px)"
+              sizes="50vw"
+              srcset="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dwcc8912f4/images/medium/P0048_001.webp?sw=384&q=60&sfrm=jpg 384w, https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dwcc8912f4/images/medium/P0048_001.webp?sw=768&q=60&sfrm=jpg 768w"
+              type="image/webp"
+            />
+            <source
+              sizes="50vw"
+              srcset="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dwcc8912f4/images/medium/P0048_001.webp?sw=320&q=60&sfrm=jpg 320w, https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dwcc8912f4/images/medium/P0048_001.webp?sw=640&q=60&sfrm=jpg 640w"
+              type="image/webp"
+            />
+            <img
+              alt="Laptop Briefcase with wheels (37L)"
+              fetchpriority="auto"
+              loading="lazy"
+              src="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dwcc8912f4/images/medium/P0048_001.jpg?sw=768&q=60"
+            />
+          </picture>
+        </div>
+      </a>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`ProductImage stories snapshot > Default story renders and matches snapshot 1`] = `
+<div>
+  <div
+    class="w-64 h-64"
+  >
+    <div
+      class="relative overflow-hidden rounded-lg bg-secondary/20 border-secondary flex flex-col aspect-square "
+    >
+      <a
+        aria-label="View Laptop Briefcase with wheels (37L)"
+        class="block w-full h-full flex-1"
+        href="/product/P0048M"
+        to="/product/P0048M"
+      >
+        <div
+          class="w-full h-full object-cover transition-all duration-200 group-hover:scale-105"
+        >
+          <picture>
+            <source
+              media="(min-width: 1280px)"
+              sizes="15vw"
+              srcset="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dwcc8912f4/images/medium/P0048_001.webp?sw=230&q=60&sfrm=jpg 230w, https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dwcc8912f4/images/medium/P0048_001.webp?sw=461&q=60&sfrm=jpg 461w"
+              type="image/webp"
+            />
+            <source
+              media="(min-width: 1024px)"
+              sizes="15vw"
+              srcset="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dwcc8912f4/images/medium/P0048_001.webp?sw=192&q=60&sfrm=jpg 192w, https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dwcc8912f4/images/medium/P0048_001.webp?sw=384&q=60&sfrm=jpg 384w"
+              type="image/webp"
+            />
+            <source
+              media="(min-width: 768px)"
+              sizes="15vw"
+              srcset="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dwcc8912f4/images/medium/P0048_001.webp?sw=154&q=60&sfrm=jpg 154w, https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dwcc8912f4/images/medium/P0048_001.webp?sw=307&q=60&sfrm=jpg 307w"
+              type="image/webp"
+            />
+            <source
+              media="(min-width: 640px)"
+              sizes="50vw"
+              srcset="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dwcc8912f4/images/medium/P0048_001.webp?sw=384&q=60&sfrm=jpg 384w, https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dwcc8912f4/images/medium/P0048_001.webp?sw=768&q=60&sfrm=jpg 768w"
+              type="image/webp"
+            />
+            <source
+              sizes="50vw"
+              srcset="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dwcc8912f4/images/medium/P0048_001.webp?sw=320&q=60&sfrm=jpg 320w, https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dwcc8912f4/images/medium/P0048_001.webp?sw=640&q=60&sfrm=jpg 640w"
+              type="image/webp"
+            />
+            <img
+              alt="Laptop Briefcase with wheels (37L)"
+              fetchpriority="auto"
+              loading="lazy"
+              src="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dwcc8912f4/images/medium/P0048_001.jpg?sw=768&q=60"
+            />
+          </picture>
+        </div>
+      </a>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`ProductImage stories snapshot > WithColorVariant story renders and matches snapshot 1`] = `
+<div>
+  <div
+    class="w-64 h-64"
+  >
+    <div
+      class="relative overflow-hidden rounded-lg bg-secondary/20 border-secondary flex flex-col aspect-square "
+    >
+      <a
+        aria-label="View Long Sleeve Embellished Boat Neck Top"
+        class="block w-full h-full flex-1"
+        href="/product/25518101M?color=JJ5QZXX"
+        to="/product/25518101M?color=JJ5QZXX"
+      >
+        <div
+          class="w-full h-full object-cover transition-all duration-200 group-hover:scale-105"
+        >
+          <picture>
+            <source
+              media="(min-width: 1280px)"
+              sizes="15vw"
+              srcset="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dwed56b2da/images/medium/PG.10217069.JJ5QZXX.PZ.webp?sw=230&q=70&sfrm=jpg 230w, https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dwed56b2da/images/medium/PG.10217069.JJ5QZXX.PZ.webp?sw=461&q=70&sfrm=jpg 461w"
+              type="image/webp"
+            />
+            <source
+              media="(min-width: 1024px)"
+              sizes="15vw"
+              srcset="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dwed56b2da/images/medium/PG.10217069.JJ5QZXX.PZ.webp?sw=192&q=70&sfrm=jpg 192w, https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dwed56b2da/images/medium/PG.10217069.JJ5QZXX.PZ.webp?sw=384&q=70&sfrm=jpg 384w"
+              type="image/webp"
+            />
+            <source
+              media="(min-width: 768px)"
+              sizes="15vw"
+              srcset="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dwed56b2da/images/medium/PG.10217069.JJ5QZXX.PZ.webp?sw=154&q=70&sfrm=jpg 154w, https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dwed56b2da/images/medium/PG.10217069.JJ5QZXX.PZ.webp?sw=307&q=70&sfrm=jpg 307w"
+              type="image/webp"
+            />
+            <source
+              media="(min-width: 640px)"
+              sizes="50vw"
+              srcset="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dwed56b2da/images/medium/PG.10217069.JJ5QZXX.PZ.webp?sw=384&q=70&sfrm=jpg 384w, https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dwed56b2da/images/medium/PG.10217069.JJ5QZXX.PZ.webp?sw=768&q=70&sfrm=jpg 768w"
+              type="image/webp"
+            />
+            <source
+              sizes="50vw"
+              srcset="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dwed56b2da/images/medium/PG.10217069.JJ5QZXX.PZ.webp?sw=320&q=70&sfrm=jpg 320w, https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dwed56b2da/images/medium/PG.10217069.JJ5QZXX.PZ.webp?sw=640&q=70&sfrm=jpg 640w"
+              type="image/webp"
+            />
+            <img
+              alt="Long Sleeve Embellished Boat Neck Top"
+              fetchpriority="auto"
+              loading="lazy"
+              src="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dwed56b2da/images/medium/PG.10217069.JJ5QZXX.PZ.jpg"
+            />
+          </picture>
+        </div>
+      </a>
+    </div>
+  </div>
+</div>
+`;

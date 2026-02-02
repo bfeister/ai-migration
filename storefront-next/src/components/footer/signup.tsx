@@ -1,0 +1,56 @@
+/**
+ * Copyright 2026 Salesforce, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+'use client';
+
+import { type FormEvent, type ReactElement, useCallback, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+
+export default function Signup(): ReactElement {
+    const { t } = useTranslation('footer');
+    const inputRef = useRef<HTMLInputElement | null>(null);
+
+    const handleSubmit = useCallback(
+        (e: FormEvent) => {
+            e.preventDefault();
+            if (inputRef.current?.value?.trim()) {
+                const email = inputRef.current.value;
+                // eslint-disable-next-line no-alert
+                alert(`Signup email address: ${email}`);
+            }
+        },
+        [inputRef]
+    );
+
+    return (
+        <>
+            <h3 className="text-lg font-semibold">{t('newsletter.title')}</h3>
+            <p className="text-sm">{t('newsletter.description')}</p>
+            <form onSubmit={handleSubmit} className="flex mt-4 w-full max-w-sm items-center gap-2">
+                <Input
+                    ref={inputRef}
+                    type="email"
+                    placeholder={t('newsletter.emailPlaceholder')}
+                    className="text-primary-foreground"
+                />
+                <Button type="submit" variant="outline">
+                    {t('newsletter.subscribeButton')}
+                </Button>
+            </form>
+        </>
+    );
+}
