@@ -11,27 +11,27 @@
 ```bash
 cd /Users/bfeister/dev/test-storefront
 
+cp .env.example .env
+
+# Update needed environment variables depending on workflow
+
+CLEAN_START=true # used for re-initiating the project bootstrap phase (`create-storefront, `pnpm install`, etc)
+KEEPALIVE=true # keep the container running instead of exiting
+AUTO_START=true # prevent auto-start, keep the container running
+
 # First time or clean start
-CLEAN_START=true docker compose up
-
-# Resume existing migration
 docker compose up
-
-# Keep container running for inspection (debug mode)
-KEEPALIVE=true docker compose up
-
-# Prevent auto-start, keep container running
-AUTO_START=false docker compose up
 ```
 
 ### Environment Flags
 
-- **`CLEAN_START=true`** - Remove session, state, and intervention files to start fresh
-- **`KEEPALIVE=true`** - Keep container running on errors/exits for inspection (debug mode)
-- **`AUTO_START=false`** - Skip automatic migration execution, keep container running
-- **`MIGRATION_PLAN=<path>`** - Use custom migration plan file
+-   **`CLEAN_START=true`** - Remove session, state, and intervention files to start fresh
+-   **`KEEPALIVE=true`** - Keep container running on errors/exits for inspection (debug mode)
+-   **`AUTO_START=false`** - Skip automatic migration execution, keep container running
+-   **`MIGRATION_PLAN=<path>`** - Use custom migration plan file
 
 **Combine flags:**
+
 ```bash
 # Clean start + keep alive on errors
 CLEAN_START=true KEEPALIVE=true docker compose up
