@@ -13,6 +13,7 @@ services:
         ports:
             # Vite dev server (storefront-next)
             - '5173:5173'
+            - '3009:3000'
         env_file:
             # Load environment variables from parent directory .env file
             # Variables: AUTO_START, MIGRATION_PLAN, CLEAN_START, KEEPALIVE, ANTHROPIC_*
