@@ -155,10 +155,9 @@ logs/
 debug/
 *.debug
 
-storefront-next/
-storefront-next-backup-20260121-210040/
+# Backup directories
+storefront-next-backup-*/
 storefront-reference-architecture/
-
 _storefront-next/
-
 /docs
+

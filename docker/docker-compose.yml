@@ -14,14 +14,8 @@ services:
         network_mode: host
         env_file:
             # Load environment variables from parent directory .env file
+            # Variables: AUTO_START, MIGRATION_PLAN, CLEAN_START, KEEPALIVE, ANTHROPIC_*
             - ../.env
-        environment:
-            # Control whether container auto-starts migration (set to false for manual exec)
-            - AUTO_START=${AUTO_START:-true}
-            # Path to migration plan file inside container
-            - MIGRATION_PLAN=${MIGRATION_PLAN:-/workspace/migration-main-plan.md}
-            # Clean start: remove session and intervention files before starting
-            - CLEAN_START=${CLEAN_START:-false}
         volumes:
             # Mount entire project (cached for performance)
             - ..:/workspace:cached
