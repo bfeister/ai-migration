@@ -42,3 +42,6 @@ coverage/
 # Exclude temporary files
 *.tmp
 *.temp
+
+# temp workspace backup, ignore
+_storefront-next/

@@ -2,7 +2,8 @@
  * RequestUserIntervention Tool
  *
  * Provides filesystem-based intervention protocol for requesting user input
- * during migration work. Uses polling for asynchronous responses.
+ * during migration work. Non-blocking - returns immediately after writing
+ * intervention file. Claude should exit gracefully and await user response.
  */
 
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
@@ -24,9 +25,9 @@ export const REQUEST_USER_INTERVENTION_TOOL: Tool = {
   name: 'RequestUserIntervention',
   description:
     'Request user input for non-obvious decisions during migration work via filesystem-based intervention protocol. ' +
-    'Creates an intervention file (intervention/needed-{worker_id}.json) that the user can respond to asynchronously. ' +
-    'Supports multi-hour/multi-day pauses for background execution scenarios. ' +
-    'Response will be read from intervention/response-{worker_id}.json.',
+    'Creates an intervention file (intervention/needed-{worker_id}.json) and returns immediately (non-blocking). ' +
+    'Claude should exit gracefully after calling this tool to allow user to respond via dashboard. ' +
+    'Session will be resumed after user responds via dashboard.',
   inputSchema: {
     type: 'object',
     properties: {
@@ -78,53 +79,12 @@ function writeInterventionRequest(
   return interventionFile;
 }
 
-/**
- * Poll for response file with infinite patience (no timeout)
- * Supports asynchronous responses hours/days later
- */
-async function pollForResponse(workerId: string): Promise<string> {
-  const responseFile = path.join(INTERVENTION_DIR, `response-${workerId}.json`);
-  const pollInterval = 1000; // 1 second
-
-  console.error(`[MCP] Polling for response: ${responseFile}`);
-
-  return new Promise((resolve, reject) => {
-    const checkResponse = () => {
-      if (fs.existsSync(responseFile)) {
-        try {
-          const responseData = JSON.parse(fs.readFileSync(responseFile, 'utf-8'));
-
-          // Check if already processed (to avoid re-reading stale responses)
-          if (responseData.processed === true) {
-            console.error(`[MCP] Response already processed, continuing to poll...`);
-            setTimeout(checkResponse, pollInterval);
-            return;
-          }
-
-          console.error(`[MCP] Response received: ${responseData.response}`);
-
-          // Mark response as processed
-          responseData.processed = true;
-          responseData.processed_at = new Date().toISOString();
-          fs.writeFileSync(responseFile, JSON.stringify(responseData, null, 2), 'utf-8');
-
-          resolve(responseData.response);
-        } catch (error) {
-          console.error(`[MCP] Error parsing response file: ${error}`);
-          reject(error);
-        }
-      } else {
-        // Keep polling
-        setTimeout(checkResponse, pollInterval);
-      }
-    };
-
-    checkResponse();
-  });
-}
 
 /**
  * Handle RequestUserIntervention tool call
+ *
+ * Non-blocking: Returns immediately after writing intervention file.
+ * Claude should exit gracefully after calling this tool.
  */
 export async function handleRequestUserIntervention(
   args: RequestUserInterventionArgs
@@ -137,10 +97,8 @@ export async function handleRequestUserIntervention(
   }
 
   // Write intervention request
-  writeInterventionRequest(worker_id, question, options, context);
+  const interventionFile = writeInterventionRequest(worker_id, question, options, context);
 
-  // Poll for response (blocks until response received)
-  const response = await pollForResponse(worker_id);
-
-  return `User response: ${response}`;
+  // Return immediately (non-blocking)
+  return `Intervention requested for worker "${worker_id}". File created: ${interventionFile}\n\nClaude should now exit gracefully to allow user to respond via dashboard. Session will be resumed after response.`;
 }

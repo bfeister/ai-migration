@@ -7,6 +7,7 @@ RUN apk add --no-cache \
     jq \
     curl \
     coreutils \
+    rsync \
     chromium \
     nss \
     freetype \
@@ -19,12 +20,18 @@ RUN apk add --no-cache \
 ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
 ENV PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium-browser
 
-# Enable and configure pnpm
-RUN corepack enable && corepack prepare pnpm@10.28.1 --activate
+# Configure pnpm following Docker best practices (https://pnpm.io/docker)
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0
 
-# Configure pnpm to reduce concurrency and avoid file descriptor exhaustion
+# Enable and configure pnpm (use latest to avoid version conflicts)
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
+# Configure pnpm store and concurrency
 # Note: hardlinks don't work across Docker volumes, so use copy with low concurrency
-RUN pnpm config set network-concurrency 8 --global && \
+RUN pnpm config set store-dir /pnpm/store --global && \
+    pnpm config set network-concurrency 8 --global && \
     pnpm config set child-concurrency 2 --global && \
     pnpm config set fetch-retries 3 --global
 

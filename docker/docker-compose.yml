@@ -1,29 +1,49 @@
 services:
-  claude-migration:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: claude-migration-demo
-    # Use host network to access VPN connections (needed for internal Salesforce endpoints)
-    # Note: On macOS/Windows, Docker Desktop handles this differently than Linux
-    # For customer deployments using public Anthropic API, bridge network is fine
-    network_mode: host
-    env_file:
-      # Load environment variables from parent directory .env file
-      - ../.env
-    volumes:
-      # Mount entire project (cached for performance)
-      - ..:/workspace:cached
-      # Exclude storefront-next/node_modules from host (use named volume to avoid FD exhaustion)
-      - storefront-next-node-modules:/workspace/storefront-next/node_modules
-    working_dir: /workspace
-    # Keep container running and allow interaction
-    stdin_open: true
-    tty: true
-    # Restart policy
-    restart: unless-stopped
+    claude-migration:
+        ulimits:
+            nofile:
+                soft: 65536
+                hard: 65536
+        build:
+            context: ..
+            dockerfile: docker/Dockerfile
+        container_name: claude-migration-demo
+        # Use host network to access VPN connections (needed for internal Salesforce endpoints)
+        # Note: On macOS/Windows, Docker Desktop handles this differently than Linux
+        # For customer deployments using public Anthropic API, bridge network is fine
+        network_mode: host
+        env_file:
+            # Load environment variables from parent directory .env file
+            - ../.env
+        environment:
+            # Control whether container auto-starts migration (set to false for manual exec)
+            - AUTO_START=${AUTO_START:-true}
+            # Path to migration plan file inside container
+            - MIGRATION_PLAN=${MIGRATION_PLAN:-/workspace/migration-main-plan.md}
+            # Clean start: remove session and intervention files before starting
+            - CLEAN_START=${CLEAN_START:-false}
+        volumes:
+            # Mount entire project (cached for performance)
+            - ..:/workspace:cached
+            # Mount monorepo source as read-only for container builds
+            - ${STOREFRONT_MONOREPO_PATH:-~/dev/SFCC-Odyssey}:/monorepo-source:ro
+            # Note: node_modules volume mount removed - using local node_modules in project for simplicity
+            # - storefront-next-node-modules:/node_modules
+            # Note: pnpm-store volume mount removed - reduces Docker Desktop FD overhead
+            # - pnpm-store:/pnpm/store
+            # Mount entrypoint scripts for live development (changes without rebuild)
+            - ./pre-entrypoint.sh:/pre-entrypoint.sh:ro
+            - ./entrypoint.sh:/entrypoint.sh:ro
+        working_dir: /workspace
+        # Keep container running and allow interaction
+        stdin_open: true
+        tty: true
+        # No restart policy - container should stay stopped after Claude exits
+        # User must manually restart after intervention responses
 
 # Named volumes
 volumes:
-  storefront-next-node-modules:
-    driver: local
+    storefront-next-node-modules:
+        driver: local
+    pnpm-store:
+        driver: local

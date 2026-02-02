@@ -32,12 +32,34 @@ const state = {
 // ========================================
 
 let eventSource = null;
+let reconnectTimeout = null;
+let isReconnecting = false;
 
 function connectSSE() {
+  // Prevent multiple simultaneous connection attempts
+  if (isReconnecting) {
+    console.log('Reconnection already in progress, skipping...');
+    return;
+  }
+
+  // Clean up existing connection
+  if (eventSource) {
+    eventSource.close();
+    eventSource = null;
+  }
+
+  // Clear any pending reconnection attempts
+  if (reconnectTimeout) {
+    clearTimeout(reconnectTimeout);
+    reconnectTimeout = null;
+  }
+
+  console.log('Connecting to SSE...');
   eventSource = new EventSource('/events');
 
   eventSource.addEventListener('connected', (e) => {
     console.log('Connected to dashboard server');
+    isReconnecting = false;
     updateConnectionStatus(true);
     loadInitialData();
   });
@@ -85,12 +107,20 @@ function connectSSE() {
     console.error('SSE connection error:', error);
     updateConnectionStatus(false);
 
-    // Try to reconnect after 5 seconds
-    setTimeout(() => {
-      console.log('Attempting to reconnect...');
-      eventSource.close();
-      connectSSE();
-    }, 5000);
+    // Only schedule one reconnection attempt
+    if (!isReconnecting && !reconnectTimeout) {
+      isReconnecting = true;
+      console.log('Will attempt to reconnect in 5 seconds...');
+
+      reconnectTimeout = setTimeout(() => {
+        reconnectTimeout = null;
+        if (eventSource) {
+          eventSource.close();
+          eventSource = null;
+        }
+        connectSSE();
+      }, 5000);
+    }
   };
 }
 
@@ -371,46 +401,140 @@ function renderInterventions() {
     return;
   }
 
-  // Show needed interventions first, then completed ones
+  // Filter out interventions that have been responded to
+  const pendingNeeded = needed.filter(n => !responses.some(r => r.worker_id === n.worker_id || r.workerId === n.workerId));
+
+  // Build completed interventions by matching responses with their original needed files
+  const completedInterventions = responses.map(response => {
+    const workerId = response.workerId || response.worker_id;
+    const original = needed.find(n => (n.workerId || n.worker_id) === workerId);
+
+    // If we can't find the original, return a minimal object with the response data
+    if (!original) {
+      return {
+        ...response,
+        question: response.question || 'Question not available (intervention archived)',
+        options: response.options || []
+      };
+    }
+
+    // Merge original intervention with response data
+    return {
+      ...original,
+      ...response,
+      completed: true
+    };
+  });
+
+  // Show pending interventions first (interactive), then completed ones (read-only)
   const html = [
-    ...needed.map(intervention => renderIntervention(intervention, false)),
-    ...responses.map(intervention => renderIntervention(intervention, true))
+    ...pendingNeeded.map(intervention => renderIntervention(intervention, false)),
+    ...completedInterventions.map(intervention => renderIntervention(intervention, true))
   ].join('');
 
   container.innerHTML = html;
+
+  // Attach event listeners to submit buttons
+  document.querySelectorAll('.btn-respond').forEach(btn => {
+    btn.addEventListener('click', handleInterventionSubmit);
+  });
 }
 
 function renderIntervention(intervention, completed) {
   const options = intervention.options || [];
   const selectedOption = completed ? intervention.selected_option || intervention.response : null;
+  const workerId = intervention.workerId || intervention.worker_id || 'unknown';
 
-  const optionsHtml = options.map(option => {
-    const optionId = typeof option === 'string' ? option : option.id;
-    const optionLabel = typeof option === 'string' ? option : option.label || option.id;
-    const isSelected = selectedOption === optionId;
+  let optionsHtml;
+  if (completed) {
+    // Read-only display for completed interventions
+    optionsHtml = options.map(option => {
+      const optionId = typeof option === 'string' ? option : option.id;
+      const optionLabel = typeof option === 'string' ? option : option.label || option.id;
+      const isSelected = selectedOption === optionId;
 
-    return `
-      <div class="intervention-option ${isSelected ? 'selected' : ''}">
-        ${isSelected ? '✓ ' : ''}${optionLabel}
-      </div>
-    `;
-  }).join('');
+      return `
+        <div class="intervention-option ${isSelected ? 'selected' : ''}">
+          ${isSelected ? '✓ ' : ''}${optionLabel}
+        </div>
+      `;
+    }).join('');
+  } else {
+    // Interactive radio buttons for pending interventions
+    optionsHtml = options.map((option, idx) => {
+      const optionId = typeof option === 'string' ? option : option.id;
+      const optionLabel = typeof option === 'string' ? option : option.label || option.id;
+
+      return `
+        <div class="intervention-option clickable">
+          <input type="radio" name="intervention-${workerId}" value="${optionId}" id="opt-${workerId}-${idx}">
+          <label for="opt-${workerId}-${idx}">${optionLabel}</label>
+        </div>
+      `;
+    }).join('');
+  }
 
   const timestamp = intervention.timestamp ? new Date(intervention.timestamp).toLocaleString() : 'Unknown time';
+  const context = intervention.context ? `<div class="intervention-context">${intervention.context}</div>` : '';
 
   return `
-    <div class="intervention-item ${completed ? 'completed' : ''}">
+    <div class="intervention-item ${completed ? 'completed' : 'pending'}">
       <div class="intervention-question">
         ${completed ? '✅ ' : '❓ '}${intervention.question || 'Question not available'}
       </div>
+      ${context}
       <div class="intervention-options">
         ${optionsHtml}
       </div>
+      ${!completed ? `<button class="btn-respond" data-worker-id="${workerId}">Submit Response</button>` : ''}
       <div class="intervention-meta">
-        ${completed ? 'Completed' : 'Pending'} • ${timestamp} • Worker: ${intervention.workerId || intervention.worker_id || 'unknown'}
+        ${completed ? 'Completed' : 'Pending'} • ${timestamp} • Worker: ${workerId}
       </div>
     </div>
   `;
+}
+
+async function handleInterventionSubmit(event) {
+  const btn = event.target;
+  const workerId = btn.dataset.workerId;
+  const selectedRadio = document.querySelector(`input[name="intervention-${workerId}"]:checked`);
+
+  if (!selectedRadio) {
+    alert('Please select an option before submitting');
+    return;
+  }
+
+  const selectedOption = selectedRadio.value;
+
+  // Disable button during submission
+  btn.disabled = true;
+  btn.textContent = 'Submitting...';
+
+  try {
+    const response = await fetch(`/api/interventions/${workerId}/respond`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ selected_option: selectedOption })
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to submit response: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    console.log('Intervention response submitted:', data);
+
+    // Reload interventions to show updated state
+    await loadInterventions();
+
+    // Show success message
+    addFeedItem('success', `Intervention resolved: ${selectedOption}. Run ./scripts/resume-migration.sh to continue.`);
+  } catch (error) {
+    console.error('Error submitting intervention response:', error);
+    alert(`Failed to submit response: ${error.message}`);
+    btn.disabled = false;
+    btn.textContent = 'Submit Response';
+  }
 }
 
 // ========================================

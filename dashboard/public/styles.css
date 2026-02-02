@@ -508,11 +508,26 @@ body {
   opacity: 0.7;
 }
 
+.intervention-item.pending {
+  border-color: var(--color-warning);
+}
+
 .intervention-question {
   font-size: 16px;
   font-weight: 600;
   color: var(--color-text);
   margin-bottom: 12px;
+}
+
+.intervention-context {
+  font-size: 14px;
+  color: var(--color-text-muted);
+  padding: 10px;
+  background: var(--color-bg);
+  border-radius: var(--radius-sm);
+  margin-bottom: 12px;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 .intervention-options {
@@ -530,14 +545,61 @@ body {
   font-size: 14px;
 }
 
+.intervention-option.clickable {
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.intervention-option.clickable:hover {
+  border-color: var(--color-primary);
+  background: rgba(59, 130, 246, 0.05);
+}
+
+.intervention-option input[type='radio'] {
+  margin: 0;
+  cursor: pointer;
+}
+
+.intervention-option label {
+  cursor: pointer;
+  flex: 1;
+  margin: 0;
+}
+
 .intervention-option.selected {
   border-color: var(--color-success);
   background: rgba(16, 185, 129, 0.1);
 }
 
+.btn-respond {
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  margin-top: 12px;
+  transition: background 0.2s ease;
+}
+
+.btn-respond:hover {
+  background: #2563eb;
+}
+
+.btn-respond:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+}
+
 .intervention-meta {
   font-size: 12px;
   color: var(--color-text-muted);
+  margin-top: 12px;
 }
 
 /* ========================================

@@ -27,6 +27,9 @@ const SUBPLANS_DIR = path.join(WORKSPACE_ROOT, 'sub-plans');
 // Store connected SSE clients
 const clients = [];
 
+// Middleware for parsing JSON request bodies
+app.use(express.json());
+
 // Serve static files from public directory
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/screenshots', express.static(SCREENSHOTS_DIR));
@@ -123,6 +126,54 @@ app.get('/api/interventions', (req, res) => {
     });
 
   res.json({ needed, responses });
+});
+
+// API endpoint: Submit intervention response
+app.post('/api/interventions/:workerId/respond', (req, res) => {
+  const { workerId } = req.params;
+  const { selected_option } = req.body;
+
+  if (!workerId || !selected_option) {
+    return res.status(400).json({ error: 'Missing workerId or selected_option' });
+  }
+
+  // Check if intervention exists
+  const neededFile = path.join(INTERVENTION_DIR, `needed-${workerId}.json`);
+  if (!fs.existsSync(neededFile)) {
+    return res.status(404).json({ error: `Intervention ${workerId} not found` });
+  }
+
+  // Read original intervention to get context
+  const interventionData = JSON.parse(fs.readFileSync(neededFile, 'utf-8'));
+
+  // Create response file
+  const responseFile = path.join(INTERVENTION_DIR, `response-${workerId}.json`);
+  const responseData = {
+    worker_id: workerId,
+    timestamp: new Date().toISOString(),
+    response: selected_option,
+    selected_option: selected_option,
+    question_timestamp: interventionData.timestamp,
+    intervention_id: workerId,
+    processed: false
+  };
+
+  fs.writeFileSync(responseFile, JSON.stringify(responseData, null, 2), 'utf-8');
+
+  console.log(`[Dashboard] Intervention response created: ${responseFile}`);
+
+  // Broadcast SSE event
+  broadcastUpdate('intervention-response', {
+    worker_id: workerId,
+    selected_option: selected_option
+  });
+
+  res.json({
+    success: true,
+    worker_id: workerId,
+    selected_option,
+    message: 'Response saved. Run: ./scripts/resume-migration.sh'
+  });
 });
 
 // API endpoint: Get micro-plans
