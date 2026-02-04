@@ -605,6 +605,16 @@ cat > ~/.config/claude-code/mcp.json <<'EOF'
         "WORKSPACE_ROOT": "/workspace",
         "INTERVENTION_DIR": "/workspace/intervention"
       }
+    },
+    "playwright": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@microsoft/playwright-mcp@latest"
+      ],
+      "env": {
+        "PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH": "/usr/bin/chromium-browser"
+      }
     }
   }
 }
@@ -612,16 +622,39 @@ EOF
 
 if [ -f ~/.config/claude-code/mcp.json ]; then
     log_success "Claude Code MCP configuration created"
-    log_info "MCP server will provide migration tools to Claude:"
-    log_info "  - RequestUserIntervention (interventions)"
-    log_info "  - LogMigrationProgress (logging)"
-    log_info "  - ValidateDevServer (Phase 3)"
-    log_info "  - CaptureDualScreenshots (Phase 4)"
-    log_info "  - CommitMigrationProgress (Phase 5)"
-    log_info "  - GetNextMicroPlan (Phase 5)"
-    log_info "  - ParseURLMapping (Phase 4)"
+    log_info "MCP servers configured:"
+    log_info "  [1] migration-tools - Custom migration automation tools"
+    log_info "      - RequestUserIntervention, LogMigrationProgress (with visual feedback)"
+    log_info "      - CheckServerHealth, CaptureDualScreenshots, CommitMigrationProgress"
+    log_info "      - GetNextMicroPlan, ParseURLMapping"
+    log_info "  [2] playwright - Dynamic browser automation (microsoft/playwright-mcp)"
+    log_info "      - playwright_navigate, playwright_screenshot"
+    log_info "      - playwright_click, playwright_fill, playwright_evaluate"
+    log_info "      - playwright_snapshot (accessibility tree)"
 else
     log_error "Failed to create MCP configuration"
+fi
+
+# ============================================================================
+# Install Playwright MCP (for dynamic page exploration)
+# ============================================================================
+
+log_info "Checking Playwright MCP installation..."
+
+# Check if @microsoft/playwright-mcp is globally available
+if npm list -g @microsoft/playwright-mcp &>/dev/null 2>&1; then
+    log_success "Playwright MCP already installed globally"
+elif command -v npx &>/dev/null; then
+    log_success "Playwright MCP will use npx (on-demand installation)"
+else
+    log_warning "Neither global Playwright MCP nor npx found"
+    log_info "Attempting global installation..."
+    if npm install -g @microsoft/playwright-mcp; then
+        log_success "Playwright MCP installed globally"
+    else
+        log_error "Failed to install Playwright MCP"
+        log_warning "Dynamic page exploration will not be available"
+    fi
 fi
 
 # ============================================================================

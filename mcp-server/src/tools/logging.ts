@@ -66,6 +66,15 @@ export const LOG_MIGRATION_PROGRESS_TOOL: Tool = {
         type: 'string',
         description: 'Error message if status is "failed" (optional)',
       },
+      visual_feedback: {
+        type: 'object',
+        properties: {
+          similarity_score: { type: 'number' },
+          differences: { type: 'array', items: { type: 'string' } },
+          recommendations: { type: 'array', items: { type: 'string' } },
+        },
+        description: 'Optional visual comparison feedback from screenshot analysis',
+      },
     },
     required: ['subplan_id', 'status', 'summary', 'source_screenshot_url', 'target_screenshot_url', 'commit_sha'],
   },
@@ -145,6 +154,26 @@ function generateLogEntry(
     entry += `**Screenshots:**\n`;
     entry += `- 📸 Source: ${args.source_screenshot_url}\n`;
     entry += `- 🎯 Target: ${args.target_screenshot_url}\n\n`;
+
+    // Include visual feedback if provided
+    if (args.visual_feedback) {
+      entry += `**Visual Comparison:**\n`;
+      entry += `- Similarity Score: ${args.visual_feedback.similarity_score}%\n`;
+      if (args.visual_feedback.differences.length > 0) {
+        entry += `- Key Differences:\n`;
+        args.visual_feedback.differences.forEach(diff => {
+          entry += `  - ${diff}\n`;
+        });
+      }
+      if (args.visual_feedback.recommendations.length > 0) {
+        entry += `- Recommendations:\n`;
+        args.visual_feedback.recommendations.forEach(rec => {
+          entry += `  - ${rec}\n`;
+        });
+      }
+      entry += `\n`;
+    }
+
     entry += `**Commit:** [\`${args.commit_sha}\`](../storefront-next/commit/${args.commit_sha})\n\n`;
   } else if (args.error_message) {
     entry += `**Error:**\n\`\`\`\n${args.error_message}\n\`\`\`\n\n`;

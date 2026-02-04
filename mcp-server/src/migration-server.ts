@@ -8,7 +8,7 @@
  *
  * Tools:
  * - RequestUserIntervention (existing)
- * - LogMigrationProgress
+ * - LogMigrationProgress (with optional visual_feedback field)
  * - CheckServerHealth (stateless HTTP polling + build log parsing)
  * - CaptureDualScreenshots (with metadata for dashboard)
  * - CommitMigrationProgress

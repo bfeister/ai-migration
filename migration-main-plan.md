@@ -42,7 +42,61 @@ TARGET_URL=$(echo "$MAPPING" | jq -r '.target_url')
 **Mapping between directory and feature_id:**
 - Directory: `01-homepage-content` → feature_id: `01-homepage-hero` (for URL mappings)
 
-### 3. Determine Next Micro-Plan
+### 3. Dynamic Page Exploration (Optional - First Time Only)
+
+**When to use:** First iteration of a new feature OR when screenshot comparison reveals unexpected elements (modals, carousels, lazy-loaded content).
+
+**Skip this step if:**
+- url-mappings.json already has complete configuration for this feature
+- You're not on the first micro-plan of a feature
+- Previous iterations captured clean screenshots
+
+**Exploration Workflow:**
+
+Use Playwright MCP to interact with the SFRA source page and discover traits:
+
+```javascript
+// 1. Navigate to SFRA page
+await mcp__playwright__navigate({
+  url: SFRA_URL
+});
+
+// 2. Get accessibility tree snapshot (shows page structure)
+const snapshot = await mcp__playwright__snapshot();
+console.log("Page structure:", snapshot);
+
+// 3. Identify consent modals
+// Look for keywords: "cookie", "consent", "accept", "privacy"
+// Common selectors: button.affirm, #onetrust-accept-btn-handler
+
+// 4. Identify carousels/sliders
+// Look for: .slick-slider, .carousel, [role="carousel"]
+// Check for navigation: .slick-prev, .slick-next
+
+// 5. Identify lazy-loaded content
+// Scroll to bottom and observe new elements appearing
+
+// 6. Capture exploratory screenshots
+await mcp__playwright__screenshot({
+  path: `/workspace/screenshots/exploration-${FEATURE_ID}-modal.png`
+});
+
+// 7. Interact with elements
+await mcp__playwright__click({ selector: "button.affirm" });
+await mcp__playwright__screenshot({
+  path: `/workspace/screenshots/exploration-${FEATURE_ID}-after-dismiss.png`
+});
+```
+
+**Discovered Traits:**
+Document findings for manual update to url-mappings.json:
+- Consent modal selector: `button.affirm`
+- Carousel state selector: `.slick-active`
+- Lazy-load trigger: Scroll to 80% of page height
+
+**Note:** Dynamic trait discovery tool (ExploreSFRAPage) is planned for future enhancement. For now, explore manually and update url-mappings.json.
+
+### 4. Determine Next Micro-Plan
 
 Based on the migration log:
 - Identify the last completed subplan (e.g., "subplan-01-02")
@@ -66,7 +120,7 @@ Based on the migration log:
 
 **Note:** Feature directory name may differ from feature_id in url-mappings.json. Use the actual directory name when loading micro-plan files.
 
-### 4. Execute Micro-Plan
+### 5. Execute Micro-Plan
 
 Read the micro-plan file and follow its instructions precisely. Each micro-plan specifies:
 - ONE focused code change (edit 1-3 files maximum)
@@ -75,11 +129,11 @@ Read the micro-plan file and follow its instructions precisely. Each micro-plan 
 
 **Important:** Make ONLY the changes specified in the micro-plan. Do not add extra features or refactoring.
 
-### 5. Production Build & Server Startup for Screenshot Capture
+### 6. Production Build & Server Startup for Screenshot Capture
 
 **IMPORTANT: Use production build (`pnpm build && pnpm start`)** instead of dev mode. Dev server's file watching causes Docker file descriptor overflow on Mac bind mounts. Production server runs on port 3000 and avoids file system watching.
 
-**Step 5.1: Build and start production server**
+**Step 6.1: Build and start production server**
 
 Use bash to build and start the production server:
 
@@ -126,7 +180,7 @@ const SERVER_URL = "http://localhost:3000";
 - ✅ Validates server health
 - ✅ Returns structured result with server URL, errors, startup time
 
-**Step 5.2: Capture dual screenshots**
+**Step 6.2: Capture dual screenshots**
 
 ```bash
 # Generate timestamp and subplan ID for screenshot filenames
@@ -175,7 +229,70 @@ tsx /workspace/scripts/capture-screenshots.ts \
 - Capture what's available (if one fails, still try the other)
 - Continue to commit and log
 
-### 7. Git Commit
+### 7. Visual Comparison & Feedback Loop
+
+After capturing screenshots, analyze them to guide the next iteration:
+
+**Step 7.1: Load and View Screenshots**
+
+Use the Read tool to load both screenshots so Claude's vision model can see them:
+
+```javascript
+// Read the SFRA source screenshot
+await Read({
+  file_path: `/workspace/screenshots/${TIMESTAMP}-${SUBPLAN_ID}-source.png`
+});
+
+// Read the Storefront Next target screenshot
+await Read({
+  file_path: `/workspace/screenshots/${TIMESTAMP}-${SUBPLAN_ID}-target.png`
+});
+```
+
+**Step 7.2: Claude Vision Analysis**
+
+With both images loaded, Claude's vision model will analyze them to identify:
+
+1. **Layout differences**: Spacing, alignment, sizing, positioning
+2. **Styling differences**: Colors, fonts, borders, shadows
+3. **Content differences**: Missing elements, wrong text, incorrect images
+4. **Interactive elements**: Buttons, links, forms that differ
+
+**Step 7.3: Calculate Similarity and Decide Next Action**
+
+Based on your visual analysis, assign a similarity score (0-100) and decide:
+
+- **Score ≥90%**: Excellent match, proceed to commit
+- **Score 70-89%**: Good match with minor issues, note recommendations for future
+- **Score 50-69%**: Significant differences, consider iterating immediately
+- **Score <50%**: Major mismatches, intervention recommended
+
+**Step 7.4: Handle Blocking Issues**
+
+If you identify blocking issues (critical mismatches that make the target unusable):
+
+```javascript
+await mcp__intervention__RequestUserIntervention({
+  worker_id: "migration-worker",
+  question: `Visual comparison shows blocking issues: [list issues]. Should I iterate to fix or continue?`,
+  options: ["Iterate to fix issues", "Continue anyway", "Request manual review"],
+  context: JSON.stringify({
+    subplan_id: SUBPLAN_ID,
+    similarity_score: YOUR_CALCULATED_SCORE,
+    blocking_issues: ["issue 1", "issue 2"]
+  })
+});
+
+// Exit gracefully to allow intervention response
+return;
+```
+
+**Decision Matrix:**
+- **Iterate immediately**: If similarity < 70% OR blocking issues exist
+- **Continue to commit**: If similarity ≥ 70% AND no blocking issues
+- **Request intervention**: If multiple iterations haven't improved score OR unclear if differences acceptable
+
+### 8. Git Commit
 
 Commit all changes with a descriptive message:
 
@@ -200,7 +317,7 @@ Screenshots:
 - Blank line
 - Screenshot references
 
-### 8. Progress Logging
+### 9. Progress Logging
 
 **Use the MCP LogMigrationProgress tool** to log this iteration to `/workspace/migration-log.md`.
 
@@ -259,7 +376,7 @@ await mcp__LogMigrationProgress({
 - ✅ Looks up subplan titles from actual .md files
 - ✅ Consistent formatting for dashboard parsing
 
-### 9. Loop Decision & Continue
+### 10. Loop Decision & Continue
 
 After logging, **immediately determine the next action and continue**:
 - **If more micro-plans in current feature:** GO BACK TO STEP 1 with the next micro-plan in same directory

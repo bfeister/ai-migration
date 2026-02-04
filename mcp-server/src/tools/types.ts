@@ -6,6 +6,12 @@
 // Logging Tool Types
 // ==========================================
 
+export interface VisualFeedback {
+  similarity_score: number;
+  differences: string[];
+  recommendations: string[];
+}
+
 export interface LogMigrationProgressArgs {
   subplan_id: string; // e.g., "subplan-01-02" or "01-02" (normalized)
   status: 'success' | 'failed'; // Only log on completion (success/fail)
@@ -15,6 +21,7 @@ export interface LogMigrationProgressArgs {
   commit_sha: string; // Git commit hash (proof of work)
   duration_seconds?: number; // Auto-calculated if not provided
   error_message?: string; // If status === "failed"
+  visual_feedback?: VisualFeedback; // Optional visual comparison feedback
 }
 
 export interface LogMigrationProgressResult {

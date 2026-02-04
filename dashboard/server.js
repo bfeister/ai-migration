@@ -213,11 +213,32 @@ app.get('/api/micro-plans', (req, res) => {
 
 // Helper: Parse screenshot filename
 // Format: YYYYMMDD-HHMMSS-subplan-XX-YY-{source|target}.png
+// Baseline format: YYYYMMDD-HHMMSS-00-00-baseline-{source|target}.png
 function parseScreenshotFilename(filename) {
   const match = filename.match(/(\d{8})-(\d{6})-subplan-(\d+)-(\d+)-(source|target)\.png/);
 
   if (!match) {
-    // Try baseline format: sfra-homepage-baseline.png
+    // Try baseline format: YYYYMMDD-HHMMSS-00-00-baseline-{source|target}.png
+    const baselineMatch = filename.match(/(\d{8})-(\d{6})-\d+-\d+-baseline-(source|target)\.png/);
+    if (baselineMatch) {
+      const [, date, time, variant] = baselineMatch;
+      const year = date.substring(0, 4);
+      const month = date.substring(4, 6);
+      const day = date.substring(6, 8);
+      const hour = time.substring(0, 2);
+      const minute = time.substring(2, 4);
+      const second = time.substring(4, 6);
+
+      return {
+        timestamp: new Date(`${year}-${month}-${day}T${hour}:${minute}:${second}Z`),
+        type: 'baseline',
+        featureNum: 0,
+        subplanNum: 0,
+        variant: variant  // Now properly extracts 'source' or 'target'
+      };
+    }
+
+    // Fallback for old baseline format: sfra-homepage-baseline.png
     if (filename.includes('baseline')) {
       return {
         timestamp: null,
@@ -227,6 +248,7 @@ function parseScreenshotFilename(filename) {
         variant: 'source'
       };
     }
+
     return {
       timestamp: null,
       type: 'unknown',
