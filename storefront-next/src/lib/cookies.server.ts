@@ -152,6 +152,10 @@ export const createCookie = <T = unknown>(
                 parts.push(`SameSite=${sameSiteValue}`);
             }
 
+            if (finalConfig.partitioned) {
+                parts.push('Partitioned');
+            }
+
             return Promise.resolve(parts.join('; '));
         },
     };

@@ -45,7 +45,7 @@ void i18next.use(initReactI18next).init({
  */
 const mockSessionData: SessionData = {
     userType: 'guest',
-    customer_id: undefined,
+    customerId: undefined,
 };
 
 /**
@@ -91,7 +91,7 @@ export const StorybookAuthProvider = ({ children }: PropsWithChildren) => (
  * Storybook BasketProvider wrapper with mock basket data
  */
 export const StorybookBasketProvider = ({ children }: PropsWithChildren) => (
-    <BasketProvider value={mockBasket}>{children}</BasketProvider>
+    <BasketProvider basket={mockBasket}>{children}</BasketProvider>
 );
 
 /**

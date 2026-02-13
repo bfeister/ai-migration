@@ -3,11 +3,11 @@
 exports[`PickupOrDelivery stories snapshot > Default story renders and matches snapshot 1`] = `
 <div>
   <div
-    class="space-y-3"
+    class="w-full"
   >
     <div
       aria-required="false"
-      class="grid gap-3 space-y-3"
+      class="grid grid-cols-2 gap-2"
       data-slot="radio-group"
       data-testid="delivery-option-select"
       dir="ltr"
@@ -15,12 +15,14 @@ exports[`PickupOrDelivery stories snapshot > Default story renders and matches s
       style="outline: none;"
       tabindex="0"
     >
-      <div
-        class="flex items-start space-x-2"
+      <label
+        class="text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 flex items-start gap-2 p-3 rounded-lg border transition-colors text-left shadow-xs cursor-pointer border-primary"
+        data-slot="label"
+        for="delivery-option"
       >
         <button
           aria-checked="true"
-          class="border-input text-primary focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square size-4 shrink-0 rounded-full border shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50"
+          class="border-input text-primary focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square size-4 shrink-0 rounded-full border shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 sr-only"
           data-radix-collection-item=""
           data-slot="radio-group-item"
           data-state="checked"
@@ -56,20 +58,44 @@ exports[`PickupOrDelivery stories snapshot > Default story renders and matches s
             </svg>
           </span>
         </button>
-        <label
-          class="flex items-center gap-2 select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-          data-slot="label"
-          for="delivery-option"
+        <div
+          class="mt-0.5 shrink-0"
         >
-          Ship to Address
-        </label>
-      </div>
-      <div
-        class="flex items-start space-x-2"
+          <div
+            class="w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors border-primary"
+          >
+            <div
+              class="w-2.5 h-2.5 rounded-full bg-primary"
+            />
+          </div>
+        </div>
+        <div
+          class="flex-1 min-w-0"
+        >
+          <div
+            class="flex flex-col"
+          >
+            <span
+              class="text-xs font-medium text-foreground"
+            >
+              Deliver to
+            </span>
+            <p
+              class="text-xs text-muted-foreground mt-0.5"
+            >
+              Enter ZIP code to see delivery estimate
+            </p>
+          </div>
+        </div>
+      </label>
+      <label
+        class="text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 flex items-start gap-2 p-3 rounded-lg border transition-colors text-left shadow-xs cursor-pointer border-muted-foreground/20 hover:border-primary/50"
+        data-slot="label"
+        for="pickup-option"
       >
         <button
           aria-checked="false"
-          class="border-input text-primary focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square size-4 shrink-0 rounded-full border shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50"
+          class="border-input text-primary focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square size-4 shrink-0 rounded-full border shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 sr-only"
           data-radix-collection-item=""
           data-slot="radio-group-item"
           data-state="unchecked"
@@ -80,33 +106,32 @@ exports[`PickupOrDelivery stories snapshot > Default story renders and matches s
           value="pickup"
         />
         <div
-          class="flex flex-col"
+          class="mt-0.5 shrink-0"
         >
           <div
-            class="flex items-center space-x-1"
+            class="w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors border-muted-foreground/20"
+          />
+        </div>
+        <div
+          class="flex-1 min-w-0"
+        >
+          <div
+            class="flex flex-col"
           >
-            <label
-              class="flex items-center gap-2 select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-              data-slot="label"
-              for="pickup-option"
+            <span
+              class="text-xs font-medium text-foreground"
             >
               Free pickup in
-            </label>
-            <div
-              class="text-sm"
+            </span>
+            <button
+              class="text-xs text-primary mt-0.5 text-left hover:underline"
+              type="button"
             >
-              <p>
-                <button
-                  class="text-primary underline hover:text-primary/80 cursor-pointer"
-                  type="button"
-                >
-                  Select Store
-                </button>
-              </p>
-            </div>
+              Select Store
+            </button>
           </div>
         </div>
-      </div>
+      </label>
     </div>
   </div>
 </div>
@@ -115,11 +140,11 @@ exports[`PickupOrDelivery stories snapshot > Default story renders and matches s
 exports[`PickupOrDelivery stories snapshot > DeliveryDisabled story renders and matches snapshot 1`] = `
 <div>
   <div
-    class="space-y-3"
+    class="w-full"
   >
     <div
       aria-required="false"
-      class="grid gap-3 space-y-3"
+      class="grid grid-cols-2 gap-2"
       data-slot="radio-group"
       data-testid="delivery-option-select"
       dir="ltr"
@@ -127,12 +152,14 @@ exports[`PickupOrDelivery stories snapshot > DeliveryDisabled story renders and 
       style="outline: none;"
       tabindex="0"
     >
-      <div
-        class="flex items-start space-x-2"
+      <label
+        class="text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 flex items-start gap-2 p-3 rounded-lg border transition-colors text-left shadow-xs border-muted-foreground/20 hover:border-primary/50 opacity-50 cursor-not-allowed"
+        data-slot="label"
+        for="delivery-option"
       >
         <button
           aria-checked="false"
-          class="border-input text-primary focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square size-4 shrink-0 rounded-full border shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50"
+          class="border-input text-primary focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square size-4 shrink-0 rounded-full border shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 sr-only"
           data-disabled=""
           data-radix-collection-item=""
           data-slot="radio-group-item"
@@ -144,20 +171,40 @@ exports[`PickupOrDelivery stories snapshot > DeliveryDisabled story renders and 
           type="button"
           value="delivery"
         />
-        <label
-          class="flex items-center gap-2 select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 opacity-50 cursor-not-allowed"
-          data-slot="label"
-          for="delivery-option"
+        <div
+          class="mt-0.5 shrink-0"
         >
-          Ship to Address
-        </label>
-      </div>
-      <div
-        class="flex items-start space-x-2"
+          <div
+            class="w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors border-muted-foreground/20"
+          />
+        </div>
+        <div
+          class="flex-1 min-w-0"
+        >
+          <div
+            class="flex flex-col"
+          >
+            <span
+              class="text-xs font-medium text-foreground"
+            >
+              Deliver to
+            </span>
+            <p
+              class="text-xs text-muted-foreground mt-0.5"
+            >
+              Enter ZIP code to see delivery estimate
+            </p>
+          </div>
+        </div>
+      </label>
+      <label
+        class="text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 flex items-start gap-2 p-3 rounded-lg border transition-colors text-left shadow-xs cursor-pointer border-primary"
+        data-slot="label"
+        for="pickup-option"
       >
         <button
           aria-checked="true"
-          class="border-input text-primary focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square size-4 shrink-0 rounded-full border shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50"
+          class="border-input text-primary focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square size-4 shrink-0 rounded-full border shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 sr-only"
           data-radix-collection-item=""
           data-slot="radio-group-item"
           data-state="checked"
@@ -194,38 +241,45 @@ exports[`PickupOrDelivery stories snapshot > DeliveryDisabled story renders and 
           </span>
         </button>
         <div
-          class="flex flex-col"
+          class="mt-0.5 shrink-0"
         >
           <div
-            class="flex items-center space-x-1"
+            class="w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors border-primary"
           >
-            <label
-              class="flex items-center gap-2 select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-              data-slot="label"
-              for="pickup-option"
+            <div
+              class="w-2.5 h-2.5 rounded-full bg-primary"
+            />
+          </div>
+        </div>
+        <div
+          class="flex-1 min-w-0"
+        >
+          <div
+            class="flex flex-col"
+          >
+            <span
+              class="text-xs font-medium text-foreground"
             >
               Free pickup in
-            </label>
+            </span>
             <div
-              class="text-sm"
+              class="mt-0.5"
             >
-              <p>
-                <button
-                  class="text-primary underline hover:text-primary/80 cursor-pointer"
-                  type="button"
-                >
-                  Downtown Store
-                </button>
+              <button
+                class="text-xs text-primary hover:underline"
+                type="button"
+              >
+                Downtown Store
+              </button>
+              <p
+                class="text-xs font-normal text-muted-foreground mt-1"
+              >
+                Now available for pickup today.
               </p>
             </div>
           </div>
-          <span
-            class="text-sm font-normal select-none text-muted-foreground mt-1"
-          >
-            Now available for pickup today.
-          </span>
         </div>
-      </div>
+      </label>
     </div>
   </div>
 </div>
@@ -234,11 +288,11 @@ exports[`PickupOrDelivery stories snapshot > DeliveryDisabled story renders and 
 exports[`PickupOrDelivery stories snapshot > DesktopLayout story renders and matches snapshot 1`] = `
 <div>
   <div
-    class="space-y-3"
+    class="w-full"
   >
     <div
       aria-required="false"
-      class="grid gap-3 space-y-3"
+      class="grid grid-cols-2 gap-2"
       data-slot="radio-group"
       data-testid="delivery-option-select"
       dir="ltr"
@@ -246,12 +300,14 @@ exports[`PickupOrDelivery stories snapshot > DesktopLayout story renders and mat
       style="outline: none;"
       tabindex="0"
     >
-      <div
-        class="flex items-start space-x-2"
+      <label
+        class="text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 flex items-start gap-2 p-3 rounded-lg border transition-colors text-left shadow-xs cursor-pointer border-primary"
+        data-slot="label"
+        for="delivery-option"
       >
         <button
           aria-checked="true"
-          class="border-input text-primary focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square size-4 shrink-0 rounded-full border shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50"
+          class="border-input text-primary focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square size-4 shrink-0 rounded-full border shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 sr-only"
           data-radix-collection-item=""
           data-slot="radio-group-item"
           data-state="checked"
@@ -287,20 +343,44 @@ exports[`PickupOrDelivery stories snapshot > DesktopLayout story renders and mat
             </svg>
           </span>
         </button>
-        <label
-          class="flex items-center gap-2 select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-          data-slot="label"
-          for="delivery-option"
+        <div
+          class="mt-0.5 shrink-0"
         >
-          Ship to Address
-        </label>
-      </div>
-      <div
-        class="flex items-start space-x-2"
+          <div
+            class="w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors border-primary"
+          >
+            <div
+              class="w-2.5 h-2.5 rounded-full bg-primary"
+            />
+          </div>
+        </div>
+        <div
+          class="flex-1 min-w-0"
+        >
+          <div
+            class="flex flex-col"
+          >
+            <span
+              class="text-xs font-medium text-foreground"
+            >
+              Deliver to
+            </span>
+            <p
+              class="text-xs text-muted-foreground mt-0.5"
+            >
+              Enter ZIP code to see delivery estimate
+            </p>
+          </div>
+        </div>
+      </label>
+      <label
+        class="text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 flex items-start gap-2 p-3 rounded-lg border transition-colors text-left shadow-xs cursor-pointer border-muted-foreground/20 hover:border-primary/50"
+        data-slot="label"
+        for="pickup-option"
       >
         <button
           aria-checked="false"
-          class="border-input text-primary focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square size-4 shrink-0 rounded-full border shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50"
+          class="border-input text-primary focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square size-4 shrink-0 rounded-full border shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 sr-only"
           data-radix-collection-item=""
           data-slot="radio-group-item"
           data-state="unchecked"
@@ -311,38 +391,41 @@ exports[`PickupOrDelivery stories snapshot > DesktopLayout story renders and mat
           value="pickup"
         />
         <div
-          class="flex flex-col"
+          class="mt-0.5 shrink-0"
         >
           <div
-            class="flex items-center space-x-1"
+            class="w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors border-muted-foreground/20"
+          />
+        </div>
+        <div
+          class="flex-1 min-w-0"
+        >
+          <div
+            class="flex flex-col"
           >
-            <label
-              class="flex items-center gap-2 select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-              data-slot="label"
-              for="pickup-option"
+            <span
+              class="text-xs font-medium text-foreground"
             >
               Free pickup in
-            </label>
+            </span>
             <div
-              class="text-sm"
+              class="mt-0.5"
             >
-              <p>
-                <button
-                  class="text-primary underline hover:text-primary/80 cursor-pointer"
-                  type="button"
-                >
-                  Downtown Store
-                </button>
+              <button
+                class="text-xs text-primary hover:underline"
+                type="button"
+              >
+                Downtown Store
+              </button>
+              <p
+                class="text-xs font-normal text-muted-foreground mt-1"
+              >
+                Now available for pickup today.
               </p>
             </div>
           </div>
-          <span
-            class="text-sm font-normal select-none text-muted-foreground mt-1"
-          >
-            Now available for pickup today.
-          </span>
         </div>
-      </div>
+      </label>
     </div>
   </div>
 </div>
@@ -351,11 +434,11 @@ exports[`PickupOrDelivery stories snapshot > DesktopLayout story renders and mat
 exports[`PickupOrDelivery stories snapshot > MobileLayout story renders and matches snapshot 1`] = `
 <div>
   <div
-    class="space-y-3"
+    class="w-full"
   >
     <div
       aria-required="false"
-      class="grid gap-3 space-y-3"
+      class="grid grid-cols-2 gap-2"
       data-slot="radio-group"
       data-testid="delivery-option-select"
       dir="ltr"
@@ -363,12 +446,14 @@ exports[`PickupOrDelivery stories snapshot > MobileLayout story renders and matc
       style="outline: none;"
       tabindex="0"
     >
-      <div
-        class="flex items-start space-x-2"
+      <label
+        class="text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 flex items-start gap-2 p-3 rounded-lg border transition-colors text-left shadow-xs cursor-pointer border-primary"
+        data-slot="label"
+        for="delivery-option"
       >
         <button
           aria-checked="true"
-          class="border-input text-primary focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square size-4 shrink-0 rounded-full border shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50"
+          class="border-input text-primary focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square size-4 shrink-0 rounded-full border shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 sr-only"
           data-radix-collection-item=""
           data-slot="radio-group-item"
           data-state="checked"
@@ -404,20 +489,44 @@ exports[`PickupOrDelivery stories snapshot > MobileLayout story renders and matc
             </svg>
           </span>
         </button>
-        <label
-          class="flex items-center gap-2 select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-          data-slot="label"
-          for="delivery-option"
+        <div
+          class="mt-0.5 shrink-0"
         >
-          Ship to Address
-        </label>
-      </div>
-      <div
-        class="flex items-start space-x-2"
+          <div
+            class="w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors border-primary"
+          >
+            <div
+              class="w-2.5 h-2.5 rounded-full bg-primary"
+            />
+          </div>
+        </div>
+        <div
+          class="flex-1 min-w-0"
+        >
+          <div
+            class="flex flex-col"
+          >
+            <span
+              class="text-xs font-medium text-foreground"
+            >
+              Deliver to
+            </span>
+            <p
+              class="text-xs text-muted-foreground mt-0.5"
+            >
+              Enter ZIP code to see delivery estimate
+            </p>
+          </div>
+        </div>
+      </label>
+      <label
+        class="text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 flex items-start gap-2 p-3 rounded-lg border transition-colors text-left shadow-xs cursor-pointer border-muted-foreground/20 hover:border-primary/50"
+        data-slot="label"
+        for="pickup-option"
       >
         <button
           aria-checked="false"
-          class="border-input text-primary focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square size-4 shrink-0 rounded-full border shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50"
+          class="border-input text-primary focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square size-4 shrink-0 rounded-full border shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 sr-only"
           data-radix-collection-item=""
           data-slot="radio-group-item"
           data-state="unchecked"
@@ -428,33 +537,32 @@ exports[`PickupOrDelivery stories snapshot > MobileLayout story renders and matc
           value="pickup"
         />
         <div
-          class="flex flex-col"
+          class="mt-0.5 shrink-0"
         >
           <div
-            class="flex items-center space-x-1"
+            class="w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors border-muted-foreground/20"
+          />
+        </div>
+        <div
+          class="flex-1 min-w-0"
+        >
+          <div
+            class="flex flex-col"
           >
-            <label
-              class="flex items-center gap-2 select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-              data-slot="label"
-              for="pickup-option"
+            <span
+              class="text-xs font-medium text-foreground"
             >
               Free pickup in
-            </label>
-            <div
-              class="text-sm"
+            </span>
+            <button
+              class="text-xs text-primary mt-0.5 text-left hover:underline"
+              type="button"
             >
-              <p>
-                <button
-                  class="text-primary underline hover:text-primary/80 cursor-pointer"
-                  type="button"
-                >
-                  Select Store
-                </button>
-              </p>
-            </div>
+              Select Store
+            </button>
           </div>
         </div>
-      </div>
+      </label>
     </div>
   </div>
 </div>
@@ -463,11 +571,11 @@ exports[`PickupOrDelivery stories snapshot > MobileLayout story renders and matc
 exports[`PickupOrDelivery stories snapshot > NoStoreSelected story renders and matches snapshot 1`] = `
 <div>
   <div
-    class="space-y-3"
+    class="w-full"
   >
     <div
       aria-required="false"
-      class="grid gap-3 space-y-3"
+      class="grid grid-cols-2 gap-2"
       data-slot="radio-group"
       data-testid="delivery-option-select"
       dir="ltr"
@@ -475,12 +583,14 @@ exports[`PickupOrDelivery stories snapshot > NoStoreSelected story renders and m
       style="outline: none;"
       tabindex="0"
     >
-      <div
-        class="flex items-start space-x-2"
+      <label
+        class="text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 flex items-start gap-2 p-3 rounded-lg border transition-colors text-left shadow-xs cursor-pointer border-muted-foreground/20 hover:border-primary/50"
+        data-slot="label"
+        for="delivery-option"
       >
         <button
           aria-checked="false"
-          class="border-input text-primary focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square size-4 shrink-0 rounded-full border shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50"
+          class="border-input text-primary focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square size-4 shrink-0 rounded-full border shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 sr-only"
           data-radix-collection-item=""
           data-slot="radio-group-item"
           data-state="unchecked"
@@ -490,20 +600,40 @@ exports[`PickupOrDelivery stories snapshot > NoStoreSelected story renders and m
           type="button"
           value="delivery"
         />
-        <label
-          class="flex items-center gap-2 select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-          data-slot="label"
-          for="delivery-option"
+        <div
+          class="mt-0.5 shrink-0"
         >
-          Ship to Address
-        </label>
-      </div>
-      <div
-        class="flex items-start space-x-2"
+          <div
+            class="w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors border-muted-foreground/20"
+          />
+        </div>
+        <div
+          class="flex-1 min-w-0"
+        >
+          <div
+            class="flex flex-col"
+          >
+            <span
+              class="text-xs font-medium text-foreground"
+            >
+              Deliver to
+            </span>
+            <p
+              class="text-xs text-muted-foreground mt-0.5"
+            >
+              Enter ZIP code to see delivery estimate
+            </p>
+          </div>
+        </div>
+      </label>
+      <label
+        class="text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 flex items-start gap-2 p-3 rounded-lg border transition-colors text-left shadow-xs cursor-pointer border-primary"
+        data-slot="label"
+        for="pickup-option"
       >
         <button
           aria-checked="true"
-          class="border-input text-primary focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square size-4 shrink-0 rounded-full border shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50"
+          class="border-input text-primary focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square size-4 shrink-0 rounded-full border shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 sr-only"
           data-radix-collection-item=""
           data-slot="radio-group-item"
           data-state="checked"
@@ -540,33 +670,36 @@ exports[`PickupOrDelivery stories snapshot > NoStoreSelected story renders and m
           </span>
         </button>
         <div
-          class="flex flex-col"
+          class="mt-0.5 shrink-0"
         >
           <div
-            class="flex items-center space-x-1"
+            class="w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors border-primary"
           >
-            <label
-              class="flex items-center gap-2 select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-              data-slot="label"
-              for="pickup-option"
-            >
-              Free pickup in
-            </label>
             <div
-              class="text-sm"
-            >
-              <p>
-                <button
-                  class="text-primary underline hover:text-primary/80 cursor-pointer"
-                  type="button"
-                >
-                  Select Store
-                </button>
-              </p>
-            </div>
+              class="w-2.5 h-2.5 rounded-full bg-primary"
+            />
           </div>
         </div>
-      </div>
+        <div
+          class="flex-1 min-w-0"
+        >
+          <div
+            class="flex flex-col"
+          >
+            <span
+              class="text-xs font-medium text-foreground"
+            >
+              Free pickup in
+            </span>
+            <button
+              class="text-xs text-primary mt-0.5 text-left hover:underline"
+              type="button"
+            >
+              Select Store
+            </button>
+          </div>
+        </div>
+      </label>
     </div>
   </div>
 </div>
@@ -575,11 +708,11 @@ exports[`PickupOrDelivery stories snapshot > NoStoreSelected story renders and m
 exports[`PickupOrDelivery stories snapshot > PickupDisabled story renders and matches snapshot 1`] = `
 <div>
   <div
-    class="space-y-3"
+    class="w-full"
   >
     <div
       aria-required="false"
-      class="grid gap-3 space-y-3"
+      class="grid grid-cols-2 gap-2"
       data-slot="radio-group"
       data-testid="delivery-option-select"
       dir="ltr"
@@ -587,12 +720,14 @@ exports[`PickupOrDelivery stories snapshot > PickupDisabled story renders and ma
       style="outline: none;"
       tabindex="0"
     >
-      <div
-        class="flex items-start space-x-2"
+      <label
+        class="text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 flex items-start gap-2 p-3 rounded-lg border transition-colors text-left shadow-xs cursor-pointer border-primary"
+        data-slot="label"
+        for="delivery-option"
       >
         <button
           aria-checked="true"
-          class="border-input text-primary focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square size-4 shrink-0 rounded-full border shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50"
+          class="border-input text-primary focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square size-4 shrink-0 rounded-full border shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 sr-only"
           data-radix-collection-item=""
           data-slot="radio-group-item"
           data-state="checked"
@@ -628,20 +763,44 @@ exports[`PickupOrDelivery stories snapshot > PickupDisabled story renders and ma
             </svg>
           </span>
         </button>
-        <label
-          class="flex items-center gap-2 select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-          data-slot="label"
-          for="delivery-option"
+        <div
+          class="mt-0.5 shrink-0"
         >
-          Ship to Address
-        </label>
-      </div>
-      <div
-        class="flex items-start space-x-2"
+          <div
+            class="w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors border-primary"
+          >
+            <div
+              class="w-2.5 h-2.5 rounded-full bg-primary"
+            />
+          </div>
+        </div>
+        <div
+          class="flex-1 min-w-0"
+        >
+          <div
+            class="flex flex-col"
+          >
+            <span
+              class="text-xs font-medium text-foreground"
+            >
+              Deliver to
+            </span>
+            <p
+              class="text-xs text-muted-foreground mt-0.5"
+            >
+              Enter ZIP code to see delivery estimate
+            </p>
+          </div>
+        </div>
+      </label>
+      <label
+        class="text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 flex items-start gap-2 p-3 rounded-lg border transition-colors text-left shadow-xs border-muted-foreground/20 hover:border-primary/50 opacity-50 cursor-not-allowed"
+        data-slot="label"
+        for="pickup-option"
       >
         <button
           aria-checked="false"
-          class="border-input text-primary focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square size-4 shrink-0 rounded-full border shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50"
+          class="border-input text-primary focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square size-4 shrink-0 rounded-full border shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 sr-only"
           data-disabled=""
           data-radix-collection-item=""
           data-slot="radio-group-item"
@@ -654,38 +813,41 @@ exports[`PickupOrDelivery stories snapshot > PickupDisabled story renders and ma
           value="pickup"
         />
         <div
-          class="flex flex-col"
+          class="mt-0.5 shrink-0"
         >
           <div
-            class="flex items-center space-x-1"
+            class="w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors border-muted-foreground/20"
+          />
+        </div>
+        <div
+          class="flex-1 min-w-0"
+        >
+          <div
+            class="flex flex-col"
           >
-            <label
-              class="flex items-center gap-2 select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 opacity-50 cursor-not-allowed"
-              data-slot="label"
-              for="pickup-option"
+            <span
+              class="text-xs font-medium text-foreground"
             >
               Pickup unavailable at
-            </label>
+            </span>
             <div
-              class="text-sm"
+              class="mt-0.5"
             >
-              <p>
-                <button
-                  class="text-primary underline hover:text-primary/80 cursor-pointer"
-                  type="button"
-                >
-                  Downtown Store
-                </button>
+              <button
+                class="text-xs text-primary hover:underline"
+                type="button"
+              >
+                Downtown Store
+              </button>
+              <p
+                class="text-xs font-normal text-destructive mt-1"
+              >
+                Try another store
               </p>
             </div>
           </div>
-          <span
-            class="text-sm font-normal select-none text-destructive mt-1"
-          >
-            Try another store or select delivery.
-          </span>
         </div>
-      </div>
+      </label>
     </div>
   </div>
 </div>
@@ -694,11 +856,11 @@ exports[`PickupOrDelivery stories snapshot > PickupDisabled story renders and ma
 exports[`PickupOrDelivery stories snapshot > PickupSelected story renders and matches snapshot 1`] = `
 <div>
   <div
-    class="space-y-3"
+    class="w-full"
   >
     <div
       aria-required="false"
-      class="grid gap-3 space-y-3"
+      class="grid grid-cols-2 gap-2"
       data-slot="radio-group"
       data-testid="delivery-option-select"
       dir="ltr"
@@ -706,12 +868,14 @@ exports[`PickupOrDelivery stories snapshot > PickupSelected story renders and ma
       style="outline: none;"
       tabindex="0"
     >
-      <div
-        class="flex items-start space-x-2"
+      <label
+        class="text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 flex items-start gap-2 p-3 rounded-lg border transition-colors text-left shadow-xs cursor-pointer border-muted-foreground/20 hover:border-primary/50"
+        data-slot="label"
+        for="delivery-option"
       >
         <button
           aria-checked="false"
-          class="border-input text-primary focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square size-4 shrink-0 rounded-full border shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50"
+          class="border-input text-primary focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square size-4 shrink-0 rounded-full border shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 sr-only"
           data-radix-collection-item=""
           data-slot="radio-group-item"
           data-state="unchecked"
@@ -721,20 +885,40 @@ exports[`PickupOrDelivery stories snapshot > PickupSelected story renders and ma
           type="button"
           value="delivery"
         />
-        <label
-          class="flex items-center gap-2 select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-          data-slot="label"
-          for="delivery-option"
+        <div
+          class="mt-0.5 shrink-0"
         >
-          Ship to Address
-        </label>
-      </div>
-      <div
-        class="flex items-start space-x-2"
+          <div
+            class="w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors border-muted-foreground/20"
+          />
+        </div>
+        <div
+          class="flex-1 min-w-0"
+        >
+          <div
+            class="flex flex-col"
+          >
+            <span
+              class="text-xs font-medium text-foreground"
+            >
+              Deliver to
+            </span>
+            <p
+              class="text-xs text-muted-foreground mt-0.5"
+            >
+              Enter ZIP code to see delivery estimate
+            </p>
+          </div>
+        </div>
+      </label>
+      <label
+        class="text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 flex items-start gap-2 p-3 rounded-lg border transition-colors text-left shadow-xs cursor-pointer border-primary"
+        data-slot="label"
+        for="pickup-option"
       >
         <button
           aria-checked="true"
-          class="border-input text-primary focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square size-4 shrink-0 rounded-full border shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50"
+          class="border-input text-primary focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square size-4 shrink-0 rounded-full border shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 sr-only"
           data-radix-collection-item=""
           data-slot="radio-group-item"
           data-state="checked"
@@ -771,38 +955,45 @@ exports[`PickupOrDelivery stories snapshot > PickupSelected story renders and ma
           </span>
         </button>
         <div
-          class="flex flex-col"
+          class="mt-0.5 shrink-0"
         >
           <div
-            class="flex items-center space-x-1"
+            class="w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors border-primary"
           >
-            <label
-              class="flex items-center gap-2 select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-              data-slot="label"
-              for="pickup-option"
+            <div
+              class="w-2.5 h-2.5 rounded-full bg-primary"
+            />
+          </div>
+        </div>
+        <div
+          class="flex-1 min-w-0"
+        >
+          <div
+            class="flex flex-col"
+          >
+            <span
+              class="text-xs font-medium text-foreground"
             >
               Free pickup in
-            </label>
+            </span>
             <div
-              class="text-sm"
+              class="mt-0.5"
             >
-              <p>
-                <button
-                  class="text-primary underline hover:text-primary/80 cursor-pointer"
-                  type="button"
-                >
-                  Downtown Store
-                </button>
+              <button
+                class="text-xs text-primary hover:underline"
+                type="button"
+              >
+                Downtown Store
+              </button>
+              <p
+                class="text-xs font-normal text-muted-foreground mt-1"
+              >
+                Now available for pickup today.
               </p>
             </div>
           </div>
-          <span
-            class="text-sm font-normal select-none text-muted-foreground mt-1"
-          >
-            Now available for pickup today.
-          </span>
         </div>
-      </div>
+      </label>
     </div>
   </div>
 </div>

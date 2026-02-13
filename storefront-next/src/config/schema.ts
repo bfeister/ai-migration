@@ -80,6 +80,11 @@ export type Config = {
                 enableRecentSearches: boolean;
                 suggestionsDebounce: number;
             };
+            maintenancePage: {
+                sharedMaintenancePage: boolean;
+                cdnUrl: string;
+                forwardedHost: string;
+            };
         };
         commerce: {
             api: {
@@ -197,10 +202,16 @@ export type Config = {
          * @see {@link https://help.salesforce.com/s/articleView?id=cc.b2c_image_transformation_service.htm&type=5}
          * @see {@link https://help.salesforce.com/s/articleView?id=cc.b2c_creating_image_transformation_urls.htm&type=5}
          */
-        images: {
+        images?: {
             quality?: number;
             formats?: Array<'avif' | 'gif' | 'jp2' | 'jpg' | 'jpeg' | 'jxr' | 'png' | 'webp'>;
             fallbackFormat?: 'avif' | 'gif' | 'jp2' | 'jpg' | 'jpeg' | 'jxr' | 'png' | 'webp';
+            host?: string;
+        };
+        search?: {
+            products?: {
+                orderableOnly?: boolean;
+            };
         };
         performance: {
             caching: {

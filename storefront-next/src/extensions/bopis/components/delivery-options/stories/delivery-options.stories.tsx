@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { expect, within } from 'storybook/test';
+import { expect } from 'storybook/test';
 import { waitForStorybookReady } from '@storybook/test-utils';
 import { useEffect, useRef, type ReactElement, type ReactNode } from 'react';
 import { action } from 'storybook/actions';
@@ -149,7 +149,6 @@ export const Default: Story = {
             description: {
                 story: `
 Default delivery options display showing:
-- Title "Delivery Options"
 - Radio buttons for delivery and pickup
 - Store selection link for pickup option
 - Availability status messages
@@ -161,15 +160,14 @@ This is the default state when viewing a product page.
     },
     play: async ({ canvasElement }) => {
         await waitForStorybookReady(canvasElement);
-        const canvas = within(canvasElement);
 
         // Wait for and verify delivery options container is rendered
         const container = canvasElement.querySelector('[class*="space-y-4"]');
         await expect(container).toBeInTheDocument();
 
-        // Verify title is present
-        const title = await canvas.findByRole('heading', { level: 3 }, { timeout: 5000 });
-        await expect(title).toBeInTheDocument();
+        // Verify radio group is rendered
+        const radioGroup = canvasElement.querySelector('[data-testid="delivery-option-select"]');
+        await expect(radioGroup).toBeInTheDocument();
     },
 };
 
@@ -288,14 +286,13 @@ The component provides a clean layout for desktop screens.
     },
     play: async ({ canvasElement }) => {
         await waitForStorybookReady(canvasElement);
-        const canvas = within(canvasElement);
 
         // Wait for and verify delivery options container is rendered
         const container = canvasElement.querySelector('[class*="space-y-4"]');
         await expect(container).toBeInTheDocument();
 
-        // Verify title is present
-        const title = await canvas.findByRole('heading', { level: 3 }, { timeout: 5000 });
-        await expect(title).toBeInTheDocument();
+        // Verify radio group is rendered
+        const radioGroup = canvasElement.querySelector('[data-testid="delivery-option-select"]');
+        await expect(radioGroup).toBeInTheDocument();
     },
 };

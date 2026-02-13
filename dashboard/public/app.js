@@ -310,29 +310,53 @@ function renderScreenshots() {
     return;
   }
 
-  // Group screenshots by subplan (source + target pairs)
+  // Group screenshots by type and feature/subplan (source + target pairs)
+  // Screenshots are sorted most-recent-first, so we keep only the first (newest) for each group
   const groups = {};
 
   state.screenshots.forEach(screenshot => {
     if (screenshot.type === 'baseline') {
-      groups['baseline'] = groups['baseline'] || {};
-      groups['baseline'][screenshot.variant] = screenshot;
-    } else if (screenshot.type === 'iteration') {
+      // Group baselines by feature number (baseline-01, baseline-02, etc.)
+      const key = `baseline-${screenshot.featureNum}`;
+      groups[key] = groups[key] || {};
+      // Only set if not already set (keep the most recent)
+      if (!groups[key][screenshot.variant]) {
+        groups[key][screenshot.variant] = screenshot;
+      }
+    } else if (screenshot.type === 'iteration' || screenshot.type === 'analysis') {
       const key = `${screenshot.featureNum}-${screenshot.subplanNum}`;
       groups[key] = groups[key] || {};
-      groups[key][screenshot.variant] = screenshot;
+      // Only set if not already set (keep the most recent)
+      if (!groups[key][screenshot.variant]) {
+        groups[key][screenshot.variant] = screenshot;
+      }
     }
   });
 
   const html = Object.entries(groups)
     .sort((a, b) => {
       // Sort by feature/subplan number (descending for most recent first)
-      if (a[0] === 'baseline') return 1;
-      if (b[0] === 'baseline') return -1;
+      // Baselines go at the end
+      const aIsBaseline = a[0].startsWith('baseline-');
+      const bIsBaseline = b[0].startsWith('baseline-');
+      if (aIsBaseline && !bIsBaseline) return 1;
+      if (!aIsBaseline && bIsBaseline) return -1;
       return b[0].localeCompare(a[0]);
     })
     .map(([key, screenshots]) => {
-      const title = key === 'baseline' ? 'SFRA Baseline' : `Subplan ${key.replace('-', '-')}`;
+      const firstScreenshot = screenshots.source || screenshots.target;
+      const isBaseline = key.startsWith('baseline-');
+      const isAnalysis = firstScreenshot?.type === 'analysis';
+
+      let title;
+      if (isBaseline) {
+        const featureNum = key.replace('baseline-', '');
+        title = `Baseline Feature ${featureNum}`;
+      } else if (isAnalysis) {
+        title = `Analysis ${key}`;
+      } else {
+        title = `Subplan ${key}`;
+      }
       const source = screenshots.source;
       const target = screenshots.target;
 
@@ -581,22 +605,54 @@ function setupTabs() {
   const tabs = document.querySelectorAll('.tab');
   const contents = document.querySelectorAll('.tab-content');
 
+  // Activate tab based on URL path
+  const activateTab = (tabName, updateUrl = true) => {
+    // Update active tab
+    tabs.forEach(t => t.classList.remove('tab-active'));
+    const activeTab = document.querySelector(`.tab[data-tab="${tabName}"]`);
+    if (activeTab) {
+      activeTab.classList.add('tab-active');
+    }
+
+    // Update active content
+    contents.forEach(c => c.classList.remove('tab-content-active'));
+    const activeContent = document.getElementById(`tab-${tabName}`);
+    if (activeContent) {
+      activeContent.classList.add('tab-content-active');
+    }
+
+    // Update URL without reload
+    if (updateUrl) {
+      const newUrl = `/${tabName}`;
+      history.pushState({ tab: tabName }, '', newUrl);
+    }
+
+    // Load data if needed
+    if (tabName === 'log') {
+      loadMigrationLog();
+    }
+  };
+
+  // Get initial tab from URL path
+  const getTabFromUrl = () => {
+    const path = window.location.pathname.replace(/^\/|\/$/g, '');
+    const validTabs = ['micro-plans', 'screenshots', 'log', 'interventions'];
+    return validTabs.includes(path) ? path : 'micro-plans';
+  };
+
+  // Set initial tab from URL
+  activateTab(getTabFromUrl(), false);
+
+  // Handle browser back/forward navigation
+  window.addEventListener('popstate', (event) => {
+    const tabName = event.state?.tab || getTabFromUrl();
+    activateTab(tabName, false);
+  });
+
   tabs.forEach(tab => {
     tab.addEventListener('click', () => {
       const tabName = tab.dataset.tab;
-
-      // Update active tab
-      tabs.forEach(t => t.classList.remove('tab-active'));
-      tab.classList.add('tab-active');
-
-      // Update active content
-      contents.forEach(c => c.classList.remove('tab-content-active'));
-      document.getElementById(`tab-${tabName}`).classList.add('tab-content-active');
-
-      // Load data if needed
-      if (tabName === 'log') {
-        loadMigrationLog();
-      }
+      activateTab(tabName, true);
     });
   });
 }

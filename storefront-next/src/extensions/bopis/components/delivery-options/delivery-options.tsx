@@ -15,14 +15,15 @@
  */
 'use client';
 
-import { type ReactElement } from 'react';
-import { useTranslation } from 'react-i18next';
+import { type ReactElement, useState, lazy, Suspense } from 'react';
 import type { ShopperProducts } from '@salesforce/storefront-next-runtime/scapi';
 import PickupOrDelivery from './pickup-or-delivery';
 import { useDeliveryOptions } from '@/extensions/bopis/hooks/use-delivery-options';
 import { useStoreLocator } from '@/extensions/store-locator/providers/store-locator';
 import type { SelectedStoreInfo } from '@/extensions/store-locator/stores/store-locator-store';
-import { Typography } from '@/components/typography';
+import ProductContentProvider from '@/providers/product-content';
+
+const ShippingCalculator = lazy(() => import('./shipping-calculator'));
 
 interface DeliveryOptionsProps {
     /** The product to check inventory for */
@@ -56,8 +57,6 @@ export default function DeliveryOptions({
     basketPickupStore,
     className,
 }: DeliveryOptionsProps): ReactElement | null {
-    const { t } = useTranslation('extBopis');
-
     // Get store locator state and actions
     const selectedStore = useStoreLocator((state) => state.selectedStoreInfo);
 
@@ -70,23 +69,43 @@ export default function DeliveryOptions({
     const { selectedDeliveryOption, isStoreOutOfStock, isSiteOutOfStock, handleDeliveryOptionChange } =
         useDeliveryOptions({ product, quantity, isInBasket, pickupStore });
 
+    // Shipping calculator state
+    const [deliveryDays, setDeliveryDays] = useState<number | undefined>(undefined);
+    const [calculatedZipCode, setCalculatedZipCode] = useState<string | undefined>(undefined);
+
+    const handleCalculate = (zipCode: string, days: number) => {
+        setCalculatedZipCode(zipCode);
+        setDeliveryDays(days);
+    };
+
     return (
         <div className={className}>
             <div className="space-y-4">
                 {/* Hide title and radio options when editing from cart */}
                 {!isInBasket && (
                     <>
-                        <Typography variant="h3" as="p" role="heading" aria-level={3} className="text-lg font-semibold">
-                            {t('deliveryOptions.title')}
-                        </Typography>
-
                         <PickupOrDelivery
                             value={selectedDeliveryOption}
                             onChange={handleDeliveryOptionChange}
                             isPickupDisabled={isStoreOutOfStock}
                             pickupStore={pickupStore}
                             isDeliveryDisabled={isSiteOutOfStock}
+                            deliveryZipCode={calculatedZipCode}
+                            deliveryDays={deliveryDays}
                         />
+
+                        {/* Shipping Estimates Calculator - Only show when delivery option is selected */}
+                        {/* Lazy loaded to reduce initial bundle size */}
+                        {selectedDeliveryOption === 'delivery' && (
+                            <Suspense fallback={<div className="p-4 text-sm text-muted-foreground">Loading...</div>}>
+                                <ProductContentProvider>
+                                    <ShippingCalculator
+                                        onCalculate={handleCalculate}
+                                        productId={product.currentVariant?.productId || product.id}
+                                    />
+                                </ProductContentProvider>
+                            </Suspense>
+                        )}
                     </>
                 )}
             </div>

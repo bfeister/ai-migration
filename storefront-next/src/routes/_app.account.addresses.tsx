@@ -64,7 +64,7 @@ function AccountAddressesContent({
     }, [customer?.addresses]);
     const { addToast } = useToast();
     const auth = useAuth();
-    const customerId = auth?.customer_id;
+    const customerId = auth?.customerId;
     const [addressToRemove, setAddressToRemove] = useState<ShopperCustomers.schemas['CustomerAddress'] | null>(null);
     const [editingAddressId, setEditingAddressId] = useState<EditingAddressId>(null);
     const [settingDefaultAddress, setSettingDefaultAddress] = useState<
@@ -216,6 +216,18 @@ function AccountAddressesContent({
                 </div>
             </Card>
 
+            {/* Empty State */}
+            {!hasAddresses && (
+                <Card className="p-8 text-center">
+                    <div className="flex flex-col items-center gap-4">
+                        <div className="text-muted-foreground">
+                            <p className="text-lg font-medium">{t('addresses.noSavedAddresses')}</p>
+                            <p className="text-sm mt-1">{t('addresses.empty')}</p>
+                        </div>
+                    </div>
+                </Card>
+            )}
+
             {/* Addresses Content */}
             {hasAddresses && (
                 <div className="flex flex-col gap-4">
@@ -314,6 +326,17 @@ function AccountAddressesContent({
                     }}
                     address={addressToRemove}
                     customerId={customerId || ''}
+                    onSuccess={() => {
+                        // After removal, check if only one address remains
+                        const remainingAddresses = addresses.filter(
+                            (addr) => addr.addressId !== addressToRemove.addressId
+                        );
+                        // If only one address remains and it's not already default, set it as default
+                        if (remainingAddresses.length === 1 && !remainingAddresses[0].preferred) {
+                            setSettingDefaultAddress(remainingAddresses[0]);
+                        }
+                        setAddressToRemove(null);
+                    }}
                 />
             )}
         </div>

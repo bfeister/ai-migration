@@ -249,6 +249,34 @@ describe('cookies.server', () => {
                 expect(result).toContain('SameSite=None');
             });
 
+            it('should add Partitioned attribute', async () => {
+                vi.mocked(getCookieConfig).mockReturnValue({
+                    path: '/',
+                    sameSite: 'none',
+                    secure: true,
+                    partitioned: true,
+                });
+
+                const cookie = createCookie('token', {});
+                const result = await cookie.serialize('value');
+
+                expect(result).toContain('Partitioned');
+            });
+
+            it('should not add Partitioned attribute when false', async () => {
+                vi.mocked(getCookieConfig).mockReturnValue({
+                    path: '/',
+                    sameSite: 'lax',
+                    secure: true,
+                    partitioned: false,
+                });
+
+                const cookie = createCookie('token', {});
+                const result = await cookie.serialize('value');
+
+                expect(result).not.toContain('Partitioned');
+            });
+
             it('should merge defaultConfig with serialize config', async () => {
                 const defaultConfig = { httpOnly: true, path: '/api' };
                 const serializeConfig = { maxAge: 3600 };
@@ -323,6 +351,7 @@ describe('cookies.server', () => {
                     expires: expiryDate,
                     maxAge: 3600,
                     httpOnly: true,
+                    partitioned: true,
                 });
 
                 const cookie = createCookie('token', {});
@@ -336,6 +365,7 @@ describe('cookies.server', () => {
                 expect(result).toContain('HttpOnly');
                 expect(result).toContain('Secure');
                 expect(result).toContain('SameSite=Strict');
+                expect(result).toContain('Partitioned');
             });
 
             it('should format Set-Cookie header correctly', async () => {

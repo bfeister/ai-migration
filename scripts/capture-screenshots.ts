@@ -23,6 +23,97 @@ import { chromium, Browser, Page } from 'playwright';
 import * as fs from 'fs';
 import * as path from 'path';
 
+function getSystemChromePath(): string | undefined {
+  // Check environment variable first
+  if (process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH) {
+    return process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH;
+  }
+
+  // macOS paths
+  const macPaths = [
+    '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+    '/Applications/Chromium.app/Contents/MacOS/Chromium',
+    '/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary',
+  ];
+
+  // Linux paths
+  const linuxPaths = [
+    '/usr/bin/google-chrome',
+    '/usr/bin/chromium-browser',
+    '/usr/bin/chromium',
+  ];
+
+  const paths = process.platform === 'darwin' ? macPaths : linuxPaths;
+
+  for (const p of paths) {
+    try {
+      if (fs.existsSync(p)) {
+        return p;
+      }
+    } catch {
+      // Continue checking
+    }
+  }
+
+  return undefined;
+}
+
+/**
+ * Attempt to dismiss consent/cookie modals using common selectors
+ */
+async function dismissConsentModals(page: Page, customSelector?: string): Promise<void> {
+  // Common consent button selectors (try custom first if provided)
+  const consentSelectors = [
+    // Custom selector takes priority
+    ...(customSelector ? [customSelector] : []),
+    // SFCC/Demandware tracking consent
+    '.tracking-consent button.affirm',
+    '.tracking-consent .affirm',
+    'button.affirm.btn',
+    // Generic patterns
+    'button[class*="consent"]',
+    'button[class*="cookie"]',
+    'button[class*="accept"]',
+    'button[id*="consent"]',
+    'button[id*="cookie"]',
+    'button[id*="accept"]',
+    '[class*="consent"] button',
+    '[class*="cookie"] button',
+    // Specific services
+    '#onetrust-accept-btn-handler',
+    '.cc-accept',
+    '.cc-btn.cc-dismiss',
+    '[data-testid="cookie-accept"]',
+    '#CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll',
+    '.evidon-banner-acceptbutton',
+    '#didomi-notice-agree-button',
+    '.qc-cmp2-summary-buttons button:first-child',
+    // Text-based (Playwright locators)
+    'button:has-text("Accept")',
+    'button:has-text("Accept all")',
+    'button:has-text("I agree")',
+    'button:has-text("Got it")',
+    'button:has-text("Yes")',
+    'button:has-text("OK")',
+  ];
+
+  for (const selector of consentSelectors) {
+    try {
+      const button = await page.locator(selector).first();
+      if (await button.isVisible({ timeout: 500 })) {
+        await button.click();
+        console.log(`[Screenshot] ✅ Dismissed consent modal with selector: ${selector}`);
+        await page.waitForTimeout(500);
+        return;
+      }
+    } catch {
+      // Selector not found, continue
+    }
+  }
+
+  console.log(`[Screenshot] No consent modal found (tried ${consentSelectors.length} selectors)`);
+}
+
 interface ScreenshotMapping {
   viewport?: { width: number; height: number };
   wait_for_selector?: string;
@@ -45,8 +136,14 @@ async function captureScreenshot(options: CaptureOptions): Promise<void> {
   console.log(`[Screenshot] Capturing: ${url}`);
   console.log(`[Screenshot] Output: ${outputPath}`);
 
-  // Determine browser executable path (system Chromium in Docker vs local Chromium)
-  const executablePath = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH || undefined;
+  // Determine browser executable path (system Chrome or Playwright bundled)
+  const executablePath = getSystemChromePath();
+
+  if (executablePath) {
+    console.log(`[Screenshot] Using browser: ${executablePath}`);
+  } else {
+    console.log(`[Screenshot] Using Playwright bundled browser`);
+  }
 
   const browser: Browser = await chromium.launch({
     headless: true,
@@ -67,29 +164,10 @@ async function captureScreenshot(options: CaptureOptions): Promise<void> {
     await page.goto(url, { waitUntil: 'networkidle' });
     console.log(`[Screenshot] Page loaded`);
 
-    // Dismiss consent modal if requested and selector provided
-    const shouldDismissConsent = mapping?.dismiss_consent === true;
-    const consentSelector = mapping?.consent_button_selector;
-
-    if (shouldDismissConsent && consentSelector) {
-      console.log(`[Screenshot] Checking for consent modal with selector: ${consentSelector}`);
-
-      try {
-        const button = await page.locator(consentSelector).first();
-        if (await button.isVisible({ timeout: 3000 })) {
-          console.log(`[Screenshot] Found consent button, clicking...`);
-          await button.click();
-          console.log(`[Screenshot] ✅ Consent dismissed`);
-          // Wait a moment for modal to close
-          await page.waitForTimeout(1000);
-        } else {
-          console.log(`[Screenshot] Consent button not visible, skipping`);
-        }
-      } catch (error) {
-        console.log(`[Screenshot] Consent button not found (selector: ${consentSelector}), skipping`);
-      }
-    } else if (shouldDismissConsent && !consentSelector) {
-      console.warn(`[Screenshot] ⚠️  dismiss_consent is true but no consent_button_selector provided`);
+    // Dismiss consent modal if requested
+    if (mapping?.dismiss_consent) {
+      console.log(`[Screenshot] Attempting to dismiss consent modals...`);
+      await dismissConsentModals(page, mapping?.consent_button_selector);
     }
 
     // Wait for specific selector if provided

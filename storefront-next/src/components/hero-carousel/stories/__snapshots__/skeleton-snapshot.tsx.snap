@@ -3,10 +3,10 @@
 exports[`HeroCarouselSkeleton stories snapshot > Default story renders and matches snapshot 1`] = `
 <div>
   <div
-    class="relative w-full max-h-[70vh] animate-pulse"
+    class="relative w-full h-[100vh] md:h-[85vh] overflow-hidden animate-pulse"
   >
     <div
-      class="relative w-full min-h-[300px] max-h-[70vh] overflow-hidden aspect-[24/5]"
+      class="relative w-full h-full overflow-hidden"
     >
       <div
         class="bg-accent animate-pulse rounded-md absolute inset-0 w-full h-full"
@@ -16,13 +16,13 @@ exports[`HeroCarouselSkeleton stories snapshot > Default story renders and match
         class="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-transparent z-[5]"
       />
       <div
-        class="absolute inset-0 z-10 flex items-center"
+        class="absolute inset-0 z-10 flex items-center justify-center"
       >
         <div
           class="container mx-auto px-4 sm:px-6 lg:px-8"
         >
           <div
-            class="max-w-2xl"
+            class="max-w-2xl mx-auto flex flex-col items-center"
           >
             <div
               class="animate-pulse rounded-md h-6 sm:h-8 md:h-9 lg:h-10 w-3/4 bg-white/20 mb-3 sm:mb-4 md:mb-6"
@@ -44,27 +44,27 @@ exports[`HeroCarouselSkeleton stories snapshot > Default story renders and match
       class="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex space-x-2"
     >
       <div
-        class="animate-pulse w-3 h-3 rounded-full bg-white/30"
+        class="animate-pulse rounded-md h-2 bg-white/30 w-8"
         data-slot="skeleton"
       />
       <div
-        class="animate-pulse w-3 h-3 rounded-full bg-white/30"
+        class="animate-pulse rounded-md h-2 bg-white/30 w-2"
         data-slot="skeleton"
       />
       <div
-        class="animate-pulse w-3 h-3 rounded-full bg-white/30"
+        class="animate-pulse rounded-md h-2 bg-white/30 w-2"
         data-slot="skeleton"
       />
     </div>
     <div
-      class="absolute bottom-6 right-6 z-20 hidden md:flex items-center space-x-2"
+      class="absolute bottom-6 right-6 z-30 flex gap-2"
     >
       <div
-        class="animate-pulse w-10 h-10 rounded-full bg-white/20"
+        class="animate-pulse rounded-md w-12 h-12 bg-white/20"
         data-slot="skeleton"
       />
       <div
-        class="animate-pulse w-10 h-10 rounded-full bg-white/20"
+        class="animate-pulse rounded-md w-12 h-12 bg-white/20"
         data-slot="skeleton"
       />
     </div>
@@ -83,10 +83,10 @@ exports[`HeroCarouselSkeleton stories snapshot > Default story renders and match
 exports[`HeroCarouselSkeleton stories snapshot > DesktopLayout story renders and matches snapshot 1`] = `
 <div>
   <div
-    class="relative w-full max-h-[70vh] animate-pulse"
+    class="relative w-full h-[100vh] md:h-[85vh] overflow-hidden animate-pulse"
   >
     <div
-      class="relative w-full min-h-[300px] max-h-[70vh] overflow-hidden aspect-[24/5]"
+      class="relative w-full h-full overflow-hidden"
     >
       <div
         class="bg-accent animate-pulse rounded-md absolute inset-0 w-full h-full"
@@ -96,13 +96,13 @@ exports[`HeroCarouselSkeleton stories snapshot > DesktopLayout story renders and
         class="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-transparent z-[5]"
       />
       <div
-        class="absolute inset-0 z-10 flex items-center"
+        class="absolute inset-0 z-10 flex items-center justify-center"
       >
         <div
           class="container mx-auto px-4 sm:px-6 lg:px-8"
         >
           <div
-            class="max-w-2xl"
+            class="max-w-2xl mx-auto flex flex-col items-center"
           >
             <div
               class="animate-pulse rounded-md h-6 sm:h-8 md:h-9 lg:h-10 w-3/4 bg-white/20 mb-3 sm:mb-4 md:mb-6"
@@ -124,27 +124,27 @@ exports[`HeroCarouselSkeleton stories snapshot > DesktopLayout story renders and
       class="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex space-x-2"
     >
       <div
-        class="animate-pulse w-3 h-3 rounded-full bg-white/30"
+        class="animate-pulse rounded-md h-2 bg-white/30 w-8"
         data-slot="skeleton"
       />
       <div
-        class="animate-pulse w-3 h-3 rounded-full bg-white/30"
+        class="animate-pulse rounded-md h-2 bg-white/30 w-2"
         data-slot="skeleton"
       />
       <div
-        class="animate-pulse w-3 h-3 rounded-full bg-white/30"
+        class="animate-pulse rounded-md h-2 bg-white/30 w-2"
         data-slot="skeleton"
       />
     </div>
     <div
-      class="absolute bottom-6 right-6 z-20 hidden md:flex items-center space-x-2"
+      class="absolute bottom-6 right-6 z-30 flex gap-2"
     >
       <div
-        class="animate-pulse w-10 h-10 rounded-full bg-white/20"
+        class="animate-pulse rounded-md w-12 h-12 bg-white/20"
         data-slot="skeleton"
       />
       <div
-        class="animate-pulse w-10 h-10 rounded-full bg-white/20"
+        class="animate-pulse rounded-md w-12 h-12 bg-white/20"
         data-slot="skeleton"
       />
     </div>
@@ -163,10 +163,10 @@ exports[`HeroCarouselSkeleton stories snapshot > DesktopLayout story renders and
 exports[`HeroCarouselSkeleton stories snapshot > Minimal story renders and matches snapshot 1`] = `
 <div>
   <div
-    class="relative w-full max-h-[70vh] animate-pulse"
+    class="relative w-full h-[100vh] md:h-[85vh] overflow-hidden animate-pulse"
   >
     <div
-      class="relative w-full min-h-[300px] max-h-[70vh] overflow-hidden aspect-[24/5]"
+      class="relative w-full h-full overflow-hidden"
     >
       <div
         class="bg-accent animate-pulse rounded-md absolute inset-0 w-full h-full"
@@ -176,13 +176,13 @@ exports[`HeroCarouselSkeleton stories snapshot > Minimal story renders and match
         class="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-transparent z-[5]"
       />
       <div
-        class="absolute inset-0 z-10 flex items-center"
+        class="absolute inset-0 z-10 flex items-center justify-center"
       >
         <div
           class="container mx-auto px-4 sm:px-6 lg:px-8"
         >
           <div
-            class="max-w-2xl"
+            class="max-w-2xl mx-auto flex flex-col items-center"
           >
             <div
               class="animate-pulse rounded-md h-6 sm:h-8 md:h-9 lg:h-10 w-3/4 bg-white/20 mb-3 sm:mb-4 md:mb-6"
@@ -215,10 +215,10 @@ exports[`HeroCarouselSkeleton stories snapshot > Minimal story renders and match
 exports[`HeroCarouselSkeleton stories snapshot > MobileLayout story renders and matches snapshot 1`] = `
 <div>
   <div
-    class="relative w-full max-h-[70vh] animate-pulse"
+    class="relative w-full h-[100vh] md:h-[85vh] overflow-hidden animate-pulse"
   >
     <div
-      class="relative w-full min-h-[300px] max-h-[70vh] overflow-hidden aspect-[24/5]"
+      class="relative w-full h-full overflow-hidden"
     >
       <div
         class="bg-accent animate-pulse rounded-md absolute inset-0 w-full h-full"
@@ -228,13 +228,13 @@ exports[`HeroCarouselSkeleton stories snapshot > MobileLayout story renders and 
         class="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-transparent z-[5]"
       />
       <div
-        class="absolute inset-0 z-10 flex items-center"
+        class="absolute inset-0 z-10 flex items-center justify-center"
       >
         <div
           class="container mx-auto px-4 sm:px-6 lg:px-8"
         >
           <div
-            class="max-w-2xl"
+            class="max-w-2xl mx-auto flex flex-col items-center"
           >
             <div
               class="animate-pulse rounded-md h-6 sm:h-8 md:h-9 lg:h-10 w-3/4 bg-white/20 mb-3 sm:mb-4 md:mb-6"
@@ -256,27 +256,27 @@ exports[`HeroCarouselSkeleton stories snapshot > MobileLayout story renders and 
       class="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex space-x-2"
     >
       <div
-        class="animate-pulse w-3 h-3 rounded-full bg-white/30"
+        class="animate-pulse rounded-md h-2 bg-white/30 w-8"
         data-slot="skeleton"
       />
       <div
-        class="animate-pulse w-3 h-3 rounded-full bg-white/30"
+        class="animate-pulse rounded-md h-2 bg-white/30 w-2"
         data-slot="skeleton"
       />
       <div
-        class="animate-pulse w-3 h-3 rounded-full bg-white/30"
+        class="animate-pulse rounded-md h-2 bg-white/30 w-2"
         data-slot="skeleton"
       />
     </div>
     <div
-      class="absolute bottom-6 right-6 z-20 hidden md:flex items-center space-x-2"
+      class="absolute bottom-6 right-6 z-30 flex gap-2"
     >
       <div
-        class="animate-pulse w-10 h-10 rounded-full bg-white/20"
+        class="animate-pulse rounded-md w-12 h-12 bg-white/20"
         data-slot="skeleton"
       />
       <div
-        class="animate-pulse w-10 h-10 rounded-full bg-white/20"
+        class="animate-pulse rounded-md w-12 h-12 bg-white/20"
         data-slot="skeleton"
       />
     </div>
@@ -295,10 +295,10 @@ exports[`HeroCarouselSkeleton stories snapshot > MobileLayout story renders and 
 exports[`HeroCarouselSkeleton stories snapshot > WithCustomSlideCount story renders and matches snapshot 1`] = `
 <div>
   <div
-    class="relative w-full max-h-[70vh] animate-pulse"
+    class="relative w-full h-[100vh] md:h-[85vh] overflow-hidden animate-pulse"
   >
     <div
-      class="relative w-full min-h-[300px] max-h-[70vh] overflow-hidden aspect-[24/5]"
+      class="relative w-full h-full overflow-hidden"
     >
       <div
         class="bg-accent animate-pulse rounded-md absolute inset-0 w-full h-full"
@@ -308,13 +308,13 @@ exports[`HeroCarouselSkeleton stories snapshot > WithCustomSlideCount story rend
         class="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-transparent z-[5]"
       />
       <div
-        class="absolute inset-0 z-10 flex items-center"
+        class="absolute inset-0 z-10 flex items-center justify-center"
       >
         <div
           class="container mx-auto px-4 sm:px-6 lg:px-8"
         >
           <div
-            class="max-w-2xl"
+            class="max-w-2xl mx-auto flex flex-col items-center"
           >
             <div
               class="animate-pulse rounded-md h-6 sm:h-8 md:h-9 lg:h-10 w-3/4 bg-white/20 mb-3 sm:mb-4 md:mb-6"
@@ -336,35 +336,35 @@ exports[`HeroCarouselSkeleton stories snapshot > WithCustomSlideCount story rend
       class="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex space-x-2"
     >
       <div
-        class="animate-pulse w-3 h-3 rounded-full bg-white/30"
+        class="animate-pulse rounded-md h-2 bg-white/30 w-8"
         data-slot="skeleton"
       />
       <div
-        class="animate-pulse w-3 h-3 rounded-full bg-white/30"
+        class="animate-pulse rounded-md h-2 bg-white/30 w-2"
         data-slot="skeleton"
       />
       <div
-        class="animate-pulse w-3 h-3 rounded-full bg-white/30"
+        class="animate-pulse rounded-md h-2 bg-white/30 w-2"
         data-slot="skeleton"
       />
       <div
-        class="animate-pulse w-3 h-3 rounded-full bg-white/30"
+        class="animate-pulse rounded-md h-2 bg-white/30 w-2"
         data-slot="skeleton"
       />
       <div
-        class="animate-pulse w-3 h-3 rounded-full bg-white/30"
+        class="animate-pulse rounded-md h-2 bg-white/30 w-2"
         data-slot="skeleton"
       />
     </div>
     <div
-      class="absolute bottom-6 right-6 z-20 hidden md:flex items-center space-x-2"
+      class="absolute bottom-6 right-6 z-30 flex gap-2"
     >
       <div
-        class="animate-pulse w-10 h-10 rounded-full bg-white/20"
+        class="animate-pulse rounded-md w-12 h-12 bg-white/20"
         data-slot="skeleton"
       />
       <div
-        class="animate-pulse w-10 h-10 rounded-full bg-white/20"
+        class="animate-pulse rounded-md w-12 h-12 bg-white/20"
         data-slot="skeleton"
       />
     </div>
@@ -383,10 +383,10 @@ exports[`HeroCarouselSkeleton stories snapshot > WithCustomSlideCount story rend
 exports[`HeroCarouselSkeleton stories snapshot > WithoutDots story renders and matches snapshot 1`] = `
 <div>
   <div
-    class="relative w-full max-h-[70vh] animate-pulse"
+    class="relative w-full h-[100vh] md:h-[85vh] overflow-hidden animate-pulse"
   >
     <div
-      class="relative w-full min-h-[300px] max-h-[70vh] overflow-hidden aspect-[24/5]"
+      class="relative w-full h-full overflow-hidden"
     >
       <div
         class="bg-accent animate-pulse rounded-md absolute inset-0 w-full h-full"
@@ -396,13 +396,13 @@ exports[`HeroCarouselSkeleton stories snapshot > WithoutDots story renders and m
         class="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-transparent z-[5]"
       />
       <div
-        class="absolute inset-0 z-10 flex items-center"
+        class="absolute inset-0 z-10 flex items-center justify-center"
       >
         <div
           class="container mx-auto px-4 sm:px-6 lg:px-8"
         >
           <div
-            class="max-w-2xl"
+            class="max-w-2xl mx-auto flex flex-col items-center"
           >
             <div
               class="animate-pulse rounded-md h-6 sm:h-8 md:h-9 lg:h-10 w-3/4 bg-white/20 mb-3 sm:mb-4 md:mb-6"
@@ -421,14 +421,14 @@ exports[`HeroCarouselSkeleton stories snapshot > WithoutDots story renders and m
       </div>
     </div>
     <div
-      class="absolute bottom-6 right-6 z-20 hidden md:flex items-center space-x-2"
+      class="absolute bottom-6 right-6 z-30 flex gap-2"
     >
       <div
-        class="animate-pulse w-10 h-10 rounded-full bg-white/20"
+        class="animate-pulse rounded-md w-12 h-12 bg-white/20"
         data-slot="skeleton"
       />
       <div
-        class="animate-pulse w-10 h-10 rounded-full bg-white/20"
+        class="animate-pulse rounded-md w-12 h-12 bg-white/20"
         data-slot="skeleton"
       />
     </div>
@@ -447,10 +447,10 @@ exports[`HeroCarouselSkeleton stories snapshot > WithoutDots story renders and m
 exports[`HeroCarouselSkeleton stories snapshot > WithoutNavigation story renders and matches snapshot 1`] = `
 <div>
   <div
-    class="relative w-full max-h-[70vh] animate-pulse"
+    class="relative w-full h-[100vh] md:h-[85vh] overflow-hidden animate-pulse"
   >
     <div
-      class="relative w-full min-h-[300px] max-h-[70vh] overflow-hidden aspect-[24/5]"
+      class="relative w-full h-full overflow-hidden"
     >
       <div
         class="bg-accent animate-pulse rounded-md absolute inset-0 w-full h-full"
@@ -460,13 +460,13 @@ exports[`HeroCarouselSkeleton stories snapshot > WithoutNavigation story renders
         class="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-transparent z-[5]"
       />
       <div
-        class="absolute inset-0 z-10 flex items-center"
+        class="absolute inset-0 z-10 flex items-center justify-center"
       >
         <div
           class="container mx-auto px-4 sm:px-6 lg:px-8"
         >
           <div
-            class="max-w-2xl"
+            class="max-w-2xl mx-auto flex flex-col items-center"
           >
             <div
               class="animate-pulse rounded-md h-6 sm:h-8 md:h-9 lg:h-10 w-3/4 bg-white/20 mb-3 sm:mb-4 md:mb-6"
@@ -488,15 +488,15 @@ exports[`HeroCarouselSkeleton stories snapshot > WithoutNavigation story renders
       class="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex space-x-2"
     >
       <div
-        class="animate-pulse w-3 h-3 rounded-full bg-white/30"
+        class="animate-pulse rounded-md h-2 bg-white/30 w-8"
         data-slot="skeleton"
       />
       <div
-        class="animate-pulse w-3 h-3 rounded-full bg-white/30"
+        class="animate-pulse rounded-md h-2 bg-white/30 w-2"
         data-slot="skeleton"
       />
       <div
-        class="animate-pulse w-3 h-3 rounded-full bg-white/30"
+        class="animate-pulse rounded-md h-2 bg-white/30 w-2"
         data-slot="skeleton"
       />
     </div>

@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import type { ActionFunctionArgs } from 'react-router';
-import { toast } from 'sonner';
 import { ApiError, type ShopperBasketsV2 } from '@salesforce/storefront-next-runtime/scapi';
 import { createApiClients } from '@/lib/api-clients';
 import { extractResponseError } from '@/lib/utils';
@@ -23,6 +22,7 @@ import { updateBasketWithCustomerInfoFallback } from '@/extensions/multiship/lib
 import { isRegisteredCustomer, getCurrentCustomer, saveShippingAddressToCustomer } from '@/lib/api/customer';
 import { getAddressKey, isAddressEqual } from '@/extensions/multiship/lib/address-utils';
 import { getTranslation } from '@/lib/i18next';
+import { fetchShippingMethodsMapForBasket } from '@/lib/checkout-loaders';
 
 /**
  * Handle multi-shipment shipping address submission
@@ -177,6 +177,7 @@ export async function handleMultiShipShippingAddress(
         }
 
         // Save addresses to customer profile for registered users (if addresses are new)
+        let profileUpdateError = false;
         if (isRegisteredCustomer(context)) {
             const customer = await getCurrentCustomer(context);
             if (customer?.customerId) {
@@ -196,7 +197,7 @@ export async function handleMultiShipShippingAddress(
                         // Save address to customer profile
                         const success = await saveShippingAddressToCustomer(context, customer.customerId, address);
                         if (!success) {
-                            toast.error(t('extMultiship:checkout.error'));
+                            profileUpdateError = true;
                         }
                     }
                 }
@@ -212,10 +213,19 @@ export async function handleMultiShipShippingAddress(
             sessionStorage.setItem('checkoutShippingAddress', 'NOT_USED');
         }
 
+        // Fetch shipping methods for all shipments (now that addresses are set)
+        const shippingMethodsMap = await fetchShippingMethodsMapForBasket(context, updatedBasket);
+
+        // Return success with basket for client-side state update and step advancement
         return Response.json({
             success: true,
             step: 'shippingAddress',
-            data: { addresses: Object.keys(addressToItemsMap) },
+            data: {
+                addresses: Object.keys(addressToItemsMap),
+                shippingMethodsMap,
+            },
+            basket: updatedBasket,
+            profileUpdateError,
         });
     } catch (error) {
         let errorMessage = t('errors:checkout.addressValidationFailed');

@@ -2,6 +2,9 @@
 
 A production-ready React storefront template for Salesforce Commerce Cloud, built with React Server Components and React Router 7.
 
+> [!IMPORTANT]
+> Storefront Next is a pilot or beta service that is subject to the Beta Services Terms at [Agreements - Salesforce.com](https://www.salesforce.com/company/legal/agreements/) or a written Unified Pilot Agreement if executed by Customer, and applicable terms in the [Product Terms Directory](https://ptd.salesforce.com/). Use of this pilot or beta service is at the Customer's sole discretion.
+
 ## Prerequisites
 
 Before you begin, ensure you have the following installed:
@@ -95,7 +98,7 @@ pnpm build
 pnpm push
 ```
 
-See the [Deployment Guide](https://github.com/SalesforceCommerceCloud/storefront-next/blob/main/packages/storefront-next-dev/README.md#push-bundle) for all options and configuration.
+See the [Deployment Guide](https://www.npmjs.com/package/@salesforce/storefront-next-dev?activeTab=readme) for all options and configuration.
 
 ## Available Scripts
 
@@ -138,11 +141,14 @@ src/
 
 ## Documentation
 
-- 📊 [Data Fetching](./README-DATA.md)
-- 🔐 [Authentication](./README-AUTH.md)
-- 🌍 [Internationalization](./README-I18N.md)
-- 🧪 [Testing](./README-TESTS.md)
-- 🔍 [ESLint](./README-ESLINT.md)
+- 📊 [Data Retrieval](./README-DATA.md)
+- 🔐 [Authentication & Session Management](./README-AUTH.md)
+- 🌍 [Internationalization (i18n)](./README-I18N.md)
+- 🧪 [Tests & Coverage](./README-TESTS.md)
+- 🔍 [ESLint Configuration & TypeScript Enforcement](./README-ESLINT.md)
+- ⚡ [Performance](./docs/README-PERFORMANCE.md)
+- 🔌 [Adapter Pattern Implementation Guide](./docs/README-ADAPTER-PATTERN-GUIDE.md)
+- 📖 [Story Coverage & Code Quality Enforcement](./docs/README-STORY-COVERAGE.md)
 
 ## Contributing
 
@@ -157,10 +163,11 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 ## Support
 
-- 📖 [Documentation](https://github.com/SalesforceCommerceCloud/storefront-next/tree/main/docs)
+- 📖 [Documentation (Pilot)](https://d1ahe7q2dhpmux.cloudfront.net/docs/commerce/storefront-next/overview)
+  - Use the username and password that were shared with you in the pilot Slack channel
 - 🐛 [Report Issues](https://github.com/SalesforceCommerceCloud/storefront-next/issues)
-- 💬 [Discussions](https://github.com/SalesforceCommerceCloud/storefront-next/discussions)
 
 ## License
 
 See [LICENSE](./LICENSE) for details.
+

@@ -34,6 +34,14 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/screenshots', express.static(SCREENSHOTS_DIR));
 
+// Tab routes - serve index.html for each tab path so refresh works
+const TAB_ROUTES = ['/micro-plans', '/screenshots', '/log', '/interventions'];
+TAB_ROUTES.forEach(route => {
+  app.get(route, (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  });
+});
+
 // SSE endpoint for real-time updates
 app.get('/events', (req, res) => {
   res.writeHead(200, {
@@ -214,14 +222,35 @@ app.get('/api/micro-plans', (req, res) => {
 // Helper: Parse screenshot filename
 // Format: YYYYMMDD-HHMMSS-subplan-XX-YY-{source|target}.png
 // Baseline format: YYYYMMDD-HHMMSS-00-00-baseline-{source|target}.png
+// Analysis format: YYYYMMDD-HHMMSS-XX-00-analysis-source.png
 function parseScreenshotFilename(filename) {
   const match = filename.match(/(\d{8})-(\d{6})-subplan-(\d+)-(\d+)-(source|target)\.png/);
 
   if (!match) {
-    // Try baseline format: YYYYMMDD-HHMMSS-00-00-baseline-{source|target}.png
-    const baselineMatch = filename.match(/(\d{8})-(\d{6})-\d+-\d+-baseline-(source|target)\.png/);
+    // Try analysis format: YYYYMMDD-HHMMSS-XX-00-analysis-source.png
+    const analysisMatch = filename.match(/(\d{8})-(\d{6})-(\d+)-(\d+)-analysis-(source|target)\.png/);
+    if (analysisMatch) {
+      const [, date, time, feature, subplan, variant] = analysisMatch;
+      const year = date.substring(0, 4);
+      const month = date.substring(4, 6);
+      const day = date.substring(6, 8);
+      const hour = time.substring(0, 2);
+      const minute = time.substring(2, 4);
+      const second = time.substring(4, 6);
+
+      return {
+        timestamp: new Date(`${year}-${month}-${day}T${hour}:${minute}:${second}Z`),
+        type: 'analysis',
+        featureNum: parseInt(feature),
+        subplanNum: parseInt(subplan),
+        variant
+      };
+    }
+
+    // Try baseline format: YYYYMMDD-HHMMSS-XX-YY-baseline-{source|target}.png
+    const baselineMatch = filename.match(/(\d{8})-(\d{6})-(\d+)-(\d+)-baseline-(source|target)\.png/);
     if (baselineMatch) {
-      const [, date, time, variant] = baselineMatch;
+      const [, date, time, feature, subplan, variant] = baselineMatch;
       const year = date.substring(0, 4);
       const month = date.substring(4, 6);
       const day = date.substring(6, 8);
@@ -232,9 +261,9 @@ function parseScreenshotFilename(filename) {
       return {
         timestamp: new Date(`${year}-${month}-${day}T${hour}:${minute}:${second}Z`),
         type: 'baseline',
-        featureNum: 0,
-        subplanNum: 0,
-        variant: variant  // Now properly extracts 'source' or 'target'
+        featureNum: parseInt(feature),
+        subplanNum: parseInt(subplan),
+        variant: variant
       };
     }
 

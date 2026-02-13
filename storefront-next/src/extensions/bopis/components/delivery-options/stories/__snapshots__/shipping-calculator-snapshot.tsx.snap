@@ -1,0 +1,13 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`ShippingCalculator stories snapshot > Default story renders and matches snapshot 1`] = `<div />`;
+
+exports[`ShippingCalculator stories snapshot > DesktopLayout story renders and matches snapshot 1`] = `<div />`;
+
+exports[`ShippingCalculator stories snapshot > InvalidZip story renders and matches snapshot 1`] = `<div />`;
+
+exports[`ShippingCalculator stories snapshot > MobileLayout story renders and matches snapshot 1`] = `<div />`;
+
+exports[`ShippingCalculator stories snapshot > WithResult story renders and matches snapshot 1`] = `<div />`;
+
+exports[`ShippingCalculator stories snapshot > WithValidZip story renders and matches snapshot 1`] = `<div />`;

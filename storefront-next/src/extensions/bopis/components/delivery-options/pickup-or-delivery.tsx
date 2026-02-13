@@ -38,6 +38,10 @@ interface PickupOrDeliveryProps {
     isDeliveryDisabled?: boolean;
     /** Additional CSS classes */
     className?: string;
+    /** ZIP code for delivery (when calculated) */
+    deliveryZipCode?: string;
+    /** Estimated delivery days (when calculated) */
+    deliveryDays?: number;
 }
 
 /**
@@ -64,6 +68,8 @@ export default function PickupOrDelivery({
     pickupStore,
     isDeliveryDisabled = false,
     className,
+    deliveryZipCode,
+    deliveryDays,
 }: PickupOrDeliveryProps): ReactElement {
     const { t } = useTranslation('extBopis');
     const handleValueChange = (newValue: string) => {
@@ -73,83 +79,146 @@ export default function PickupOrDelivery({
     };
     const openStoreLocator = useStoreLocator((state) => state.open);
 
-    // Memoize storeSelectiontText for performance
-    const storeSelectiontText = useMemo(() => {
+    // Memoize storeSelectionText for performance
+    const storeSelectionText = useMemo(() => {
         if (pickupStore) {
             return getStoreName(pickupStore);
         } else {
-            // If no pickup store is selected, use the 'selectStore' prompt
             return t('deliveryOptions.pickupOrDelivery.selectStore');
         }
     }, [pickupStore, t]);
 
     return (
-        <div className={cn('space-y-3', className)}>
+        <div className={cn('w-full', className)}>
             <RadioGroup
                 value={value}
                 onValueChange={handleValueChange}
-                className="space-y-3"
+                className="grid grid-cols-2 gap-2"
                 data-testid="delivery-option-select">
-                {/* Delivery Option */}
-                <div className="flex items-start space-x-2">
+                {/* Delivery Card */}
+                <Label
+                    htmlFor="delivery-option"
+                    className={cn(
+                        'flex items-start gap-2 p-3 rounded-lg border transition-colors text-left shadow-xs cursor-pointer',
+                        value === DELIVERY_OPTIONS.DELIVERY
+                            ? 'border-primary'
+                            : 'border-muted-foreground/20 hover:border-primary/50',
+                        isDeliveryDisabled && 'opacity-50 cursor-not-allowed'
+                    )}>
                     <RadioGroupItem
                         value={DELIVERY_OPTIONS.DELIVERY}
                         id="delivery-option"
                         disabled={isDeliveryDisabled}
+                        className="sr-only"
                     />
-                    <Label
-                        htmlFor="delivery-option"
-                        className={cn(
-                            'text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70',
-                            isDeliveryDisabled && 'opacity-50 cursor-not-allowed'
-                        )}>
-                        {t('deliveryOptions.pickupOrDelivery.shipToAddress')}
-                    </Label>
-                </div>
-                {/* Pickup Option */}
-                <div className="flex items-start space-x-2">
-                    <RadioGroupItem value={DELIVERY_OPTIONS.PICKUP} id="pickup-option" disabled={isPickupDisabled} />
-                    <div className="flex flex-col">
-                        {/* Pickup Label */}
-                        <div className="flex items-center space-x-1">
-                            <Label
-                                htmlFor="pickup-option"
-                                className={cn(
-                                    'text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70',
-                                    isPickupDisabled && 'opacity-50 cursor-not-allowed'
-                                )}>
+                    <div className="mt-0.5 shrink-0">
+                        <div
+                            className={cn(
+                                'w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors',
+                                value === DELIVERY_OPTIONS.DELIVERY ? 'border-primary' : 'border-muted-foreground/20'
+                            )}>
+                            {value === DELIVERY_OPTIONS.DELIVERY && (
+                                <div className="w-2.5 h-2.5 rounded-full bg-primary" />
+                            )}
+                        </div>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                        <div className="flex flex-col">
+                            <span className="text-xs font-medium text-foreground">
+                                {deliveryZipCode
+                                    ? t('deliveryOptions.pickupOrDelivery.deliverToZip', {
+                                          zipCode: deliveryZipCode,
+                                      })
+                                    : t('deliveryOptions.pickupOrDelivery.deliverTo')}
+                            </span>
+                            <p className="text-xs text-muted-foreground mt-0.5">
+                                {deliveryDays
+                                    ? t('deliveryOptions.pickupOrDelivery.deliveryInDays', {
+                                          days: deliveryDays,
+                                      })
+                                    : t('deliveryOptions.pickupOrDelivery.enterZipPrompt')}
+                            </p>
+                        </div>
+                    </div>
+                </Label>
+
+                {/* Pickup Card */}
+                <Label
+                    htmlFor="pickup-option"
+                    onClick={() => {
+                        if (!isPickupDisabled && !pickupStore) {
+                            openStoreLocator();
+                        }
+                    }}
+                    className={cn(
+                        'flex items-start gap-2 p-3 rounded-lg border transition-colors text-left shadow-xs cursor-pointer',
+                        value === DELIVERY_OPTIONS.PICKUP
+                            ? 'border-primary'
+                            : 'border-muted-foreground/20 hover:border-primary/50',
+                        isPickupDisabled && 'opacity-50 cursor-not-allowed'
+                    )}>
+                    <RadioGroupItem
+                        value={DELIVERY_OPTIONS.PICKUP}
+                        id="pickup-option"
+                        disabled={isPickupDisabled}
+                        className="sr-only"
+                    />
+                    <div className="mt-0.5 shrink-0">
+                        <div
+                            className={cn(
+                                'w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors',
+                                value === DELIVERY_OPTIONS.PICKUP ? 'border-primary' : 'border-muted-foreground/20'
+                            )}>
+                            {value === DELIVERY_OPTIONS.PICKUP && (
+                                <div className="w-2.5 h-2.5 rounded-full bg-primary" />
+                            )}
+                        </div>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                        <div className="flex flex-col">
+                            <span className="text-xs font-medium text-foreground">
                                 {!isPickupDisabled
                                     ? t('deliveryOptions.pickupOrDelivery.pickUpInStore')
                                     : t('deliveryOptions.pickupOrDelivery.unavailablePickUpIn')}
-                            </Label>
-                            {/* Store Name */}
-                            <div className="text-sm">
-                                <p>
+                            </span>
+                            {pickupStore ? (
+                                <div className="mt-0.5">
                                     <button
                                         type="button"
                                         onClick={(e) => {
                                             e.preventDefault();
+                                            e.stopPropagation();
                                             openStoreLocator();
                                         }}
-                                        className="text-primary underline hover:text-primary/80 cursor-pointer">
-                                        {storeSelectiontText}
+                                        className="text-xs text-primary hover:underline">
+                                        {storeSelectionText}
                                     </button>
-                                </p>
-                            </div>
-                        </div>
-                        {/* Stock message - Render only if a store is selected (pickupStore is truthy) */}
-                        {pickupStore &&
-                            (!isPickupDisabled ? (
-                                <span className="text-sm font-normal select-none text-muted-foreground mt-1">
-                                    {t('deliveryOptions.pickupOrDelivery.inStockAtStore')}
-                                </span>
+                                    {/* Stock message - Render only if a store is selected */}
+                                    {!isPickupDisabled ? (
+                                        <p className="text-xs font-normal text-muted-foreground mt-1">
+                                            {t('deliveryOptions.pickupOrDelivery.inStockAtStore')}
+                                        </p>
+                                    ) : (
+                                        <p className="text-xs font-normal text-destructive mt-1">
+                                            {t('deliveryOptions.pickupOrDelivery.outOfStockAtStore')}
+                                        </p>
+                                    )}
+                                </div>
                             ) : (
-                                <span className="text-sm font-normal select-none text-destructive mt-1">
-                                    {t('deliveryOptions.pickupOrDelivery.outOfStockAtStore')}
-                                </span>
-                            ))}
+                                <button
+                                    type="button"
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        openStoreLocator();
+                                    }}
+                                    className="text-xs text-primary mt-0.5 text-left hover:underline">
+                                    {storeSelectionText}
+                                </button>
+                            )}
+                        </div>
                     </div>
-                </div>
+                </Label>
             </RadioGroup>
         </div>
     );

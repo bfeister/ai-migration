@@ -13,34 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { type RouteConfig, type RouteConfigEntry } from '@react-router/dev/routes';
+import { type RouteConfig } from '@react-router/dev/routes';
 import { flatRoutes } from '@react-router/fs-routes';
 import fs from 'fs';
+import { mergeRoutes } from './routes-merge';
 
-const pluginRoutes: RouteConfigEntry[] = [];
-
-fs.readdirSync('./src/extensions').forEach((extension: string) => {
-    if (fs.existsSync(`./src/extensions/${extension}/routes`)) {
-        fs.readdirSync(`./src/extensions/${extension}/routes`).forEach((route: string) => {
-            if (
-                (route.endsWith('.tsx') || route.endsWith('.ts')) &&
-                !route.endsWith('.test.tsx') &&
-                !route.endsWith('.test.ts')
-            ) {
-                const routeName = route.replace('.tsx', '').replace('.ts', '');
-                pluginRoutes.push({
-                    id: `${extension}-${routeName}`,
-                    path: `/${routeName
-                        .replace(`./extensions/${extension}/routes/`, '')
-                        .replace('.', '/')
-                        .replace('$', ':')}`,
-                    file: `./extensions/${extension}/routes/${route}`,
-                });
-            }
-        });
-    }
-});
 export default (async () => {
-    const fileRoutes = await flatRoutes({ ignoredRouteFiles: ['**/*.test.{ts,tsx}'] });
-    return [...pluginRoutes, ...fileRoutes];
+    const ignoredRouteFiles = ['**/*.test.{ts,tsx}'];
+    const routes = await flatRoutes({ ignoredRouteFiles });
+
+    for (const extension of fs.readdirSync('./src/extensions')) {
+        const extensionRoutes = await flatRoutes({
+            ignoredRouteFiles,
+            rootDirectory: `extensions/${extension}/routes`,
+        });
+        mergeRoutes(routes, extensionRoutes, `extensions/${extension}/`);
+    }
+
+    return routes;
 })() satisfies RouteConfig;

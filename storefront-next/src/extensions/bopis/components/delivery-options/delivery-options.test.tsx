@@ -28,6 +28,10 @@ vi.mock('@/extensions/store-locator/providers/store-locator', () => ({
     useStoreLocator: vi.fn(),
 }));
 
+vi.mock('@/providers/product-content', () => ({
+    default: ({ children }: { children: React.ReactNode }) => children,
+}));
+
 // Use the mock product from __mocks__ directory
 const mockProduct = masterProduct;
 
@@ -67,7 +71,7 @@ describe('DeliveryOptions', () => {
 
         // Mock useStoreLocator to return a selector function
         mockUseStoreLocator.mockImplementation((selector) => {
-            const mockStoreState = { selectedStoreInfo: null, open: mockOpenStoreLocator };
+            const mockStoreState = { selectedStoreInfo: null, open: mockOpenStoreLocator, isOpen: false };
             return selector(mockStoreState);
         });
     });
@@ -79,7 +83,6 @@ describe('DeliveryOptions', () => {
             </BrowserRouter>
         );
 
-        expect(screen.getByText('Delivery:')).toBeInTheDocument();
         expect(screen.getByTestId('delivery-option-select')).toBeInTheDocument();
         expect(screen.getByText('Free pickup in')).toBeInTheDocument();
         expect(screen.getByText('Select Store')).toBeInTheDocument();
@@ -92,7 +95,6 @@ describe('DeliveryOptions', () => {
             </BrowserRouter>
         );
 
-        expect(screen.getByText('Delivery:')).toBeInTheDocument();
         expect(screen.getByTestId('delivery-option-select')).toBeInTheDocument();
     });
 
@@ -140,7 +142,7 @@ describe('DeliveryOptions', () => {
         });
 
         mockUseStoreLocator.mockImplementation((selector) => {
-            const mockStoreState = { selectedStoreInfo: mockStore, open: mockOpenStoreLocator };
+            const mockStoreState = { selectedStoreInfo: mockStore, open: mockOpenStoreLocator, isOpen: false };
             return selector(mockStoreState);
         });
 
@@ -164,7 +166,7 @@ describe('DeliveryOptions', () => {
         });
 
         mockUseStoreLocator.mockImplementation((selector) => {
-            const mockStoreState = { selectedStoreInfo: mockStore, open: mockOpenStoreLocator };
+            const mockStoreState = { selectedStoreInfo: mockStore, open: mockOpenStoreLocator, isOpen: false };
             return selector(mockStoreState);
         });
 
@@ -189,7 +191,7 @@ describe('DeliveryOptions', () => {
         });
 
         mockUseStoreLocator.mockImplementation((selector) => {
-            const mockStoreState = { selectedStoreInfo: mockStore, open: mockOpenStoreLocator };
+            const mockStoreState = { selectedStoreInfo: mockStore, open: mockOpenStoreLocator, isOpen: false };
             return selector(mockStoreState);
         });
 
@@ -199,8 +201,9 @@ describe('DeliveryOptions', () => {
             </BrowserRouter>
         );
 
-        const pickupRadio = screen.getByLabelText('Free pickup in');
-        fireEvent.click(pickupRadio);
+        const pickupCard = screen.getByText('Free pickup in').closest('label');
+        expect(pickupCard).not.toBeNull();
+        fireEvent.click(pickupCard as HTMLElement);
 
         expect(mockHandleDeliveryOptionChange).toHaveBeenCalledWith('pickup');
     });
@@ -217,7 +220,7 @@ describe('DeliveryOptions', () => {
         });
 
         mockUseStoreLocator.mockImplementation((selector) => {
-            const mockStoreState = { selectedStoreInfo: mockStore, open: mockOpenStoreLocator };
+            const mockStoreState = { selectedStoreInfo: mockStore, open: mockOpenStoreLocator, isOpen: false };
             return selector(mockStoreState);
         });
 
@@ -227,8 +230,9 @@ describe('DeliveryOptions', () => {
             </BrowserRouter>
         );
 
-        const deliveryRadio = screen.getByLabelText('Ship to Address');
-        fireEvent.click(deliveryRadio);
+        const deliveryCard = screen.getByText('Deliver to').closest('label');
+        expect(deliveryCard).not.toBeNull();
+        fireEvent.click(deliveryCard as HTMLElement);
 
         expect(mockHandleDeliveryOptionChange).toHaveBeenCalledWith('delivery');
     });
@@ -245,7 +249,7 @@ describe('DeliveryOptions', () => {
         });
 
         mockUseStoreLocator.mockImplementation((selector) => {
-            const mockStoreState = { selectedStoreInfo: mockStore, open: mockOpenStoreLocator };
+            const mockStoreState = { selectedStoreInfo: mockStore, open: mockOpenStoreLocator, isOpen: false };
             return selector(mockStoreState);
         });
 
@@ -255,8 +259,9 @@ describe('DeliveryOptions', () => {
             </BrowserRouter>
         );
 
-        const pickupRadio = screen.getByLabelText('Free pickup in');
-        fireEvent.click(pickupRadio);
+        const pickupCard = screen.getByText('Free pickup in').closest('label');
+        expect(pickupCard).not.toBeNull();
+        fireEvent.click(pickupCard as HTMLElement);
 
         expect(mockHandleDeliveryOptionChange).toHaveBeenCalledWith('pickup');
     });
@@ -284,8 +289,9 @@ describe('DeliveryOptions', () => {
             </BrowserRouter>
         );
 
-        const pickupRadio = screen.getByLabelText('Free pickup in');
-        fireEvent.click(pickupRadio);
+        const pickupCard = screen.getByText('Free pickup in').closest('label');
+        expect(pickupCard).not.toBeNull();
+        fireEvent.click(pickupCard as HTMLElement);
 
         expect(mockHandleDeliveryOptionChange).toHaveBeenCalledWith('pickup');
     });
@@ -313,7 +319,7 @@ describe('DeliveryOptions', () => {
         });
 
         mockUseStoreLocator.mockImplementation((selector) => {
-            const mockStoreState = { selectedStoreInfo: mockStore, open: mockOpenStoreLocator };
+            const mockStoreState = { selectedStoreInfo: mockStore, open: mockOpenStoreLocator, isOpen: false };
             return selector(mockStoreState);
         });
 
@@ -323,7 +329,7 @@ describe('DeliveryOptions', () => {
             </BrowserRouter>
         );
 
-        const pickupRadio = screen.getByLabelText('Pickup unavailable at');
-        expect(pickupRadio).toBeDisabled();
+        const pickupRadio = screen.getByRole('radio', { name: /pickup unavailable at/i });
+        expect(pickupRadio).toHaveAttribute('disabled');
     });
 });

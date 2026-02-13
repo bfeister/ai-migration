@@ -16,6 +16,7 @@
 import { getConfig } from '@/config/get-config';
 import type { RouterContextProvider } from 'react-router';
 import { COOKIE_TRACKING_CONSENT, COOKIE_DWSID } from '@/middlewares/auth.utils';
+import { modeDetectionContext } from '@/middlewares/mode-detection';
 
 /**
  * List of cookie names that should NOT be namespaced.
@@ -46,6 +47,7 @@ export interface CookieConfig {
     expires?: Date;
     maxAge?: number;
     httpOnly?: boolean;
+    partitioned?: boolean;
 }
 
 /**
@@ -129,11 +131,17 @@ export const getCookieConfig = <T extends object = CookieConfig>(
     cookieOptions?: T,
     context?: Readonly<RouterContextProvider>
 ): T & CookieConfig => {
+    const modeDetection = context?.get(modeDetectionContext);
+
     // 3. Start with defaults (lowest priority)
     const defaults: CookieConfig = {
         path: '/',
         sameSite: 'lax',
         secure: true,
+        ...(modeDetection?.isDesignMode && {
+            sameSite: 'none',
+            partitioned: true,
+        }),
     };
 
     // 2. Apply provided options (middle priority)

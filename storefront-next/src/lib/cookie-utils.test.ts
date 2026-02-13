@@ -386,5 +386,100 @@ describe('cookie-utils', () => {
                 sameSite: 'lax', // LOWEST: from defaults
             });
         });
+
+        describe('design mode detection', () => {
+            const createMockContext = (isDesignMode: boolean) => ({
+                get: vi.fn(() => ({
+                    isDesignMode,
+                    isPreviewMode: false,
+                })),
+            });
+
+            it('should apply partitioned cookie attributes in design mode', () => {
+                const mockContext = createMockContext(true) as any;
+
+                const config = getCookieConfig({}, mockContext);
+
+                expect(config).toEqual({
+                    path: '/',
+                    sameSite: 'none',
+                    secure: true,
+                    partitioned: true,
+                });
+            });
+
+            it('should use normal defaults when not in design mode', () => {
+                const mockContext = createMockContext(false) as any;
+
+                const config = getCookieConfig({}, mockContext);
+
+                expect(config).toEqual({
+                    path: '/',
+                    sameSite: 'lax',
+                    secure: true,
+                });
+            });
+
+            it('should use normal defaults when context is not provided', () => {
+                const config = getCookieConfig({});
+
+                expect(config).toEqual({
+                    path: '/',
+                    sameSite: 'lax',
+                    secure: true,
+                });
+            });
+
+            it('should allow overriding design mode attributes with provided options', () => {
+                const mockContext = createMockContext(true) as any;
+
+                const config = getCookieConfig(
+                    {
+                        sameSite: 'strict',
+                        partitioned: false,
+                    },
+                    mockContext
+                );
+
+                expect(config).toEqual({
+                    path: '/',
+                    sameSite: 'strict',
+                    secure: true,
+                    partitioned: false,
+                });
+            });
+
+            it('should handle context.get returning undefined for modeDetection', () => {
+                const mockContext = {
+                    get: vi.fn(() => undefined),
+                } as any;
+
+                const config = getCookieConfig({}, mockContext);
+
+                expect(config).toEqual({
+                    path: '/',
+                    sameSite: 'lax',
+                    secure: true,
+                });
+            });
+
+            it('should handle mode detection without isDesignMode property', () => {
+                const mockContext = {
+                    get: vi.fn(() => ({
+                        // Missing isDesignMode property (undefined value)
+                        isDesignMode: undefined,
+                        isPreviewMode: false,
+                    })),
+                } as any;
+
+                const config = getCookieConfig({}, mockContext);
+
+                expect(config).toEqual({
+                    path: '/',
+                    sameSite: 'lax',
+                    secure: true,
+                });
+            });
+        });
     });
 });

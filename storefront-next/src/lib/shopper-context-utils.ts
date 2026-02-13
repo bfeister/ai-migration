@@ -24,6 +24,7 @@ import {
 } from '@/lib/shopper-context-constants';
 import { getConfig } from '@/config';
 import { getCookie, setNamespacedCookie } from '@/lib/cookies.client';
+import { isDesignModeActive, isPreviewModeActive } from '@salesforce/storefront-next-runtime/design/mode';
 
 /**
  * Base cookie names (without USID suffix)
@@ -72,8 +73,7 @@ export const SOURCE_CODE_COOKIE_EXPIRY_SECONDS = 30 * 24 * 60 * 60;
  * @returns true if in Page Designer mode
  */
 export function isPageDesignerMode(url: URL): boolean {
-    const mode = url.searchParams.get('mode');
-    return mode === 'EDIT' || mode === 'PREVIEW';
+    return isDesignModeActive(url) || isPreviewModeActive(url);
 }
 
 const customQualifiersMapping = SHOPPER_CONTEXT_SEARCH_PARAMS.customQualifiers as Record<string, QualifierMapping>;

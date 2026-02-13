@@ -13,42 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import storybook from 'eslint-plugin-storybook';
 
-// TODO: generator should generate a working eslint config
+// ============================================================================
+// MONOREPO MODE
+// ============================================================================
+// In monorepo: This file imports the base config from the parent (../../eslint.config.js)
+//              and adds template-specific Storybook overrides from eslint.storybook-overrides.js
+//
+// In mirror repo: This entire file is REPLACED by scripts/generate-eslint-config.js
+//                 which reads the parent config and merges it with Storybook overrides.
+//
+// IMPORTANT: Storybook overrides are maintained in eslint.storybook-overrides.js
+//            Update that file if you need to modify Storybook-specific rules.
+// ============================================================================
+
 const baseConfig = await import('../../eslint.config.js');
+const { storybookOverrides } = await import('./eslint.storybook-overrides.js');
 
-export default [
-    ...baseConfig.default,
-    {
-        // Ignore Storybook config files from linting (they have their own TS project context)
-        // Also ignore other things to minimize memory issues
-        ignores: [
-            '.storybook/**/*',
-            'build/**/*',
-            'coverage/**/*',
-            'storybook-static/**/*',
-            '_local/**/*',
-            '**/__snapshots__/**/*',
-        ],
-    },
-    {
-        // Storybook story files - apply Storybook-specific rules
-        files: ['**/*.stories.{ts,tsx,js,jsx}', '**/*-snapshot.{ts,tsx,js,jsx}'],
-        plugins: {
-            storybook,
-        },
-        rules: {
-            ...storybook.configs.recommended.rules,
-            'import/no-namespace': 'off',
-            '@typescript-eslint/no-explicit-any': 'off',
-            '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
-            '@typescript-eslint/consistent-type-imports': 'off',
-            '@typescript-eslint/no-floating-promises': 'off',
-            '@typescript-eslint/require-await': 'off',
-            '@typescript-eslint/no-empty-function': 'off',
-            '@typescript-eslint/no-non-null-assertion': 'off',
-            'custom/color-linter': 'off',
-        },
-    },
-];
+export default [...baseConfig.default, ...storybookOverrides];

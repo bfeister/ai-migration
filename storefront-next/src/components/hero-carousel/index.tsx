@@ -23,8 +23,8 @@ import { AttributeDefinition } from '@/lib/decorators/attribute-definition';
 import withSuspense from '@/components/with-suspense';
 import HeroCarouselSkeleton from './skeleton';
 import { RegionDefinition } from '@/lib/decorators/region-definition';
-import type { ShopperExperience } from '@salesforce/storefront-next-runtime/scapi';
 import heroImage from '/images/hero-cube.webp';
+import type { ComponentType } from '@/components/region';
 
 @Component('heroCarousel', {
     name: 'Hero Carousel',
@@ -114,7 +114,7 @@ interface HeroCarouselProps {
     showDots?: boolean;
     showNavigation?: boolean;
     /** Component data containing regions from Page Designer */
-    component?: ShopperExperience.schemas['Component'];
+    component?: ComponentType;
 }
 
 export function HeroCarouselPlain({
@@ -238,7 +238,7 @@ export function HeroCarouselPlain({
 
     const emptyState = useMemo(
         () => (
-            <div className="relative w-full max-h-[70vh] flex items-center justify-center bg-muted">
+            <div className="relative w-full h-[100vh] md:h-[85vh] flex items-center justify-center bg-muted">
                 <p className="text-muted-foreground text-lg">No slides available</p>
             </div>
         ),
@@ -251,7 +251,7 @@ export function HeroCarouselPlain({
 
     return (
         <div
-            className="relative w-full max-h-[70vh]"
+            className="relative w-full h-[100vh] md:h-[85vh] overflow-hidden"
             role="region"
             aria-label={`Hero carousel with ${slides.length} slides`}
             onFocus={handleFocus}
@@ -267,9 +267,9 @@ export function HeroCarouselPlain({
                     loop: true,
                     containScroll: 'trimSnaps',
                 }}
-                className="w-full h-full">
+                className="w-full h-full [&_[data-slot=carousel-content]]:h-full [&_[data-slot=carousel-item]]:h-full">
                 {/* Passing -ml-4 to the CarouselContent to prevent CLS issues during hydration */}
-                <CarouselContent className="h-full -ml-4">
+                <CarouselContent className="h-full">
                     {slides.map((slide) => (
                         <CarouselItem key={slide.id} className="h-full">
                             <HeroSlideContent slide={image ? { ...slide, imageUrl: image.url } : slide} />
@@ -296,7 +296,7 @@ export function HeroCarouselPlain({
             )}
 
             {showNavigation && slides.length > 1 && (
-                <div className="absolute bottom-6 right-6 z-20 hidden md:flex items-center space-x-2">
+                <div className="absolute bottom-6 right-6 z-30 flex gap-2">
                     <NavigationButton
                         direction="prev"
                         onClick={() => api?.scrollPrev()}
@@ -335,10 +335,8 @@ const DotButton = React.memo(
     }): ReactElement => (
         <button
             onClick={() => onClick(index)}
-            className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                isActive
-                    ? 'bg-white dark:bg-black scale-125'
-                    : 'bg-white/50 dark:bg-black/50 hover:bg-white/75 dark:hover:bg-black/75'
+            className={`transition-all duration-300 ${
+                isActive ? 'w-8 h-2 bg-foreground' : 'w-2 h-2 bg-foreground/50 hover:bg-foreground/75'
             }`}
             role="tab"
             aria-selected={isActive}
@@ -371,9 +369,9 @@ const NavigationButton = React.memo(
             <button
                 onClick={onClick}
                 disabled={disabled}
-                className="w-10 h-10 rounded-full bg-background border border-border hover:bg-accent flex items-center justify-center transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="p-3 bg-foreground/10 hover:bg-foreground/20 backdrop-blur-sm transition-all focus:outline-none focus:ring-2 focus:ring-foreground/50 disabled:opacity-50 disabled:cursor-not-allowed"
                 aria-label={`${label} slide (${currentSlide} of ${totalSlides})`}>
-                <Icon className="h-4 w-4 text-foreground" />
+                <Icon className="w-6 h-6 text-foreground" strokeWidth={2} />
             </button>
         );
     }
@@ -383,17 +381,17 @@ NavigationButton.displayName = 'NavigationButton';
 
 const HeroSlideContent = React.memo(
     ({ slide }: { slide: HeroSlide }): ReactElement => (
-        <div className="relative w-full h-full min-h-[300px] max-h-[70vh] overflow-hidden">
+        <div className="relative w-full h-full overflow-hidden">
             <img
                 src={slide.imageUrl}
                 alt={slide.imageAlt}
                 fetchPriority="high"
-                className="w-full h-full min-h-[300px] object-cover"
+                className="absolute inset-0 w-full h-full object-cover"
             />
 
-            <div className="absolute inset-0 z-10 flex items-center">
+            <div className="absolute inset-0 z-10 flex items-center justify-center">
                 <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="max-w-2xl" data-theme="light">
+                    <div className="max-w-2xl mx-auto text-center" data-theme="light">
                         <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-foreground mb-3 sm:mb-4 md:mb-6 leading-none tracking-tight">
                             {slide.title}
                         </h1>
@@ -404,9 +402,13 @@ const HeroSlideContent = React.memo(
                             </p>
                         )}
 
-                        <Button asChild className="text-sm sm:text-base md:text-lg lg:text-xl p-3 sm:p-4 md:p-5 lg:p-6">
-                            <Link to={slide.ctaLink || '#'}>{slide.ctaText || 'Learn More'}</Link>
-                        </Button>
+                        <div className="flex justify-center">
+                            <Button
+                                asChild
+                                className="text-sm sm:text-base md:text-lg lg:text-xl p-3 sm:p-4 md:p-5 lg:p-6">
+                                <Link to={slide.ctaLink || '#'}>{slide.ctaText || 'Learn More'}</Link>
+                            </Button>
+                        </div>
                     </div>
                 </div>
             </div>

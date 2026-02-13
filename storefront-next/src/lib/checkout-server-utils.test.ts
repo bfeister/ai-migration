@@ -59,7 +59,7 @@ vi.mock('@/lib/api/shipping-methods', () => ({
     getShippingMethodsForShipment: vi.fn(),
 }));
 
-vi.mock('@/middlewares/basket.client', () => ({
+vi.mock('@/middlewares/basket.server', () => ({
     getBasket: vi.fn(),
 }));
 
@@ -82,8 +82,8 @@ describe('Checkout Server Utils', () => {
             const { createApiClients } = await import('@/lib/api-clients');
 
             const mockAuthSession: SessionData = {
-                access_token: 'test-token',
-                customer_id: 'test-customer-id',
+                accessToken: 'test-token',
+                customerId: 'test-customer-id',
                 userType: 'registered',
             };
 
@@ -125,8 +125,8 @@ describe('Checkout Server Utils', () => {
 
         it('should return null for guest users', async () => {
             const mockAuthSession: SessionData = {
-                access_token: 'test-token',
-                customer_id: 'test-customer-id',
+                accessToken: 'test-token',
+                customerId: 'test-customer-id',
                 userType: 'guest',
             };
 
@@ -143,8 +143,8 @@ describe('Checkout Server Utils', () => {
 
         it('should return null when customer_id is missing', async () => {
             const mockAuthSession: SessionData = {
-                access_token: 'test-token',
-                customer_id: undefined,
+                accessToken: 'test-token',
+                customerId: undefined,
                 userType: 'registered',
             };
 
@@ -156,7 +156,7 @@ describe('Checkout Server Utils', () => {
 
     describe('getServerShippingMethodsMap', () => {
         it('should fetch shipping methods for basket', async () => {
-            const { getBasket } = await import('@/middlewares/basket.client');
+            const { getBasket } = await import('@/middlewares/basket.server');
             const { fetchShippingMethodsMapForBasket } = await import('@/lib/checkout-loaders');
 
             const mockBasket = {
@@ -170,7 +170,7 @@ describe('Checkout Server Utils', () => {
                 },
             };
 
-            vi.mocked(getBasket).mockReturnValue(mockBasket as any);
+            vi.mocked(getBasket).mockResolvedValue({ current: mockBasket, snapshot: null } as any);
             vi.mocked(fetchShippingMethodsMapForBasket).mockResolvedValue(mockShippingMethods as any);
 
             const result = await getServerShippingMethodsMap(mockContext);
@@ -183,12 +183,12 @@ describe('Checkout Server Utils', () => {
     describe('getServerCheckoutData', () => {
         it('should fetch all checkout data successfully for registered user', async () => {
             const { createApiClients } = await import('@/lib/api-clients');
-            const { getBasket } = await import('@/middlewares/basket.client');
+            const { getBasket } = await import('@/middlewares/basket.server');
             const { fetchShippingMethodsMapForBasket } = await import('@/lib/checkout-loaders');
 
             const mockAuthSession: SessionData = {
-                access_token: 'test-token',
-                customer_id: 'test-customer-id',
+                accessToken: 'test-token',
+                customerId: 'test-customer-id',
                 userType: 'registered',
             };
 
@@ -218,10 +218,10 @@ describe('Checkout Server Utils', () => {
             };
 
             vi.mocked(createApiClients).mockReturnValue(mockClients as any);
-            vi.mocked(getBasket).mockReturnValue(mockBasket as any);
+            vi.mocked(getBasket).mockResolvedValue({ current: mockBasket, snapshot: null } as any);
             vi.mocked(fetchShippingMethodsMapForBasket).mockResolvedValue(mockShippingMethods as any);
 
-            const result = getServerCheckoutData(
+            const result = await getServerCheckoutData(
                 {
                     context: mockContext,
                 } as any,
@@ -236,10 +236,10 @@ describe('Checkout Server Utils', () => {
             });
         });
 
-        it('should handle null authSession', () => {
+        it('should handle null authSession', async () => {
             const mockAuthSession = null as any;
 
-            const result = getServerCheckoutData(
+            const result = await getServerCheckoutData(
                 {
                     context: mockContext,
                 } as any,
@@ -255,12 +255,12 @@ describe('Checkout Server Utils', () => {
         });
 
         it('should handle guest user', async () => {
-            const { getBasket } = await import('@/middlewares/basket.client');
+            const { getBasket } = await import('@/middlewares/basket.server');
             const { fetchShippingMethodsMapForBasket } = await import('@/lib/checkout-loaders');
 
             const mockAuthSession: SessionData = {
-                access_token: 'test-token',
-                customer_id: 'guest-customer-id',
+                accessToken: 'test-token',
+                customerId: 'guest-customer-id',
                 userType: 'guest',
             };
 
@@ -269,10 +269,10 @@ describe('Checkout Server Utils', () => {
                 shipments: [{ shipmentId: 'shipment-1', shippingAddress: { address1: '789 Elm St' } }],
             };
 
-            vi.mocked(getBasket).mockReturnValue(mockBasket as any);
+            vi.mocked(getBasket).mockResolvedValue({ current: mockBasket, snapshot: null } as any);
             vi.mocked(fetchShippingMethodsMapForBasket).mockResolvedValue({} as any);
 
-            const result = getServerCheckoutData(
+            const result = await getServerCheckoutData(
                 {
                     context: mockContext,
                 } as any,

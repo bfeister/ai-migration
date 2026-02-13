@@ -158,7 +158,8 @@ describe('createApiClients', () => {
         it('should add authentication middleware', () => {
             createApiClients(mockContextProvider);
 
-            // Three middlewares in use: correlation, auth, and identifying headers
+            // Four middlewares in use: correlation, auth, identifying headers, and maintenance
+            // 3 with the middleware disabled
             expect(mockUse).toHaveBeenCalledTimes(3);
             expect(mockUse).toHaveBeenCalledWith(
                 expect.objectContaining({
@@ -320,8 +321,8 @@ describe('createApiClients', () => {
             it('should add Authorization header with Bearer token', async () => {
                 const mockRequest = new Request('https://api.example.com/test');
                 const mockSession: SessionData = {
-                    access_token: 'test-access-token-123',
-                    customer_id: 'test-customer',
+                    accessToken: 'test-access-token-123',
+                    customerId: 'test-customer',
                     userType: 'registered',
                 };
 
@@ -337,8 +338,8 @@ describe('createApiClients', () => {
             it('should add dwsid header when present in session', async () => {
                 const mockRequest = new Request('https://api.example.com/test');
                 const mockSession: SessionData = {
-                    access_token: 'test-access-token-123',
-                    customer_id: 'test-customer',
+                    accessToken: 'test-access-token-123',
+                    customerId: 'test-customer',
                     userType: 'registered',
                     dwsid: 'test-dwsid-value',
                 };
@@ -355,8 +356,8 @@ describe('createApiClients', () => {
             it('should retrieve auth session from context', async () => {
                 const mockRequest = new Request('https://api.example.com/test');
                 const mockSession: SessionData = {
-                    access_token: 'another-token',
-                    customer_id: 'customer-456',
+                    accessToken: 'another-token',
+                    customerId: 'customer-456',
                     userType: 'guest',
                 };
 
@@ -397,8 +398,8 @@ describe('createApiClients', () => {
                     },
                 });
                 const mockSession: SessionData = {
-                    access_token: 'test-token',
-                    customer_id: 'test-customer',
+                    accessToken: 'test-token',
+                    customerId: 'test-customer',
                     userType: 'registered',
                     dwsid: 'session-id-123',
                 };
@@ -431,8 +432,8 @@ describe('createApiClients', () => {
             it('should return the modified request', async () => {
                 const mockRequest = new Request('https://api.example.com/test');
                 const mockSession: SessionData = {
-                    access_token: 'test-token',
-                    customer_id: 'test-customer',
+                    accessToken: 'test-token',
+                    customerId: 'test-customer',
                     userType: 'registered',
                 };
 
@@ -451,8 +452,8 @@ describe('createApiClients', () => {
                     'https://api.example.com/shopper/auth/v1/organizations/test/oauth2/token'
                 );
                 const mockSession: SessionData = {
-                    access_token: 'test-token',
-                    customer_id: 'test-customer',
+                    accessToken: 'test-token',
+                    customerId: 'test-customer',
                     userType: 'registered',
                     dwsid: 'test-dwsid',
                 };

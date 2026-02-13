@@ -21,6 +21,7 @@ import { isStoreOutOfStock as storeOutOfStockFor, isSiteOutOfStock as siteOutOfS
 import { isProductSet, isProductBundle } from '@/lib/product-utils';
 import { usePickup } from '@/extensions/bopis/context/pickup-context';
 import type { SelectedStoreInfo } from '@/extensions/store-locator/stores/store-locator-store';
+import { useStoreLocator } from '@/extensions/store-locator/providers/store-locator';
 
 interface UseDeliveryOptionsProps {
     /** The product to check inventory for */
@@ -74,6 +75,10 @@ export function useDeliveryOptions({ product, quantity, isInBasket, pickupStore 
 
     const pickupContext = usePickup();
     const pickupRef = useRef(pickupContext);
+
+    // Track store locator dialog state
+    const isStoreLocatorOpen = useStoreLocator((state) => state.isOpen);
+    const prevIsStoreLocatorOpen = useRef(isStoreLocatorOpen);
 
     // Update ref when pickupContext changes
     useEffect(() => {
@@ -171,6 +176,12 @@ export function useDeliveryOptions({ product, quantity, isInBasket, pickupStore 
         // Skip auto-change for items already in the basket
         if (isInBasket) return;
 
+        // Don't auto-switch when dialog is open (user is selecting a store)
+        if (isStoreLocatorOpen) {
+            prevIsStoreLocatorOpen.current = isStoreLocatorOpen;
+            return;
+        }
+
         const isDeliveryAvailable = !isSiteOutOfStock;
         const isPickupAvailable = !isStoreOutOfStock && !!pickupStore?.inventoryId;
 
@@ -185,6 +196,9 @@ export function useDeliveryOptions({ product, quantity, isInBasket, pickupStore 
         } else if (selectedDeliveryOption === DELIVERY_OPTIONS.DELIVERY && !isDeliveryAvailable && isPickupAvailable) {
             handleDeliveryOptionChange(DELIVERY_OPTIONS.PICKUP);
         }
+
+        // Update ref after all checks to detect transitions on next render
+        prevIsStoreLocatorOpen.current = isStoreLocatorOpen;
     }, [
         selectedDeliveryOption,
         isStoreOutOfStock,
@@ -192,6 +206,7 @@ export function useDeliveryOptions({ product, quantity, isInBasket, pickupStore 
         pickupStore?.inventoryId,
         handleDeliveryOptionChange,
         isInBasket,
+        isStoreLocatorOpen,
     ]);
 
     return {

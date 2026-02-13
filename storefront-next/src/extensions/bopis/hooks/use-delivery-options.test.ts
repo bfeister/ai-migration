@@ -33,6 +33,14 @@ vi.mock('@/extensions/bopis/context/pickup-context', () => ({
     })),
 }));
 
+// Mock the store locator
+vi.mock('@/extensions/store-locator/providers/store-locator', () => ({
+    useStoreLocator: vi.fn((selector) => {
+        const mockState = { isOpen: false };
+        return selector ? selector(mockState) : mockState;
+    }),
+}));
+
 // Mock the inventory utils
 vi.mock('@/lib/inventory-utils', async () => {
     const actual = await vi.importActual('@/lib/inventory-utils');

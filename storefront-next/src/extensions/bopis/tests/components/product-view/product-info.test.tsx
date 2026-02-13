@@ -63,8 +63,8 @@ describe('ProductInfo - BOPIS', () => {
 
             // DeliveryOptions should be rendered in normal mode
             // Check for text that exists in DeliveryOptions component
-            expect(screen.getByText(/Delivery:/i)).toBeInTheDocument();
-            expect(screen.getByText(/Ship to Address/i)).toBeInTheDocument();
+            expect(screen.getByText(/Deliver to/i)).toBeInTheDocument();
+            expect(screen.getByText(/Free pickup in/i)).toBeInTheDocument();
         });
 
         test('should not render DeliveryOptions in edit mode without basketPickupStore', () => {
@@ -94,8 +94,8 @@ describe('ProductInfo - BOPIS', () => {
             render(<RouterProvider router={router} />);
 
             // DeliveryOptions hidden in edit mode when no basket pickup store exists
-            expect(screen.queryByText(/Delivery:/i)).not.toBeInTheDocument();
-            expect(screen.queryByText(/Ship to Address/i)).not.toBeInTheDocument();
+            expect(screen.queryByText(/Deliver to/i)).not.toBeInTheDocument();
+            expect(screen.queryByText(/Free pickup in/i)).not.toBeInTheDocument();
         });
     });
 });

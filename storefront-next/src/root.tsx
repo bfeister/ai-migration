@@ -17,7 +17,6 @@ import { type PropsWithChildren, useMemo } from 'react';
 
 // React Router
 import {
-    type ClientLoaderFunctionArgs,
     type DataStrategyResult,
     isRouteErrorResponse,
     Links,
@@ -25,6 +24,7 @@ import {
     type LoaderFunctionArgs,
     Meta,
     type MiddlewareFunction,
+    Navigate,
     Outlet,
     Scripts,
     ScrollRestoration,
@@ -35,7 +35,6 @@ import {
 } from 'react-router';
 
 // Third-party libraries
-import type { ShopperBasketsV2 } from '@salesforce/storefront-next-runtime/scapi';
 import { type i18n } from 'i18next';
 import { I18nextProvider } from 'react-i18next';
 import { PageDesignerProvider } from '@salesforce/storefront-next-runtime/design/react/core';
@@ -43,8 +42,9 @@ import { isDesignModeActive, isPreviewModeActive } from '@salesforce/storefront-
 
 // Middlewares
 import authMiddlewareServer, { getAuth as getAuthServer } from '@/middlewares/auth.server';
-import authMiddlewareClient, { getAuth as getAuthClient } from '@/middlewares/auth.client';
-import basketMiddlewareClient, { getBasket } from '@/middlewares/basket.client';
+import authMiddlewareClient from '@/middlewares/auth.client';
+import { getPublicSessionData } from '@/middlewares/auth.utils';
+import createBasketMiddleware, { basketResourceContext, type BasketSnapshot } from '@/middlewares/basket.server';
 import shopperContextMiddlewareServer from '@/middlewares/shopper-context.server';
 import shopperContextMiddlewareClient from '@/middlewares/shopper-context.client';
 import legacyRoutesMiddlewareClient from '@/middlewares/legacy-routes.client';
@@ -58,9 +58,11 @@ import { i18nextMiddleware } from '@/middlewares/i18next.server';
 import { currencyMiddleware } from '@/middlewares/currency.server';
 import { currencyClientMiddleware } from '@/middlewares/currency.client';
 import { correlationMiddleware } from '@/middlewares/correlation.server';
+import { modeDetectionMiddlewareServer, modeDetectionMiddlewareClient } from '@/middlewares/mode-detection';
+import { maintenanceMiddleware } from '@/middlewares/maintenance.server';
 
 // Providers
-import AuthProvider, { bootstrapAuth } from '@/providers/auth';
+import AuthProvider from '@/providers/auth';
 import BasketProvider from '@/providers/basket';
 import { ComposeProviders } from '@/providers/compose-providers';
 import { type AppConfig, ConfigProvider, getConfig } from '@/config';
@@ -77,7 +79,7 @@ import { TrackingConsentBanner } from '@/components/tracking-consent-banner';
 import { useExecutePendingAction } from '@/hooks/use-execute-pending-action';
 
 // Lib/Utils
-import type { SessionData } from '@/lib/api/types';
+import type { PublicSessionData } from '@/lib/api/types';
 import { i18nextContext } from '@/lib/i18next';
 import { initI18next } from '@/lib/i18next.client';
 import { PageViewTracker } from '@/lib/analytics/page-view-tracker';
@@ -91,7 +93,7 @@ import { EINSTEIN_ADAPTER_NAME } from '@/adapters/einstein';
 import favicon from '/favicon.ico';
 
 // Styles
-import { PageDesignerStyles } from '@/page-designer-styles';
+import { PageDesignerInit } from '@/page-designer-init';
 import appStylesHref from './app.css?url';
 
 // Extensions
@@ -99,7 +101,9 @@ import appStylesHref from './app.css?url';
 import { HybridProxyNavigationInterceptor } from '@/extensions/hybrid-proxy/navigation-interceptor';
 /** @sfdc-extension-line SFDC_EXT_HYBRID_PROXY */
 import { isProxyPath } from '@/extensions/hybrid-proxy/config';
-import { PluginProviders } from '@/plugins/plugin-providers';
+import { TargetProviders } from '@/targets/target-providers';
+import { MAINTENANCE_ERROR } from './lib/api-clients';
+import { type Maintenance, maintenanceContext } from '@/lib/maintenance';
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const links: LinksFunction = () => [
@@ -110,11 +114,14 @@ export const links: LinksFunction = () => [
 // eslint-disable-next-line react-refresh/only-export-components
 export const middleware: MiddlewareFunction<Response>[] = [
     correlationMiddleware,
+    modeDetectionMiddlewareServer,
     appConfigMiddlewareServer,
     i18nextMiddleware,
     currencyMiddleware, // Read currency cookie early
     performanceMetricsMiddlewareServer,
+    maintenanceMiddleware,
     authMiddlewareServer,
+    createBasketMiddleware(),
     shopperContextMiddlewareServer,
 ];
 
@@ -123,11 +130,11 @@ export const clientMiddleware: MiddlewareFunction<Record<string, DataStrategyRes
     // Client middleware functions have varying return types, but React Router expects Record<string, DataStrategyResult>
     // We cast through unknown to avoid type errors while maintaining runtime correctness
     appConfigMiddlewareClient as unknown as MiddlewareFunction<Record<string, DataStrategyResult>>, // Must run first to set config in context
+    modeDetectionMiddlewareClient,
     legacyRoutesMiddlewareClient as unknown as MiddlewareFunction<Record<string, DataStrategyResult>>, // Checks hybrid.enabled, needs config from context
     performanceMetricsMiddlewareClient as unknown as MiddlewareFunction<Record<string, DataStrategyResult>>,
     currencyClientMiddleware as unknown as MiddlewareFunction<Record<string, DataStrategyResult>>, // Read currency from cookie
     authMiddlewareClient as unknown as MiddlewareFunction<Record<string, DataStrategyResult>>,
-    basketMiddlewareClient as unknown as MiddlewareFunction<Record<string, DataStrategyResult>>,
     shopperContextMiddlewareClient as unknown as MiddlewareFunction<Record<string, DataStrategyResult>>,
 ];
 
@@ -142,8 +149,11 @@ export const loader = ({
     context,
     request,
 }: LoaderFunctionArgs): {
-    auth: () => SessionData; // Use a function to prevent state serialization
+    // Public auth data - only non-sensitive fields, safe to serialize
+    clientAuth: PublicSessionData;
     appConfig: AppConfig;
+    basketSnapshot: BasketSnapshot | null;
+    maintenance: Maintenance;
     locale: string;
     currency: string;
     correlationId: string;
@@ -170,47 +180,37 @@ export const loader = ({
     // Currency is already resolved by middleware
     const currency = context.get(currencyContext) as string;
 
+    // Load the application basket provider with the basket snapshot. We are actively not loading the basket, as
+    // we want to lazy load the basket when the basket is needed. This prevents low-engagement users from causing
+    // unnecessary resource usage in the form of basket creations.
+    const basketSnapshot = context.get(basketResourceContext)?.snapshot ?? null;
+
     // Get correlation ID from middleware for request tracing
     const correlationId = context.get(correlationContext);
 
+    // Get maintenance data from middleware
+    const maintenance = context.get(maintenanceContext);
+
+    // Extract only non-sensitive fields for client - tokens stay server-side only
+    const clientAuth = getPublicSessionData(session);
+
     return {
         appConfig,
+        basketSnapshot,
         locale,
         currency,
         correlationId,
-        // Wrap these returned objects with a function, to avoid React Router serialization
-        auth: () => session,
+        maintenance,
+        clientAuth,
         getI18next: () => i18next,
         pageDesignerMode: isDesignModeActive(request) ? 'EDIT' : isPreviewModeActive(request) ? 'PREVIEW' : undefined,
     };
 };
 
-// eslint-disable-next-line react-refresh/only-export-components
-export const clientLoader = ({
-    context,
-}: ClientLoaderFunctionArgs): {
-    auth: () => SessionData;
-    basket: ShopperBasketsV2.schemas['Basket'];
-    currency: string;
-} => {
-    const currency = context.get(currencyContext) as string;
-
-    return {
-        auth: () => getAuthClient(context),
-        basket: getBasket(context),
-        currency,
-    };
-};
-clientLoader.hydrate = true as const;
-
 // This creates a union type where properties unique to either loader are optional
 // Properties present in both loaders remain required
 type ServerLoaderData = ReturnType<typeof loader>;
-type ClientLoaderData = Awaited<ReturnType<typeof clientLoader>>;
-export type RootLoaderData = Partial<ServerLoaderData> &
-    Partial<ClientLoaderData> &
-    // Properties present in both should remain required
-    Pick<ServerLoaderData & ClientLoaderData, keyof ServerLoaderData & keyof ClientLoaderData>;
+type LoaderData = ServerLoaderData;
 
 export function Layout({ children }: PropsWithChildren) {
     const matches = useMatches();
@@ -218,7 +218,7 @@ export function Layout({ children }: PropsWithChildren) {
     const appConfig = (rootMatch?.data as { appConfig?: AppConfig })?.appConfig;
     const appConfigScript = appConfig ? `window.__APP_CONFIG__ = ${JSON.stringify(appConfig)};` : '';
 
-    const data = useRouteLoaderData<RootLoaderData>('root');
+    const data = useRouteLoaderData<LoaderData>('root');
     const i18next = (typeof window === 'undefined' ? data?.getI18next?.() : i18nextOnClient) as i18n;
 
     return (
@@ -260,6 +260,13 @@ export function Layout({ children }: PropsWithChildren) {
 }
 
 export function ErrorBoundary({ error }: { error: unknown }) {
+    // Handle maintenance mode errors
+    // Error is serialized when crossing server->client boundary, so we check the string representation
+    if (error && error.toString().indexOf(MAINTENANCE_ERROR) >= 0) {
+        // Use React Router Navigate for smooth client-side navigation
+        return <Navigate to="/maintenance" replace />;
+    }
+
     let message = 'Oops!';
     let details: string | undefined;
     let stack: string | undefined;
@@ -286,9 +293,9 @@ export function ErrorBoundary({ error }: { error: unknown }) {
 }
 
 export default function App({
-    loaderData: { auth, basket, getI18next, currency, correlationId, pageDesignerMode },
+    loaderData: { clientAuth, basketSnapshot, getI18next, currency, correlationId, pageDesignerMode },
 }: {
-    loaderData: RootLoaderData;
+    loaderData: LoaderData;
 }) {
     // Currency is always provided by loader (which reads from middleware)
     if (!currency) {
@@ -303,19 +310,11 @@ export default function App({
         throw new Error('App configuration not available - check server loader and window.__APP_CONFIG__');
     }
 
-    // **Important:** As intentionally we are not using a `HydrateFallback` at this root layout level, we have to deal
-    // with the behavior that the initial rendering during hydration is executed **before** the `clientMiddleware` and
-    // the `clientLoader` (which is annotated with `hydrate=true`) execute.
-    //
-    // For app config: We set it via <ConfigProvider> below to ensure it's available during the initial render cycle,
-    // before the client middleware runs. This prevents timing issues when components access config during hydration.
-    //
-    // For auth: During initial hydration (before clientLoader runs), auth?.() returns undefined.
-    // We fall back to a bootstrap auth value derived from cookies (on the client) so that hydration
-    // has access to auth data. Once clientLoader runs and provides session data, that loader-based
-    // value becomes the single source of truth.
-    const loaderSession = auth?.();
-    const sessionData = loaderSession ?? bootstrapAuth;
+    // In server-only auth architecture:
+    // - clientAuth contains only non-sensitive fields (userType, customerId, usid, etc.)
+    // - These values are serialized directly from the server loader
+    // - No client middleware or bootstrap needed - server is the single source of truth
+    // - Tokens (accessToken, refreshToken) stay server-side only
 
     // Initialize Page Designer components
     initializeRegistry();
@@ -329,19 +328,19 @@ export default function App({
                 [I18nextProvider, { i18n: i18next }],
                 [ConfigProvider, { config: appConfig }],
                 [CurrencyProvider, { value: currency }],
-                [AuthProvider, { value: sessionData }],
-                [BasketProvider, { value: basket }],
+                [AuthProvider, { value: clientAuth }],
+                [BasketProvider, { snapshot: basketSnapshot }],
                 [RecommendersProvider, { adapterName: EINSTEIN_ADAPTER_NAME }],
                 [CorrelationProvider, { value: correlationId }],
             ] as const,
-        [correlationId, i18next, appConfig, currency, sessionData, basket]
+        [correlationId, i18next, appConfig, currency, clientAuth, basketSnapshot]
     );
 
     let content = (
         <>
             <AuthActionExecutor />
-            <PageDesignerProvider clientId="odyssey" targetOrigin="*" usid={sessionData?.usid} mode={pageDesignerMode}>
-                <PageDesignerStyles />
+            <PageDesignerProvider clientId="odyssey" targetOrigin="*" usid={clientAuth?.usid} mode={pageDesignerMode}>
+                <PageDesignerInit />
                 <Outlet />
             </PageDesignerProvider>
             <TrackingConsentBanner />
@@ -359,7 +358,7 @@ export default function App({
 
     return (
         <ComposeProviders providers={providers}>
-            <PluginProviders>{content}</PluginProviders>
+            <TargetProviders>{content}</TargetProviders>
         </ComposeProviders>
     );
 }

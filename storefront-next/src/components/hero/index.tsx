@@ -77,39 +77,37 @@ export default function Hero({
     const objectPosition = `${focalX} ${focalY}`;
 
     return (
-        <div className="relative w-full overflow-hidden">
-            {/* Responsive aspect ratio container */}
-            <div className="relative w-full aspect-[16/9] sm:aspect-[21/9] md:aspect-[2.5/1] lg:aspect-[3/1] min-h-[400px] sm:min-h-[450px] md:min-h-[500px] lg:min-h-[600px]">
-                {/* Background image with proper object-fit */}
-                <img
-                    src={imageUrl.url}
-                    alt={imageAlt}
-                    fetchPriority="high"
-                    className="absolute inset-0 w-full h-full object-cover"
-                    style={{ objectPosition }}
-                />
+        <div className="relative w-full h-[100vh] md:h-[85vh] overflow-hidden">
+            {/* Background image with proper object-fit */}
+            <img
+                src={imageUrl.url}
+                alt={imageAlt}
+                fetchPriority="high"
+                className="absolute inset-0 w-full h-full object-cover"
+                style={{ objectPosition }}
+            />
 
-                {/* Content overlay */}
-                <div className="absolute inset-0 z-10 flex items-center">
-                    <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-                        <div className="max-w-xl lg:max-w-2xl">
-                            {/* Responsive heading */}
-                            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-3 sm:mb-4 md:mb-6 leading-tight tracking-tight drop-shadow-lg">
-                                {title}
-                            </h1>
+            {/* Content overlay */}
+            <div className="absolute inset-0 z-10 flex items-center justify-center">
+                <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="max-w-2xl mx-auto text-center" data-theme="light">
+                        {/* Responsive heading */}
+                        <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-foreground mb-3 sm:mb-4 md:mb-6 leading-none tracking-tight">
+                            {title}
+                        </h1>
 
-                            {/* Responsive subtitle */}
-                            {subtitle && (
-                                <p className="text-base sm:text-lg md:text-xl lg:text-2xl font-normal text-muted-foreground mb-6 sm:mb-8 leading-relaxed tracking-wide max-w-prose">
-                                    {subtitle}
-                                </p>
-                            )}
+                        {/* Responsive subtitle */}
+                        {subtitle && (
+                            <p className="text-sm sm:text-base md:text-lg lg:text-xl font-normal text-muted-foreground mb-4 sm:mb-6 md:mb-8 leading-none tracking-wide">
+                                {subtitle}
+                            </p>
+                        )}
 
-                            {/* Responsive CTA button */}
+                        {/* Responsive CTA button */}
+                        <div className="flex justify-center">
                             <Button
                                 asChild
-                                size="lg"
-                                className="text-base sm:text-lg md:text-xl px-6 py-4 sm:px-8 sm:py-5 md:px-10 md:py-6 shadow-xl hover:shadow-2xl transition-all">
+                                className="text-sm sm:text-base md:text-lg lg:text-xl p-3 sm:p-4 md:p-5 lg:p-6">
                                 <Link to={ctaLink}>{ctaText}</Link>
                             </Button>
                         </div>

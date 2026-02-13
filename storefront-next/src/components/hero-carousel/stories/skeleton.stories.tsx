@@ -155,8 +155,9 @@ This demonstrates the configurable slide count feature.
         const skeleton = canvasElement.querySelector('.animate-pulse');
         await expect(skeleton).toBeInTheDocument();
 
-        // Verify 5 dots are present
-        const dots = canvasElement.querySelectorAll('.rounded-full');
+        // Verify 5 dots are present (now horizontal bars instead of circles)
+        const dotsContainer = canvasElement.querySelector('.absolute.bottom-6.left-1\\/2');
+        const dots = dotsContainer?.querySelectorAll('[class*="h-2"]') || [];
         await expect(dots.length).toBeGreaterThanOrEqual(5);
     },
 };

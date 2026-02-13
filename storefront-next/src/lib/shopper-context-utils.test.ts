@@ -45,6 +45,11 @@ vi.mock('@/lib/cookies.client', () => ({
     setNamespacedCookie: vi.fn(),
 }));
 
+vi.mock('@salesforce/storefront-next-runtime/design/mode', () => ({
+    isDesignModeActive: vi.fn(),
+    isPreviewModeActive: vi.fn(),
+}));
+
 describe('shopper-context-utils', () => {
     describe('getShopperContextCookieName', () => {
         test('should return cookie name with USID suffix', () => {
@@ -246,29 +251,57 @@ describe('shopper-context-utils', () => {
     });
 
     describe('isPageDesignerMode', () => {
-        test('should return true for EDIT mode', () => {
+        let isDesignModeActive: ReturnType<typeof vi.fn>;
+        let isPreviewModeActive: ReturnType<typeof vi.fn>;
+
+        beforeEach(async () => {
+            const modeModule = await import('@salesforce/storefront-next-runtime/design/mode');
+            isDesignModeActive = vi.mocked(modeModule.isDesignModeActive);
+            isPreviewModeActive = vi.mocked(modeModule.isPreviewModeActive);
+
+            // Default: no modes active
+            isDesignModeActive.mockReturnValue(false);
+            isPreviewModeActive.mockReturnValue(false);
+        });
+
+        test('should return true when design mode is active', () => {
+            isDesignModeActive.mockReturnValue(true);
+            isPreviewModeActive.mockReturnValue(false);
+
             const url = new URL('https://example.com?mode=EDIT');
             expect(isPageDesignerMode(url)).toBe(true);
         });
 
-        test('should return true for PREVIEW mode', () => {
+        test('should return true when preview mode is active', () => {
+            isDesignModeActive.mockReturnValue(false);
+            isPreviewModeActive.mockReturnValue(true);
+
             const url = new URL('https://example.com?mode=PREVIEW');
             expect(isPageDesignerMode(url)).toBe(true);
         });
 
-        test('should return false for other modes', () => {
-            const url = new URL('https://example.com?mode=VIEW');
-            expect(isPageDesignerMode(url)).toBe(false);
+        test('should return true when both modes are active', () => {
+            isDesignModeActive.mockReturnValue(true);
+            isPreviewModeActive.mockReturnValue(true);
+
+            const url = new URL('https://example.com');
+            expect(isPageDesignerMode(url)).toBe(true);
         });
 
-        test('should return false when mode parameter is missing', () => {
+        test('should return false when neither mode is active', () => {
+            isDesignModeActive.mockReturnValue(false);
+            isPreviewModeActive.mockReturnValue(false);
+
             const url = new URL('https://example.com');
             expect(isPageDesignerMode(url)).toBe(false);
         });
 
-        test('should return false for case-sensitive mode values', () => {
-            const url = new URL('https://example.com?mode=edit');
-            expect(isPageDesignerMode(url)).toBe(false);
+        test('should pass the URL to mode detection functions', () => {
+            const url = new URL('https://example.com?mode=EDIT');
+            isPageDesignerMode(url);
+
+            expect(isDesignModeActive).toHaveBeenCalledWith(url);
+            expect(isPreviewModeActive).toHaveBeenCalledWith(url);
         });
     });
 

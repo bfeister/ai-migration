@@ -1,120 +1,62 @@
 {
-  "version": "2.0",
-  "description": "URL mappings for SFRA to Storefront Next migration screenshot capture",
-  "default_target_url": "http://localhost:5173",
+  "version": "1.0",
+  "source_base_url": "https://zzrf-001.dx.commercecloud.salesforce.com/s/RefArchGlobal/en_US/home",
+  "target_base_url": "http://localhost:5173",
   "mappings": [
     {
       "feature_id": "01-homepage-hero",
-      "feature_name": "Homepage Hero Section",
-      "sfra_url": "https://zzrf-001.dx.commercecloud.salesforce.com/s/RefArchGlobal/en_GB/home",
-      "target_url": "http://localhost:5173/",
+      "name": "Homepage Hero",
+      "source_path": "home",
+      "target_path": "",
+      "selector": ".hero, .home-hero, [class*=\"hero\"]",
       "viewport": {
         "width": 1920,
         "height": 1080
       },
+      "sfra_url": "https://zzrf-001.dx.commercecloud.salesforce.com/s/RefArchGlobal/en_US/home",
+      "target_url": "http://localhost:5173",
       "source_config": {
         "dismiss_consent": true,
-        "consent_button_selector": "button.affirm"
+        "consent_button_selector": ".tracking-consent button.affirm"
       },
-      "target_config": {
-        "dismiss_consent": true,
-        "consent_button_selector": "button:has-text('Accept')"
-      },
-      "notes": "Homepage URL (UK locale), full viewport to capture hero section. Auto-dismisses tracking consent modal."
+      "discovered": {
+        "analyzed_at": "2026-02-12T22:55:24.222Z",
+        "matched_selector": ".hero, .home-hero, [class*=\"hero\"]",
+        "element_count": 2,
+        "headings": [
+          "Summer Style"
+        ],
+        "image_count": 0,
+        "link_count": 0,
+        "fonts": [
+          "Dosis"
+        ],
+        "colors": {
+          "text": [
+            "rgb(255, 255, 255)"
+          ],
+          "background": [
+            "rgb(0, 161, 224)"
+          ]
+        }
+      }
     },
     {
       "feature_id": "02-homepage-featured",
-      "feature_name": "Homepage Featured Products",
-      "sfra_url": "https://zzrf-001.dx.commercecloud.salesforce.com/s/RefArchGlobal/en_GB/home",
-      "target_url": "http://localhost:5173/",
+      "name": "Featured Products",
+      "source_path": "home",
+      "target_path": "",
+      "selector": ".featured-products, [class*=\"featured\"]",
       "viewport": {
         "width": 1920,
         "height": 1080
       },
+      "sfra_url": "https://zzrf-001.dx.commercecloud.salesforce.com/s/RefArchGlobal/en_US/home",
+      "target_url": "http://localhost:5173",
       "source_config": {
         "dismiss_consent": true,
-        "consent_button_selector": "button.affirm",
-        "scroll_to_selector": ".featured-products"
-      },
-      "target_config": {
-        "dismiss_consent": true,
-        "consent_button_selector": "button:has-text('Accept')",
-        "scroll_to_selector": ".featured-products"
-      },
-      "notes": "Same homepage URL, scroll to featured section before screenshot"
-    },
-    {
-      "feature_id": "03-product-tile-component",
-      "feature_name": "Product Tile Component",
-      "sfra_url": "https://zzrf-001.dx.commercecloud.salesforce.com/on/demandware.store/Sites-RefArchGlobal-Site/en_US/Search-Show?q=shirt",
-      "target_url": "http://localhost:5173/search?q=shirt",
-      "viewport": {
-        "width": 1920,
-        "height": 1080
-      },
-      "source_config": {
-        "dismiss_consent": true,
-        "consent_button_selector": "button.affirm",
-        "wait_for_selector": ".product-tile"
-      },
-      "target_config": {
-        "dismiss_consent": true,
-        "consent_button_selector": "button:has-text('Accept')",
-        "wait_for_selector": ".product-tile"
-      },
-      "notes": "Product search results page to show tiles"
-    },
-    {
-      "feature_id": "04-navbar",
-      "feature_name": "Navigation Bar",
-      "sfra_url": "https://zzrf-001.dx.commercecloud.salesforce.com/s/RefArchGlobal/en_GB/home",
-      "target_url": "http://localhost:5173/",
-      "viewport": {
-        "width": 1920,
-        "height": 200
-      },
-      "source_config": {
-        "dismiss_consent": true,
-        "consent_button_selector": "button.affirm",
-        "crop": {
-          "x": 0,
-          "y": 0,
-          "width": 1920,
-          "height": 200
-        }
-      },
-      "target_config": {
-        "dismiss_consent": true,
-        "consent_button_selector": "button:has-text('Accept')",
-        "crop": {
-          "x": 0,
-          "y": 0,
-          "width": 1920,
-          "height": 200
-        }
-      },
-      "notes": "Crop to just navbar area at top of page"
-    },
-    {
-      "feature_id": "05-footer",
-      "feature_name": "Footer",
-      "sfra_url": "https://zzrf-001.dx.commercecloud.salesforce.com/s/RefArchGlobal/en_GB/home",
-      "target_url": "http://localhost:5173/",
-      "viewport": {
-        "width": 1920,
-        "height": 1080
-      },
-      "source_config": {
-        "dismiss_consent": true,
-        "consent_button_selector": "button.affirm",
-        "scroll_to": "bottom"
-      },
-      "target_config": {
-        "dismiss_consent": true,
-        "consent_button_selector": "button:has-text('Accept')",
-        "scroll_to": "bottom"
-      },
-      "notes": "Scroll to bottom to capture footer"
+        "consent_button_selector": ".tracking-consent button.affirm"
+      }
     }
   ]
 }

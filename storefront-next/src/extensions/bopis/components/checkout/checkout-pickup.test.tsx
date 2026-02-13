@@ -15,8 +15,16 @@
  */
 import { describe, test, expect, beforeEach, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import type { ShopperBasketsV2 } from '@salesforce/storefront-next-runtime/scapi';
+import type { ReactNode } from 'react';
 import userEvent from '@testing-library/user-event';
 import CheckoutPickup from './checkout-pickup';
+import { ConfigProvider } from '@/config/context';
+import { mockConfig } from '@/test-utils/config';
+
+const wrapper = ({ children }: { children: ReactNode }) => (
+    <ConfigProvider config={mockConfig}>{children}</ConfigProvider>
+);
 
 vi.mock('@/components/address-display', () => ({
     __esModule: true,
@@ -53,6 +61,17 @@ const defaultStore = {
     phone: '555-1111',
     email: 'help@store.com',
 };
+const otherStore = {
+    id: 'store-456',
+    name: 'New Pickup Store',
+    address1: '456 Oak Ave',
+    city: 'Boston',
+    stateCode: 'MA',
+    postalCode: '02101',
+    countryCode: 'US',
+    phone: '555-2222',
+    email: 'boston@store.com',
+};
 const defaultProduct = {
     id: 'item-1',
     itemId: 'item-1',
@@ -80,8 +99,30 @@ const baseCart = {
 const pickupContext = { pickupStores: new Map([['store-123', defaultStore]]) };
 vi.mock('@/extensions/bopis/context/pickup-context', () => ({ usePickup: () => pickupContext }));
 
+const mockOpenStoreLocator = vi.fn();
+const mockSetSelectedStoreInfoRaw = vi.fn();
+const mockChangeStore = vi.fn();
+vi.mock('@/extensions/store-locator/providers/store-locator', () => ({
+    useStoreLocator: vi.fn((selector: (s: unknown) => unknown) => {
+        const state = {
+            open: mockOpenStoreLocator,
+            setSelectedStoreInfo: mockSetSelectedStoreInfoRaw,
+            selectedStoreInfo: null,
+            isOpen: false,
+        };
+        return selector(state);
+    }),
+}));
+vi.mock('@/extensions/bopis/hooks/use-change-pickup-store', () => ({
+    useChangePickupStore: () => ({ changeStore: mockChangeStore }),
+}));
+
 describe('CheckoutPickup', () => {
-    beforeEach(() => {});
+    beforeEach(() => {
+        mockOpenStoreLocator.mockClear();
+        mockSetSelectedStoreInfoRaw.mockClear();
+        mockChangeStore.mockClear();
+    });
     test('renders store and address in summary mode', () => {
         render(
             <CheckoutPickup
@@ -91,7 +132,8 @@ describe('CheckoutPickup', () => {
                 onEdit={() => {}}
                 onContinue={() => {}}
                 continueButtonLabel="Continue"
-            />
+            />,
+            { wrapper }
         );
         expect(screen.getByText('checkout.pickUp.title')).toBeInTheDocument();
         expect(screen.getByTestId('address-display')).toHaveTextContent('Test Store');
@@ -106,7 +148,8 @@ describe('CheckoutPickup', () => {
                 onEdit={() => {}}
                 onContinue={() => {}}
                 continueButtonLabel="Continue"
-            />
+            />,
+            { wrapper }
         );
         expect(screen.getByTestId('address-display')).toBeInTheDocument();
         expect(screen.getByText(defaultProduct.name)).toBeInTheDocument();
@@ -122,11 +165,97 @@ describe('CheckoutPickup', () => {
                 onEdit={onEdit}
                 onContinue={() => {}}
                 continueButtonLabel="Continue"
-            />
+            />,
+            { wrapper }
         );
         const editBtn = screen.getByText(/edit/i);
         await userEvent.click(editBtn);
         expect(onEdit).toHaveBeenCalled();
+    });
+
+    test('renders Change Pickup Location link in edit mode', () => {
+        render(
+            <CheckoutPickup
+                cart={baseCart as any}
+                productsByItemId={productsByItemId}
+                isEditing={true}
+                onEdit={() => {}}
+                onContinue={() => {}}
+                continueButtonLabel="Continue"
+            />,
+            { wrapper }
+        );
+        expect(screen.getByText('storePickup.changePickupLocation')).toBeInTheDocument();
+    });
+
+    test('does not render Change Pickup Location link in summary mode', () => {
+        render(
+            <CheckoutPickup
+                cart={baseCart as any}
+                productsByItemId={productsByItemId}
+                isEditing={false}
+                onEdit={() => {}}
+                onContinue={() => {}}
+                continueButtonLabel="Continue"
+            />,
+            { wrapper }
+        );
+        expect(screen.queryByText('storePickup.changePickupLocation')).not.toBeInTheDocument();
+    });
+
+    test('clicking Change Pickup Location opens store locator and sets current store', async () => {
+        render(
+            <CheckoutPickup
+                cart={baseCart as any}
+                productsByItemId={productsByItemId}
+                isEditing={true}
+                onEdit={() => {}}
+                onContinue={() => {}}
+                continueButtonLabel="Continue"
+            />,
+            { wrapper }
+        );
+        const changeLink = screen.getByText('storePickup.changePickupLocation');
+        await userEvent.click(changeLink);
+        expect(mockSetSelectedStoreInfoRaw).toHaveBeenCalledWith(defaultStore);
+        expect(mockOpenStoreLocator).toHaveBeenCalled();
+    });
+
+    test('displays new store name and address after pickup location is changed', () => {
+        pickupContext.pickupStores.set(otherStore.id, otherStore as any);
+        const cartWithNewStore: ShopperBasketsV2.schemas['Basket'] = {
+            ...baseCart,
+            shipments: [{ shipmentId: 'ship1', c_fromStoreId: otherStore.id }],
+        } as ShopperBasketsV2.schemas['Basket'];
+
+        const { rerender } = render(
+            <CheckoutPickup
+                cart={baseCart as any}
+                productsByItemId={productsByItemId}
+                isEditing={true}
+                onEdit={() => {}}
+                onContinue={() => {}}
+                continueButtonLabel="Continue"
+            />,
+            { wrapper }
+        );
+        expect(screen.getByTestId('address-display')).toHaveTextContent(defaultStore.name);
+        expect(screen.getByTestId('address-display')).toHaveTextContent(defaultStore.address1);
+
+        rerender(
+            <ConfigProvider config={mockConfig}>
+                <CheckoutPickup
+                    cart={cartWithNewStore}
+                    productsByItemId={productsByItemId}
+                    isEditing={true}
+                    onEdit={() => {}}
+                    onContinue={() => {}}
+                    continueButtonLabel="Continue"
+                />
+            </ConfigProvider>
+        );
+        expect(screen.getByTestId('address-display')).toHaveTextContent(otherStore.name);
+        expect(screen.getByTestId('address-display')).toHaveTextContent(otherStore.address1);
     });
 
     test('renders multiple products if present', () => {
@@ -165,7 +294,8 @@ describe('CheckoutPickup', () => {
                 onEdit={() => {}}
                 onContinue={() => {}}
                 continueButtonLabel="Continue"
-            />
+            />,
+            { wrapper }
         );
         expect(screen.getByText('Black Hat')).toBeInTheDocument();
         expect(screen.getByText('Red Shirt')).toBeInTheDocument();

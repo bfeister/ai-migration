@@ -16,6 +16,7 @@ This reference provides detailed documentation for all configuration options ava
   - [global](#global) - Global UI and component settings
   - [links](#links) - Link hints for browser resource loading
   - [images](#images) - Salesforce [Dynamic Imaging Service](https://help.salesforce.com/s/articleView?id=cc.b2c_image_transformation_service.htm&type=5) settings
+  - [search](#search) - Search-specific settings
   - [performance](#performance) - Performance optimization settings
   - [engagement](#engagement) - Analytics and engagement adapters
   - [development](#development) - Development tools and features
@@ -299,6 +300,48 @@ Example:
 ```bash
 PUBLIC__app__pages__search__suggestionsDebounce=200
 ```
+
+---
+
+### pages.maintenancePage.sharedMaintenancePage
+
+Type: `boolean` | Default: `false`
+
+When enabled, the maintenance page fetches HTML content from a shared service instead of displaying the local fallback maintenance page. It can be the default B2C maintenance page or a custom page uploaded through Business Manager.
+Note that the same page is displayed for both system and site maintenance.
+
+Example:
+```bash
+PUBLIC__app__pages__maintenancePage__sharedMaintenancePage=true
+```
+
+---
+
+### pages.maintenancePage.cdnUrl
+
+Type: `string` | Default: `'http://prd.cmp.cdn.commercecloud.salesforce.com'`
+
+The URL of the shared maintenance page server. This is the endpoint where the maintenance page HTML is fetched from when `sharedMaintenancePage` is enabled. This is typically a Salesforce URL that should not be changed.
+
+Example:
+```bash
+PUBLIC__app__pages__maintenancePage__cdnUrl="https://custom-cdn.example.com/maintenance"
+```
+
+---
+
+### pages.maintenancePage.forwardedHost
+
+Type: `string` | Default: `''` (empty string)
+
+Optional domain name to send as the `x-dw-forwarded-host` header when fetching from the maintenance page service. See the Business Manager document for more information about 'system' maintenance pages and how to associate them with a domain.
+By default, the domain is empty, meaning that it fetches the default Salesforce maintenance page.
+
+Example:
+```bash
+PUBLIC__app__pages__maintenancePage__forwardedHost="mystore.example.com"
+```
+
 
 ---
 
@@ -876,12 +919,24 @@ Type: `string[]` Optional | Default: `['https://edge.disstg.commercecloud.salesf
 
 An array of origin URLs to preconnect to. The browser establishes early connections (DNS lookup, TCP handshake, TLS negotiation) to these origins before they're needed, reducing latency when fetching resources.
 
-Example:
+**Available DIS Hosts:**
+
+| Environment | Host URL |
+|-------------|----------|
+| **Staging** | `https://edge.disstg.commercecloud.salesforce.com` |
+| **Production** | `https://edge.dis.commercecloud.salesforce.com` |
+
+Example for staging (default):
 ```bash
-PUBLIC__app__links__preconnect='["https://edge.commercecloud.salesforce.com"]'
+PUBLIC__app__links__preconnect='["https://edge.disstg.commercecloud.salesforce.com"]'
 ```
 
-**Important:** The default value uses the staging DIS (Dynamic Image Service) origin. For production deployments, update this to your production DIS origin (e.g., `https://edge.commercecloud.salesforce.com`).
+Example for production:
+```bash
+PUBLIC__app__links__preconnect='["https://edge.dis.commercecloud.salesforce.com"]'
+```
+
+**Important:** The default value uses the staging DIS (Dynamic Image Service) origin. For production deployments, update this to the production DIS origin. This should match your `images.host` configuration.
 
 **Note:** Only provide origin URLs (scheme + host + port), not full paths. Any path in the URL will be ignored by the browser.
 
@@ -969,6 +1024,53 @@ While modern web-optimized image formats such as WebP and AVIF are widely suppor
 Example:
 ```bash
 PUBLIC__app__images__fallbackFormat='png'
+```
+
+---
+
+### images.host
+
+Type: `string` | Default: `https://edge.disstg.commercecloud.salesforce.com`
+
+The Salesforce Dynamic Imaging Service (DIS) host URL. This is the CDN endpoint that serves optimized images with on-the-fly transformations (resizing, format conversion, quality adjustment).
+
+**Available DIS Hosts:**
+
+| Environment | Host URL |
+|-------------|----------|
+| **Staging** | `https://edge.disstg.commercecloud.salesforce.com` |
+| **Production** | `https://edge.dis.commercecloud.salesforce.com` |
+
+Example for production:
+```bash
+PUBLIC__app__images__host='https://edge.dis.commercecloud.salesforce.com'
+```
+
+**Important:** When deploying to production, update this value to the production DIS host. Using the staging host in production may result in slower image loading or availability issues.
+
+**Note:** Also update the corresponding `links.preconnect` value to match, so browsers can establish early connections to the correct DIS host.
+
+---
+
+## search
+
+Search-specific configuration options.
+
+### search.products.orderableOnly
+
+Type: `boolean` Optional | Default: `true`
+
+Property to define whether to only return search results with products that are currently orderable, i.e., in stock. By default, we only search for orderable products, which for downstream components and functionalities (e.g., JSON-LD for SEO) means that the orderability/availability of the returned search results can implicitly be assumed.
+
+* [SCAPI Server-Side Web-Tier Caching
+  ](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html)
+  * [Default Cache Expiration and Personalization Settings](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html#default-cache-expiration-and-personalization-settings)
+  * ["expand" Parameter Impact on Cache Hit Rates](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html#expand-parameter-impact-on-cache-hit-rates)
+* [shopper-search/product-search](https://developer.salesforce.com/docs/commerce/commerce-api/references/shopper-search?meta=productSearch)
+
+Example:
+```bash
+PUBLIC__app__search__orderableOnly=true
 ```
 
 ---
