@@ -1,0 +1,331 @@
+# SFRA to React 19 Migration: Iterative Sub-Plan Generation
+
+You are generating migration sub-plans for a SFRA (Salesforce Reference Architecture) storefront to React 19 + React Router 7 (Storefront Next). Generate the NEXT atomic sub-plan based on the feature analysis, ISML source, and previously completed sub-plans.
+
+---
+
+## Feature Information
+
+**Feature ID:** `{{feature.feature_id}}`
+**Feature Name:** {{feature.name}}
+**Source URL:** {{feature.sfra_url}}
+**Target URL:** {{feature.target_url}}
+{{#if feature.selector}}
+**DOM Selector:** `{{feature.selector}}`
+{{/if}}
+
+---
+
+## File References
+
+Use the **Read** tool to examine these files as needed. Only read what you need for the current sub-plan.
+
+### ISML Template
+**Path:** `{{ismlTemplatePath}}`
+
+Read this file to understand the source ISML structure being migrated.
+
+### Slot Configurations
+**Path:** `{{slotsXmlPath}}`
+
+**Slot IDs in this feature:** {{#if slotIds}}{{#each slotIds}}`{{this}}`{{#unless @last}}, {{/unless}}{{/each}}{{else}}*None*{{/if}}
+
+**Slot Resolution Pattern:**
+1. `<isslot id="xyz">` in ISML → Find `slot-id="xyz"` in slots.xml
+2. Slot config defines `<template>` (renderer) and `<content>` (data source)
+3. Content types: `content-assets` (CMS), `products` (API), `categories` (API), `html` (inline)
+
+For each slot ID, use `Grep` to search slots.xml for `slot-id="<id>"` to find:
+- `<template>` - The ISML file that renders the slot content
+- `<content-assets>` / `<products>` / `<categories>` - The data source
+
+---
+
+## Visual References (Screenshots)
+
+Use the **Read** tool to view these screenshots for visual comparison:
+
+{{#if screenshots.source}}
+### Source (SFRA) Screenshot
+**Path:** `{{screenshots.source}}`
+*This shows the current SFRA implementation that must be matched.*
+{{/if}}
+
+{{#if screenshots.target}}
+### Target (Storefront Next) Screenshot
+**Path:** `{{screenshots.target}}`
+*This shows the current state of the React implementation.*
+{{/if}}
+
+> **Visual Matching Requirement:** The React implementation must visually match the SFRA source.
+
+---
+
+## Previously Generated Sub-Plans
+
+{{#if previousSubPlans.length}}
+The following sub-plans have already been generated for this feature:
+
+{{#each previousSubPlans}}
+### Sub-Plan #{{add @index 1}}: {{this.title}}
+
+**ID:** `{{this.id}}`
+**Status:** {{this.status}}
+**Dependencies:** {{#if this.dependencies.length}}{{#each this.dependencies}}`{{this}}`{{#unless @last}}, {{/unless}}{{/each}}{{else}}None{{/if}}
+
+{{this.summary}}
+
+---
+
+{{/each}}
+
+**Your next sub-plan should build upon these. Do not duplicate work already covered.**
+
+{{else}}
+*No sub-plans have been generated yet. This will be the first sub-plan for this feature.*
+{{/if}}
+
+---
+
+## Universal ISML Knowledge
+
+### ISML Directive Reference
+
+| ISML Directive | Purpose | React 19 + React Router 7 Equivalent |
+|----------------|---------|--------------------------------------|
+| `<isdecorate template="...">` | Layout wrapper | Handled by `_app.tsx` layout route |
+| `<isinclude template="...">` | Static template include | `import Component from '@/components/...'` |
+| `<isinclude url="${URLUtils.url(...)}">` | Remote/dynamic include | Loader data + `<Suspense>` + `<Await>` |
+| `<isslot id="..." context="global">` | CMS content slot | `<Region>` component or direct API fetch |
+| `<isloop items="${...}" var="item">` | Iteration | `{items.map(item => <Component key={...} />)}` |
+| `<isif condition="${...}">` | Conditional | `{condition && <Component />}` or ternary |
+| `<isprint value="${...}">` | Output (escaped) | `{value}` - JSX auto-escapes |
+| `<isprint value="${...}" encoding="off">` | Raw HTML output | `dangerouslySetInnerHTML` (avoid if possible) |
+| `<isset name="var" value="${...}">` | Variable assignment | JavaScript `const` or loader data |
+| `<isscript>` | Server-side JS | Loader function or server component logic |
+| `<iscontentasset aid="...">` | Content asset render | Fetch via CMS API, render in component |
+| `${Resource.msg('key', 'bundle', null)}` | i18n string | `useTranslation()` from react-i18next |
+| `${URLUtils.url('Controller-Action')}` | Route URL | `<Link to="/path">` or route path string |
+| `${pdict.varName}` | Pipeline dictionary | `loaderData.varName` from loader |
+
+### Slot Content Resolution
+
+When you encounter `<isslot id="...">` in ISML, follow this resolution path:
+
+1. **Find slot in `slots.xml`** by matching `slot-id` attribute
+2. **Check `<template>` element** - this ISML file renders the slot content
+3. **Check `<content>` element** - this defines the data source:
+   - `<content-assets>` → Fetch content asset body via API
+   - `<products>` → Fetch products via ShopperSearch/ShopperProducts API
+   - `<categories>` → Fetch categories via ShopperProducts API
+   - `<html>` → Inline HTML (use sparingly in React)
+
+### Common Slot Templates
+
+| Template | Purpose | React Approach |
+|----------|---------|----------------|
+| `contentAssetBody.isml` | Render CMS content asset HTML | Fetch asset, render body with `<div dangerouslySetInnerHTML>` or parse to components |
+| `homePageProductSlot.isml` | Product tile grid | Fetch products in loader, render with `ProductTile` components |
+| `htmlSlotContainer.isml` | Raw HTML from slot config | Avoid - parse content to structured data when possible |
+| `categoryTile.isml` | Category navigation tiles | Fetch categories in loader, render with `CategoryTile` components |
+
+---
+
+## Technology Requirements
+
+All generated code MUST use:
+
+| Category | Requirement | NO Alternatives |
+|----------|-------------|-----------------|
+| **Language** | TypeScript | No JavaScript, no Flow |
+| **Styling** | Tailwind CSS | No CSS modules, no styled-components, no Bootstrap |
+| **Routing** | React Router 7 | File-based routes in `src/routes/` |
+| **Data Loading** | React Router `loader` | Return promises for streaming SSR |
+| **Streaming** | `<Suspense>` + `<Await>` | For progressive loading |
+| **Components** | React Server Components (default) | Client components only when interactivity needed |
+| **Interactive UI** | Radix UI primitives | No Bootstrap JS, no jQuery, no MUI |
+| **Forms** | `useFetcher` + resource routes | Or `useActionState` for server actions |
+| **State** | React Context + `useOptimistic` | No Redux, no Zustand, no MobX |
+| **Animations** | CSS transitions + Tailwind | No Framer Motion (unless complex) |
+| **API Access** | `@salesforce/storefront-next-runtime/scapi` | Via `createApiClients(context)` |
+
+---
+
+## React Router 7 Patterns
+
+### Loader Pattern
+
+```tsx
+import { type LoaderFunctionArgs } from 'react-router';
+
+export function loader({ context }: LoaderFunctionArgs) {
+    return {
+        // Return promises - they will be streamed
+        products: fetchProducts(context),
+        content: fetchContentAsset(context, 'asset-id'),
+    };
+}
+```
+
+### Component Pattern
+
+```tsx
+import { Suspense } from 'react';
+import { Await } from 'react-router';
+
+export default function Page({ loaderData }: { loaderData: LoaderData }) {
+    return (
+        <Suspense fallback={<Skeleton />}>
+            <Await resolve={loaderData.products}>
+                {(products) => <ProductGrid products={products} />}
+            </Await>
+        </Suspense>
+    );
+}
+```
+
+### Bootstrap to Tailwind Quick Reference
+
+| Bootstrap | Tailwind |
+|-----------|----------|
+| `container` | `container mx-auto px-4` or `max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8` |
+| `row` | `flex flex-wrap` or `grid grid-cols-{n}` |
+| `col-{n}` | `w-{fraction}` or `basis-{fraction}` |
+| `col-sm-{n}` | `sm:w-{fraction}` |
+| `col-md-{n}` | `md:w-{fraction}` |
+| `col-lg-{n}` | `lg:w-{fraction}` |
+| `no-gutters` | `gap-0` |
+| `d-none d-md-block` | `hidden md:block` |
+| `btn btn-primary` | Custom: `px-4 py-2 bg-primary text-white rounded-lg` |
+| `form-control` | `w-full px-3 py-2 border rounded-lg` |
+| `input-group` | `flex` with child components |
+
+---
+
+## Instructions
+
+Generate the **NEXT atomic sub-plan** for this feature migration.
+
+### Sub-Plan Requirements
+
+Each sub-plan must be:
+
+1. **Atomic** - One logical unit of work that can be completed and verified independently
+2. **Visually Grounded** - Reference specific visual elements from the screenshots
+3. **ISML-Mapped** - Quote the exact ISML code being migrated
+4. **Dependency-Aware** - Build on previous sub-plans in correct order
+5. **Verifiable** - Include concrete acceptance criteria
+
+### Sub-Plan Sequence (typical order):
+
+1. **Component Scaffolding** - Create component structure, TypeScript types
+2. **Layout Structure** - Main containers, grid/flex layout matching SFRA
+3. **Static Content** - Headings, text, placeholder content
+4. **Images/Media** - Background images, product images, responsive handling
+5. **Data Integration** - Connect to loader, wire up API data
+6. **Interactive Elements** - Forms, buttons, click handlers
+7. **Links/Navigation** - Internal links, external links, routing
+8. **Styling Polish** - Colors, fonts, spacing to match screenshot pixel-perfect
+9. **Route Integration** - Add component to route, pass loader data
+
+### Current Sub-Plan Number: {{subPlanNumber}}
+
+---
+
+## Output Format
+
+Generate your response in this EXACT markdown format:
+
+```markdown
+---
+id: subplan-{{featurePrefix}}-{{paddedNumber}}
+feature: {{feature.feature_id}}
+title: [Concise action-oriented title, e.g., "Create hero section layout"]
+status: pending
+dependencies: [{{#if previousSubPlans.length}}"subplan-{{featurePrefix}}-{{previousPaddedNumber}}"{{/if}}]
+---
+
+## Goal
+
+[One sentence describing what this sub-plan accomplishes and why]
+
+## ISML Source Reference
+
+The following ISML code is being migrated in this sub-plan:
+
+```isml
+[Quote the exact ISML snippet from the template above]
+```
+
+## Visual Reference
+
+From the SFRA screenshot, this sub-plan addresses:
+- [Describe specific visual elements visible in the screenshot]
+- [Note colors, fonts, dimensions from the DOM extraction data]
+
+## Implementation Steps
+
+### Step 1: [Action verb + specific task]
+
+[Detailed instructions with file paths]
+
+```tsx
+// Example code if helpful
+```
+
+### Step 2: [Action verb + specific task]
+
+[Continue with numbered steps...]
+
+## Files to Create/Modify
+
+| File | Action | Description |
+|------|--------|-------------|
+| `src/components/{feature}/ComponentName.tsx` | Create | [What this file does] |
+| `src/routes/_app.{route}.tsx` | Modify | [What changes are needed] |
+
+## Acceptance Criteria
+
+- [ ] [Specific testable criterion referencing the screenshot]
+- [ ] [Another criterion with expected values/behavior]
+- [ ] Visual: [What should visually match the source screenshot]
+- [ ] No TypeScript errors
+- [ ] No console warnings
+
+## Notes
+
+[Optional: Edge cases, gotchas, or references to documentation]
+```
+
+---
+
+## Completion Signal
+
+After the sub-plan markdown, output ONE of these status indicators:
+
+**If more sub-plans are needed for this feature:**
+```
+<!-- STATUS: CONTINUE -->
+<!-- REASON: [Brief explanation of what still needs to be done] -->
+```
+
+**If this sub-plan completes the feature migration:**
+```
+<!-- STATUS: COMPLETE -->
+<!-- REASON: All ISML elements migrated, visual parity achieved -->
+```
+
+### Completion Checklist (all must be true for COMPLETE):
+
+- [ ] All `<isslot>` directives have React equivalents
+- [ ] All `<isloop>` iterations are converted to `.map()`
+- [ ] All `<isif>` conditionals are converted
+- [ ] All `<isinclude>` templates are imported as components
+- [ ] Layout matches SFRA screenshot structure
+- [ ] All interactive elements (forms, buttons) are wired up
+- [ ] Data fetching is connected via loader
+- [ ] Styling (colors, fonts, spacing) matches extracted values
+
+---
+
+**Generate Sub-Plan #{{subPlanNumber}} for feature `{{feature.feature_id}}` now:**

@@ -1,0 +1,101 @@
+You are analyzing an SFRA (Salesforce Commerce Cloud) storefront application to prepare for migration to React 19.
+
+## Source Directory
+The SFRA codebase is located at: `{{context.sourceDir}}`
+
+## Your Task
+
+Scan the ISML templates, JavaScript controllers, and client-side scripts to produce a comprehensive inventory of migratable features.
+
+### Analysis Steps
+
+1. **Discover ISML Templates**
+   - Scan `{{context.sourceDir}}/cartridges/*/cartridge/templates/default/**/*.isml`
+   - Identify the template hierarchy (layout → page → components)
+   - Note `<isinclude>` and `<isdecorate>` relationships
+
+2. **Identify Bootstrap Usage**
+   - Find all Bootstrap CSS classes (e.g., `container`, `row`, `col-*`, `btn-*`, `card`, `modal`)
+   - Document Bootstrap JavaScript components (modal, carousel, dropdown, collapse, tooltip)
+   - Note any Bootstrap customizations in SCSS files
+
+3. **Catalog jQuery Patterns**
+   - Scan `{{context.sourceDir}}/cartridges/*/cartridge/client/default/js/**/*.js`
+   - Identify jQuery selectors and DOM manipulation
+   - Document AJAX calls (`$.ajax`, `$.get`, `$.post`)
+   - Find event handlers (`.on()`, `.click()`, `.submit()`)
+   - Note jQuery plugins in use
+
+4. **Map Server-Side Logic**
+   - Scan `{{context.sourceDir}}/cartridges/*/cartridge/controllers/*.js`
+   - Identify data fetching patterns (SFCC API calls)
+   - Document pdict variables passed to templates
+   - Note form handling and validation
+
+5. **Extract Component Boundaries**
+   For each logical feature, identify:
+   - Entry template (page-level ISML)
+   - Included components (via `<isinclude>`)
+   - Associated JavaScript files
+   - CSS/SCSS dependencies
+   - Controller endpoints
+
+### Output Format
+
+Produce a JSON array with the following structure (no markdown code fences):
+
+[
+  {
+    "id": "feature-slug",
+    "name": "Human Readable Feature Name",
+    "type": "page|component|utility",
+    "priority": 1,
+    "templates": [
+      {
+        "path": "relative/path/to/template.isml",
+        "type": "layout|page|component|decorator",
+        "includes": ["other/template.isml"],
+        "pdictVars": ["product", "categoryId"],
+        "bootstrapClasses": ["container", "row", "col-md-6"],
+        "bootstrapComponents": ["modal", "carousel"]
+      }
+    ],
+    "scripts": [
+      {
+        "path": "relative/path/to/script.js",
+        "jqueryPatterns": ["$.ajax", "$(selector).on", "$.fn.plugin"],
+        "exports": ["functionName"],
+        "dependencies": ["jquery", "lodash"]
+      }
+    ],
+    "controllers": [
+      {
+        "path": "relative/path/to/Controller.js",
+        "endpoints": [
+          {
+            "name": "Show",
+            "method": "GET",
+            "pdictVars": ["product", "breadcrumbs"]
+          }
+        ]
+      }
+    ],
+    "functionalities": [
+      "Product image gallery with zoom",
+      "Add to cart button",
+      "Size/color variant selection",
+      "Price display with promotions"
+    ],
+    "migrationComplexity": "low|medium|high",
+    "dependencies": ["feature-slug-1", "feature-slug-2"],
+    "notes": "Any special considerations for migration"
+  }
+]
+
+### Important Guidelines
+
+- Group related templates into logical features (e.g., "product-tile" includes template + JS + styles)
+- Assign priority based on user visibility and business impact (1 = highest)
+- Mark migrationComplexity based on jQuery/Bootstrap usage density
+- Include ALL jQuery patterns found, even seemingly simple ones
+- Document inter-feature dependencies to determine migration order

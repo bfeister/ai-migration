@@ -39,7 +39,8 @@
             "rgb(0, 161, 224)"
           ]
         }
-      }
+      },
+      "isml_template_path": "storefront-reference-architecture/cartridges/app_storefront_base/cartridge/templates/default/home/homePage.isml"
     },
     {
       "feature_id": "02-homepage-featured",

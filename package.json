@@ -1,0 +1,23 @@
+{
+	"scripts": {
+		"start": "tsx scripts/run-setup.ts",
+		"discover": "tsx scripts/discover-features-claude.ts",
+		"setup": "tsx scripts/setup-migration.ts",
+		"baselines": "tsx scripts/capture-baselines.ts",
+		"analyze": "tsx scripts/analyze-features.ts",
+		"map-isml": "tsx scripts/map-isml-templates.ts",
+		"generate-plans": "tsx scripts/generate-plans.ts",
+		"generate-plans:claude": "tsx scripts/generate-subplan-claude.ts",
+		"init-log": "tsx scripts/init-migration-log.ts"
+	},
+	"dependencies": {
+		"prompts": "^2.4.2",
+		"handlebars": "^4.7.8"
+	},
+	"devDependencies": {
+		"@teleporthq/teleport-component-generator-react": "^0.42.13",
+		"@teleporthq/teleport-project-plugin-tailwind": "^0.42.13",
+		"@types/prompts": "^2.4.9",
+		"tsx": "^4.21.0"
+	}
+}

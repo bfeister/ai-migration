@@ -23,6 +23,7 @@ const INTERVENTION_DIR = path.join(WORKSPACE_ROOT, 'intervention');
 const SESSION_ID_FILE = path.join(WORKSPACE_ROOT, '.claude-session-id');
 const URL_MAPPINGS = path.join(WORKSPACE_ROOT, 'url-mappings.json');
 const SUBPLANS_DIR = path.join(WORKSPACE_ROOT, 'sub-plans');
+const PLANS_DIR = path.join(WORKSPACE_ROOT, 'plans');
 
 // Store connected SSE clients
 const clients = [];
@@ -35,7 +36,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/screenshots', express.static(SCREENSHOTS_DIR));
 
 // Tab routes - serve index.html for each tab path so refresh works
-const TAB_ROUTES = ['/micro-plans', '/screenshots', '/log', '/interventions'];
+const TAB_ROUTES = ['/micro-plans', '/screenshots', '/log', '/interventions', '/plans'];
 TAB_ROUTES.forEach(route => {
   app.get(route, (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
@@ -218,6 +219,90 @@ app.get('/api/micro-plans', (req, res) => {
 
   res.json(plans);
 });
+
+// API endpoint: Get parent plans (prompts and responses)
+app.get('/api/plans', (req, res) => {
+  if (!fs.existsSync(PLANS_DIR)) {
+    return res.json([]);
+  }
+
+  const files = fs.readdirSync(PLANS_DIR)
+    .filter(f => f.endsWith('.md'))
+    .map(filename => {
+      const stats = fs.statSync(path.join(PLANS_DIR, filename));
+      const parsed = parsePlanFilename(filename);
+      return {
+        filename,
+        path: path.join('plans', filename),
+        size: stats.size,
+        modified: stats.mtime,
+        ...parsed
+      };
+    })
+    .sort((a, b) => new Date(b.modified) - new Date(a.modified));
+
+  res.json(files);
+});
+
+// API endpoint: Get plan content
+app.get('/api/plans/:filename', (req, res) => {
+  const { filename } = req.params;
+  const filePath = path.join(PLANS_DIR, filename);
+
+  if (!fs.existsSync(filePath)) {
+    return res.status(404).json({ error: 'Plan not found' });
+  }
+
+  const content = fs.readFileSync(filePath, 'utf-8');
+  const html = marked(content);
+  const parsed = parsePlanFilename(filename);
+
+  res.json({
+    filename,
+    content,
+    html,
+    ...parsed
+  });
+});
+
+// Helper: Parse plan filename
+// Format: {pageId|featureId}-{discovery|subplan}-{prompt|response}-{timestamp}.md
+function parsePlanFilename(filename) {
+  // Discovery format: home-discovery-prompt-2026-02-13T14-30-01.md
+  const discoveryMatch = filename.match(/^(.+)-(discovery)-(prompt|response)-(.+)\.md$/);
+  if (discoveryMatch) {
+    const [, pageId, type, variant, timestamp] = discoveryMatch;
+    return {
+      pageId,
+      featureId: null,
+      type: 'discovery',
+      variant,
+      timestamp
+    };
+  }
+
+  // Sub-plan format: 01-home-hero-subplan-01-prompt-2026-02-13T14-30-01.md
+  const subplanMatch = filename.match(/^(.+)-subplan-(\d+)-(prompt|response)-(.+)\.md$/);
+  if (subplanMatch) {
+    const [, featureId, subplanNum, variant, timestamp] = subplanMatch;
+    return {
+      pageId: null,
+      featureId,
+      subplanNum: parseInt(subplanNum),
+      type: 'subplan',
+      variant,
+      timestamp
+    };
+  }
+
+  return {
+    pageId: null,
+    featureId: null,
+    type: 'unknown',
+    variant: 'unknown',
+    timestamp: null
+  };
+}
 
 // Helper: Parse screenshot filename
 // Format: YYYYMMDD-HHMMSS-subplan-XX-YY-{source|target}.png
@@ -446,6 +531,40 @@ function setupWatchers() {
       });
   }
 
+  // Watch plans directory
+  if (fs.existsSync(PLANS_DIR)) {
+    chokidar.watch(path.join(PLANS_DIR, '*.md'), { ignoreInitial: true })
+      .on('add', (filepath) => {
+        const filename = path.basename(filepath);
+        console.log('New plan file:', filename);
+        const parsed = parsePlanFilename(filename);
+        broadcastUpdate('plan', {
+          filename,
+          path: path.join('plans', filename),
+          ...parsed
+        });
+      });
+  } else {
+    // Watch for plans directory creation
+    chokidar.watch(WORKSPACE_ROOT, { ignoreInitial: true, depth: 0 })
+      .on('addDir', (dirpath) => {
+        if (path.basename(dirpath) === 'plans') {
+          console.log('Plans directory created, setting up watcher...');
+          chokidar.watch(path.join(PLANS_DIR, '*.md'), { ignoreInitial: true })
+            .on('add', (filepath) => {
+              const filename = path.basename(filepath);
+              console.log('New plan file:', filename);
+              const parsed = parsePlanFilename(filename);
+              broadcastUpdate('plan', {
+                filename,
+                path: path.join('plans', filename),
+                ...parsed
+              });
+            });
+        }
+      });
+  }
+
   // Watch session ID file
   if (fs.existsSync(SESSION_ID_FILE)) {
     chokidar.watch(SESSION_ID_FILE, { ignoreInitial: true })
@@ -472,6 +591,7 @@ app.listen(PORT, () => {
   console.log(`    • Migration log: ${MIGRATION_LOG}`);
   console.log(`    • Screenshots:   ${SCREENSHOTS_DIR}`);
   console.log(`    • Interventions: ${INTERVENTION_DIR}`);
+  console.log(`    • Plans:         ${PLANS_DIR}`);
   console.log('');
   console.log('  Press Ctrl+C to stop');
   console.log('');

@@ -107,6 +107,44 @@ function loadSetupConfig(): SetupConfig | null {
   return null;
 }
 
+interface URLMappings {
+  mappings: Array<{
+    feature_id: string;
+    isml_template_path?: string;
+  }>;
+}
+
+function loadURLMappings(): URLMappings | null {
+  const urlMappingsFile = path.join(WORKSPACE_ROOT, 'url-mappings.json');
+  if (fs.existsSync(urlMappingsFile)) {
+    try {
+      return JSON.parse(fs.readFileSync(urlMappingsFile, 'utf-8'));
+    } catch {
+      return null;
+    }
+  }
+  return null;
+}
+
+/**
+ * Check if all features in the config have ISML template paths mapped
+ */
+function allFeaturesHaveISMLPath(): boolean {
+  const config = loadSetupConfig();
+  const mappings = loadURLMappings();
+
+  if (!config || !mappings) return false;
+
+  const selectedFeatures = new Set(config.selectedFeatures);
+  const featuresWithISML = mappings.mappings.filter(
+    m => selectedFeatures.has(m.feature_id) && m.isml_template_path
+  );
+
+  // Return true if at least one feature has ISML path mapped
+  // (not requiring all, since some features may not need ISML mapping)
+  return featuresWithISML.length > 0;
+}
+
 function countFiles(dir: string, pattern: RegExp): number {
   if (!fs.existsSync(dir)) return 0;
 
@@ -177,13 +215,24 @@ function showStatus(): void {
 // Phase Definitions
 // ============================================================================
 
+const MIGRATION_PLANS_DIR = path.join(WORKSPACE_ROOT, 'migration-plans');
+
+/**
+ * Check if feature discovery has been completed for at least one page
+ */
+function hasFeatureDiscovery(): boolean {
+  if (!fs.existsSync(MIGRATION_PLANS_DIR)) return false;
+  const files = fs.readdirSync(MIGRATION_PLANS_DIR);
+  return files.some(f => f.endsWith('-features.json'));
+}
+
 const phases: Phase[] = [
   {
-    id: 'config',
-    name: 'Configuration',
-    description: 'Interactive setup: source URLs, target URLs, feature selection',
-    script: 'setup-migration.ts',
-    completionCheck: () => fs.existsSync(SETUP_CONFIG_FILE),
+    id: 'discovery',
+    name: 'Feature Discovery (Claude)',
+    description: 'Analyze ISML templates to dynamically discover migratable features',
+    script: 'discover-features-claude.ts',
+    completionCheck: () => hasFeatureDiscovery(),
   },
   {
     id: 'baselines',
@@ -194,17 +243,10 @@ const phases: Phase[] = [
     completionCheck: () => countFiles(SCREENSHOTS_DIR, /baseline.*\.png$/) > 0,
   },
   {
-    id: 'analysis',
-    name: 'DOM Analysis',
-    description: 'Extract DOM structure, styles, and capture element screenshots',
-    script: 'analyze-features.ts',
-    completionCheck: () => countFiles(ANALYSIS_DIR, /dom-extraction\.json$/) > 0,
-  },
-  {
-    id: 'plans',
-    name: 'Plan Generation',
-    description: 'Generate migration sub-plans from analysis',
-    script: 'generate-plans.ts',
+    id: 'claudePlans',
+    name: 'Sub-Plan Generation (Claude)',
+    description: 'Generate atomic migration sub-plans for each discovered feature',
+    script: 'generate-subplan-claude.ts',
     completionCheck: () => countFiles(SUBPLANS_DIR, /subplan-.*\.md$/) > 0,
   },
   {
