@@ -166,6 +166,8 @@ describe('Product Detail Route', () => {
         regions: [],
     });
 
+    const mockComponentData = Promise.resolve({});
+
     describe('shouldRevalidate function', () => {
         test('should revalidate when pathname changes (different product)', () => {
             const currentUrl = 'https://example.com/product/product-1';
@@ -307,6 +309,7 @@ describe('Product Detail Route', () => {
                 product: Promise.resolve(productWithoutDescription),
                 category: Promise.resolve(mockCategory),
                 page: mockPage,
+                componentData: mockComponentData,
                 pageKey: 'test-product-123',
                 productSchema: Promise.resolve(null),
             };
@@ -332,6 +335,7 @@ describe('Product Detail Route', () => {
                 product: Promise.resolve(productWithDescription),
                 category: Promise.resolve(mockCategory),
                 page: mockPage,
+                componentData: mockComponentData,
                 pageKey: 'test-product-123',
                 productSchema: Promise.resolve(null),
             };
@@ -352,6 +356,7 @@ describe('Product Detail Route', () => {
                 product: Promise.resolve(mockProduct),
                 category: Promise.resolve(mockCategory),
                 page: mockPage,
+                componentData: mockComponentData,
                 pageKey: 'test-product-123',
                 productSchema: Promise.resolve(null),
             };
@@ -369,6 +374,7 @@ describe('Product Detail Route', () => {
                 product: Promise.resolve(mockProduct),
                 category: Promise.resolve(mockCategory),
                 page: mockPage,
+                componentData: mockComponentData,
                 pageKey: 'test-product-123',
                 productSchema: Promise.resolve(null),
             };
@@ -396,6 +402,7 @@ describe('Product Detail Route', () => {
                 product: Promise.resolve(mockProduct),
                 category: Promise.resolve(mockCategory),
                 page: mockPage,
+                componentData: mockComponentData,
                 pageKey: 'test-product-123',
                 productSchema: Promise.resolve(null),
             };
@@ -409,6 +416,7 @@ describe('Product Detail Route', () => {
                 product: Promise.resolve(mockProduct),
                 category: Promise.resolve(mockCategory),
                 page: mockPage,
+                componentData: mockComponentData,
                 pageKey: 'test-product-123',
                 productSchema: Promise.resolve(null),
             };
@@ -417,6 +425,7 @@ describe('Product Detail Route', () => {
             expect(mockLoaderData).toHaveProperty('product');
             expect(mockLoaderData).toHaveProperty('category');
             expect(mockLoaderData).toHaveProperty('page');
+            expect(mockLoaderData).toHaveProperty('componentData');
             expect(mockLoaderData).toHaveProperty('pageKey');
             expect(mockLoaderData).toHaveProperty('productSchema');
         });
@@ -430,6 +439,7 @@ describe('Product Detail Route', () => {
                 product: Promise.resolve(mockProduct),
                 category: Promise.resolve(mockCategory),
                 page: mockPage,
+                componentData: mockComponentData,
                 pageKey: 'test-product-123',
                 productSchema: Promise.resolve(null),
             };

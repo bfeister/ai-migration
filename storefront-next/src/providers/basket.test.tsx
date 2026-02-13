@@ -76,8 +76,7 @@ describe('BasketProvider hooks', () => {
     };
     const mockSnapshot: BasketSnapshot = {
         basketId: 'basket-123',
-        totalItemCount: 0,
-        uniqueProductCount: 0,
+        itemsCount: 0,
     };
 
     beforeEach(() => {

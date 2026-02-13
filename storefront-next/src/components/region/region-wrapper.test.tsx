@@ -21,12 +21,6 @@ import type { ShopperExperience } from '@salesforce/storefront-next-runtime/scap
 
 vi.mock('@salesforce/storefront-next-runtime/design/react/core', () => ({
     usePageDesignerMode: vi.fn(() => ({ isDesignMode: false, isPreviewMode: false })),
-    createReactRegionDesignDecorator: () => {
-        return (props: DecoratedProps) => {
-            decoratedCalls.push(props);
-            return <div data-testid="decorated-region">{props.children}</div>;
-        };
-    },
 }));
 
 type DecoratedProps = {
@@ -41,6 +35,15 @@ type DecoratedProps = {
 
 // props passed into decorator
 const decoratedCalls: DecoratedProps[] = [];
+
+vi.mock('@salesforce/storefront-next-runtime/design/react', () => ({
+    createReactRegionDesignDecorator: () => {
+        return (props: DecoratedProps) => {
+            decoratedCalls.push(props);
+            return <div data-testid="decorated-region">{props.children}</div>;
+        };
+    },
+}));
 
 import { usePageDesignerMode } from '@salesforce/storefront-next-runtime/design/react/core';
 

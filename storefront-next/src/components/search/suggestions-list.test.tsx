@@ -16,9 +16,6 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import Suggestions from './suggestions-list';
-import { ConfigProvider } from '@/config/context';
-import { mockConfig } from '@/test-utils/config';
-import type { ReactNode } from 'react';
 
 // Mock DynamicImage component
 vi.mock('@/components/dynamic-image', () => ({
@@ -31,10 +28,6 @@ vi.mock('@/hooks/use-analytics', () => ({
     }),
 }));
 
-const wrapper = ({ children }: { children: ReactNode }) => (
-    <ConfigProvider config={mockConfig}>{children}</ConfigProvider>
-);
-
 describe('Suggestions Component', () => {
     const mockSuggestions = [
         { name: 'Electronics', link: '/category/electronics', type: 'category' },
@@ -42,18 +35,18 @@ describe('Suggestions Component', () => {
     ];
 
     it('should render nothing when suggestions are empty, null, or undefined', () => {
-        const { container: emptyContainer } = render(<Suggestions suggestions={[]} />, { wrapper });
-        expect(emptyContainer.querySelector('[data-testid="sf-suggestion"]')).toBeNull();
+        const { container: emptyContainer } = render(<Suggestions suggestions={[]} />);
+        expect(emptyContainer.firstChild).toBeNull();
 
-        const { container: nullContainer } = render(<Suggestions suggestions={null as any} />, { wrapper });
-        expect(nullContainer.querySelector('[data-testid="sf-suggestion"]')).toBeNull();
+        const { container: nullContainer } = render(<Suggestions suggestions={null as any} />);
+        expect(nullContainer.firstChild).toBeNull();
 
-        const { container: undefinedContainer } = render(<Suggestions suggestions={undefined} />, { wrapper });
-        expect(undefinedContainer.querySelector('[data-testid="sf-suggestion"]')).toBeNull();
+        const { container: undefinedContainer } = render(<Suggestions suggestions={undefined} />);
+        expect(undefinedContainer.firstChild).toBeNull();
     });
 
     it('should render suggestions with correct content and structure', () => {
-        render(<Suggestions suggestions={mockSuggestions} />, { wrapper });
+        render(<Suggestions suggestions={mockSuggestions} />);
 
         expect(screen.getByTestId('sf-suggestion')).toBeInTheDocument();
         expect(screen.getByText('Electronics')).toBeInTheDocument();
@@ -67,7 +60,7 @@ describe('Suggestions Component', () => {
             { name: 'Category without image', link: '/category/1', type: 'category' },
         ];
 
-        const { container } = render(<Suggestions suggestions={mixedSuggestions} />, { wrapper });
+        const { container } = render(<Suggestions suggestions={mixedSuggestions} />);
 
         // Images are decorative (aria-hidden), so use querySelector instead of getByRole
         const images = container.querySelectorAll('img');
@@ -79,9 +72,7 @@ describe('Suggestions Component', () => {
 
     it('should call closeAndNavigate when clicked, or handle gracefully if undefined', () => {
         const mockCallback = vi.fn();
-        const { rerender } = render(<Suggestions suggestions={mockSuggestions} closeAndNavigate={mockCallback} />, {
-            wrapper,
-        });
+        const { rerender } = render(<Suggestions suggestions={mockSuggestions} closeAndNavigate={mockCallback} />);
 
         fireEvent.mouseDown(screen.getByText('Electronics'));
         expect(mockCallback).toHaveBeenCalledWith('/category/electronics');
@@ -92,7 +83,7 @@ describe('Suggestions Component', () => {
     });
 
     it('should apply custom className', () => {
-        render(<Suggestions suggestions={mockSuggestions} className="custom-class" />, { wrapper });
+        render(<Suggestions suggestions={mockSuggestions} className="custom-class" />);
         expect(screen.getByTestId('sf-suggestion')).toHaveClass('custom-class');
     });
 });

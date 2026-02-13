@@ -22,12 +22,7 @@
             "zipAriaLabel": "ZIP code",
             "calculateButton": "Calculate",
             "calculateAriaLabel": "Calculate delivery estimate",
-            "invalidZipCode": "Please enter a valid 5-digit ZIP code.",
-            "free": "Free",
-            "calculating": "Calculating...",
-            "errorFetchingEstimates": "We couldn't fetch delivery estimates right now. Please try again.",
-            "retry": "Retry",
-            "shippingCost": "Shipping cost:"
+            "free": "Free"
         }
     },
     "storeInventoryFilter": {

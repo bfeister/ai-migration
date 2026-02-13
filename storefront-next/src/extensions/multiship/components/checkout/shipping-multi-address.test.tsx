@@ -15,16 +15,9 @@
  */
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { render, screen, within, waitFor } from '@testing-library/react';
-import type { ReactNode } from 'react';
 import userEvent from '@testing-library/user-event';
 import ShippingMultiAddress from './shipping-multi-address';
-import { ConfigProvider } from '@/config/context';
-import { mockConfig } from '@/test-utils/config';
 import type { ShopperBasketsV2, ShopperCustomers, ShopperProducts } from '@salesforce/storefront-next-runtime/scapi';
-
-const wrapper = ({ children }: { children: ReactNode }) => (
-    <ConfigProvider config={mockConfig}>{children}</ConfigProvider>
-);
 
 // Mock hooks
 vi.mock('@/providers/basket', () => ({ useBasket: vi.fn() }));
@@ -120,7 +113,7 @@ describe('ShippingMultiAddress', () => {
             productItems: mockProductItems,
         });
 
-        render(<ShippingMultiAddress {...createDefaultProps()} />, { wrapper });
+        render(<ShippingMultiAddress {...createDefaultProps()} />);
 
         // Verify all product names are rendered
         expect(screen.getByText('Test Product One')).toBeInTheDocument();
@@ -176,7 +169,7 @@ describe('ShippingMultiAddress', () => {
             productItems: mockProductItems,
         });
 
-        render(<ShippingMultiAddress {...createDefaultProps()} />, { wrapper });
+        render(<ShippingMultiAddress {...createDefaultProps()} />);
 
         expect(screen.getByText('Test Product With Variations')).toBeInTheDocument();
         expect(screen.getByText('Color: Red')).toBeInTheDocument();
@@ -200,7 +193,7 @@ describe('ShippingMultiAddress', () => {
             productItems: propProductItems,
         });
 
-        render(<ShippingMultiAddress {...createDefaultProps()} />, { wrapper });
+        render(<ShippingMultiAddress {...createDefaultProps()} />);
 
         // Should render product from props when productMap is not provided
         expect(screen.getByText('Product From Props')).toBeInTheDocument();
@@ -231,7 +224,7 @@ describe('ShippingMultiAddress', () => {
             productItems: propProductItems,
         });
 
-        render(<ShippingMultiAddress productMap={productMap} {...createDefaultProps()} />, { wrapper });
+        render(<ShippingMultiAddress productMap={productMap} {...createDefaultProps()} />);
 
         // Should render enriched product from productMap, not props
         expect(screen.getByText('Enriched Product')).toBeInTheDocument();
@@ -255,7 +248,7 @@ describe('ShippingMultiAddress', () => {
             productItems: mockProductItems,
         });
 
-        render(<ShippingMultiAddress {...createDefaultProps()} />, { wrapper });
+        render(<ShippingMultiAddress {...createDefaultProps()} />);
 
         // Should show "Ship items to one address" toggle button
         expect(screen.getByText('Ship items to one address')).toBeInTheDocument();
@@ -301,8 +294,7 @@ describe('ShippingMultiAddress', () => {
                     {...createDefaultProps({
                         deliveryShipments: mockBasket.shipments || [],
                     })}
-                />,
-                { wrapper }
+                />
             );
 
             const select = screen.getByTestId('delivery-address-select-item-1');
@@ -364,8 +356,7 @@ describe('ShippingMultiAddress', () => {
                     {...createDefaultProps({
                         deliveryShipments: mockBasket.shipments || [],
                     })}
-                />,
-                { wrapper }
+                />
             );
 
             const select = screen.getByTestId('delivery-address-select-item-1');
@@ -433,8 +424,7 @@ describe('ShippingMultiAddress', () => {
                     {...createDefaultProps({
                         deliveryShipments: mockBasket.shipments || [],
                     })}
-                />,
-                { wrapper }
+                />
             );
 
             const select = screen.getByTestId('delivery-address-select-item-1');
@@ -482,7 +472,7 @@ describe('ShippingMultiAddress', () => {
                 productItems: mockProductItems,
             });
 
-            render(<ShippingMultiAddress {...createDefaultProps()} />, { wrapper });
+            render(<ShippingMultiAddress {...createDefaultProps()} />);
 
             const select = screen.getByTestId('delivery-address-select-item-1');
             const placeholderOption = within(select).getByText('Select an address');
@@ -512,7 +502,7 @@ describe('ShippingMultiAddress', () => {
                 productItems: mockProductItems,
             });
 
-            render(<ShippingMultiAddress {...createDefaultProps()} />, { wrapper });
+            render(<ShippingMultiAddress {...createDefaultProps()} />);
 
             const select = screen.getByTestId('delivery-address-select-item-1');
             const placeholderOption = within(select).getByText('No address available');
@@ -579,8 +569,7 @@ describe('ShippingMultiAddress', () => {
                     {...createDefaultProps({
                         deliveryShipments: mockBasket.shipments || [],
                     })}
-                />,
-                { wrapper }
+                />
             );
 
             const select1 = screen.getByTestId('delivery-address-select-item-1');
@@ -616,7 +605,7 @@ describe('ShippingMultiAddress', () => {
                 productItems: mockProductItems,
             });
 
-            render(<ShippingMultiAddress {...createDefaultProps()} />, { wrapper });
+            render(<ShippingMultiAddress {...createDefaultProps()} />);
 
             const addAddressButton = screen.getAllByText('+ Add New Address');
             expect(addAddressButton).toHaveLength(2);
@@ -647,7 +636,7 @@ describe('ShippingMultiAddress', () => {
                 productItems: mockProductItems,
             });
 
-            render(<ShippingMultiAddress {...createDefaultProps()} />, { wrapper });
+            render(<ShippingMultiAddress {...createDefaultProps()} />);
 
             const addAddressButton = screen.getAllByText('+ Add New Address');
             await user.click(addAddressButton[0]);
@@ -683,7 +672,7 @@ describe('ShippingMultiAddress', () => {
                 productItems: mockProductItems,
             });
 
-            render(<ShippingMultiAddress {...createDefaultProps()} />, { wrapper });
+            render(<ShippingMultiAddress {...createDefaultProps()} />);
 
             // Open dialog
             const addAddressButton = screen.getAllByText('+ Add New Address');
@@ -749,7 +738,7 @@ describe('ShippingMultiAddress', () => {
                 productItems: mockProductItems,
             });
 
-            render(<ShippingMultiAddress {...createDefaultProps()} />, { wrapper });
+            render(<ShippingMultiAddress {...createDefaultProps()} />);
 
             // Open dialog for item-1
             const addAddressButtons = screen.getAllByText('+ Add New Address');
@@ -820,7 +809,7 @@ describe('ShippingMultiAddress', () => {
                 productItems: mockProductItems,
             });
 
-            render(<ShippingMultiAddress {...createDefaultProps()} />, { wrapper });
+            render(<ShippingMultiAddress {...createDefaultProps()} />);
 
             // Add address for item-1
             const addAddressButtons = screen.getAllByText('+ Add New Address');
@@ -879,7 +868,7 @@ describe('ShippingMultiAddress', () => {
                 productItems: mockProductItems,
             });
 
-            render(<ShippingMultiAddress {...createDefaultProps()} />, { wrapper });
+            render(<ShippingMultiAddress {...createDefaultProps()} />);
 
             // Open dialog and fill some fields
             const addAddressButton = screen.getAllByText('+ Add New Address');
@@ -971,8 +960,7 @@ describe('ShippingMultiAddress', () => {
                         deliveryShipments: mockBasket.shipments || [],
                         hasMultipleDeliveryAddresses: true, // Multiple unique addresses
                     })}
-                />,
-                { wrapper }
+                />
             );
 
             // Should display the summary text when multiple shipments with different addresses
@@ -1021,8 +1009,7 @@ describe('ShippingMultiAddress', () => {
                         deliveryShipments: mockBasket.shipments || [],
                         hasMultipleDeliveryAddresses: false, // Single shipment = single address
                     })}
-                />,
-                { wrapper }
+                />
             );
 
             // Should not display the summary text when only one shipment
@@ -1091,8 +1078,7 @@ describe('ShippingMultiAddress', () => {
                         deliveryShipments: mockBasket.shipments || [],
                         hasMultipleDeliveryAddresses: true, // Multiple addresses exist but step not completed
                     })}
-                />,
-                { wrapper }
+                />
             );
 
             // Should not display the summary text when step is not completed
@@ -1155,8 +1141,7 @@ describe('ShippingMultiAddress', () => {
                         deliveryShipments: mockBasket.shipments || [],
                         hasMultipleDeliveryAddresses: false, // Same address = not multiple unique addresses
                     })}
-                />,
-                { wrapper }
+                />
             );
 
             // Should not display the summary text when shipments have the same address
@@ -1199,7 +1184,7 @@ describe('ShippingMultiAddress', () => {
                 paymentInstruments: [],
             });
 
-            render(<ShippingMultiAddress {...createDefaultProps()} />, { wrapper });
+            render(<ShippingMultiAddress {...createDefaultProps()} />);
 
             // Select an address for the item
             const select = screen.getByTestId('delivery-address-select-item-1');
@@ -1271,8 +1256,7 @@ describe('ShippingMultiAddress', () => {
                     {...createDefaultProps({
                         handleToggleShippingAddressMode,
                     })}
-                />,
-                { wrapper }
+                />
             );
 
             // Select addresses for both items

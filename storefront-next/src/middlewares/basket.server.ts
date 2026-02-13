@@ -47,8 +47,7 @@ export type BasketSnapshotOptions = {
 // Cookie-safe snapshot of a basket used before full hydration.
 export type BasketSnapshot = {
     basketId: string;
-    totalItemCount: number;
-    uniqueProductCount: number;
+    itemsCount: number;
     [key: string]: unknown;
 };
 
@@ -113,7 +112,7 @@ export class BasketContextError extends Error {
  * Create the default snapshot for cookie storage.
  *
  * This is the baseline snapshot used by `createSnapshot` before merging any
- * custom fields. It ensures `basketId`, `totalItemCount`, and `uniqueProductCount` are always present.
+ * custom fields. It ensures `basketId` and `itemsCount` are always present.
  *
  * @param basket - Basket to snapshot.
  * @returns Default basket snapshot for cookie persistence.
@@ -125,15 +124,14 @@ export class BasketContextError extends Error {
  */
 export const defaultCreateSnapshot = (basket: Basket): BasketSnapshot => ({
     basketId: basket.basketId ?? '',
-    totalItemCount: (basket.productItems ?? []).reduce((sum, item) => sum + (item.quantity ?? 0), 0),
-    uniqueProductCount: (basket.productItems ?? []).length,
+    itemsCount: (basket.productItems ?? []).reduce((sum, item) => sum + (item.quantity ?? 0), 0),
 });
 
 /**
  * Create a cookie-safe basket snapshot with required defaults.
  *
  * Merges custom snapshot fields (if provided) with the default snapshot and
- * ensures `basketId`, `totalItemCount`, and `uniqueProductCount` are always present from the default.
+ * ensures `basketId` and `itemsCount` are always present from the default.
  *
  * @param basket - Basket to snapshot.
  * @param options - Optional snapshot customization options.
@@ -142,7 +140,7 @@ export const defaultCreateSnapshot = (basket: Basket): BasketSnapshot => ({
  * @example
  * ```ts
  * const snapshot = createSnapshot(basket);
- * // { basketId: 'b1', totalItemCount: 2, uniqueProductCount: 2 }
+ * // { basketId: 'b1', itemsCount: 2 }
  * ```
  *
  * @example
@@ -152,7 +150,7 @@ export const defaultCreateSnapshot = (basket: Basket): BasketSnapshot => ({
  *     hasPickupItems: Boolean(b.productItems?.some((item) => item.shipmentId)),
  *   }),
  * });
- * // { basketId: 'b1', totalItemCount: 2, uniqueProductCount: 2, hasPickupItems: true }
+ * // { basketId: 'b1', itemsCount: 2, hasPickupItems: true }
  * ```
  */
 const createSnapshot = (basket: Basket, options?: BasketSnapshotOptions): BasketSnapshot => {
@@ -304,10 +302,7 @@ export const createBasketMiddleware = (config: BasketMiddlewareConfig = {}): Mid
         // If we have a basket loaded, update the cookie.
         const metadata = context.get(basketMetadataContext);
         if (metadata?.basketMarkedForDeletion) {
-            const expired = await basketCookie.serialize(
-                { basketId: '', totalItemCount: 0, uniqueProductCount: 0 },
-                { expires: new Date(0) }
-            );
+            const expired = await basketCookie.serialize({ basketId: '', itemsCount: 0 }, { expires: new Date(0) });
             response.headers.append('Set-Cookie', expired);
             return response;
         }
@@ -384,20 +379,6 @@ export const getBasket = async (
 };
 
 /**
- * Returns the cached basket snapshot for the current request.
- *
- * This provides a synchronous way to access the most recent basket state
- * without triggering any additional fetch or async work.
- *
- * @param context - Router context containing the basket resource.
- * @returns The current basket snapshot, or null when unavailable.
- */
-export const getBasketSnapshot = (context: Readonly<RouterContextProvider>): BasketSnapshot | null => {
-    const basketResource = context.get(basketResourceContext);
-    return basketResource?.snapshot ?? null;
-};
-
-/**
  * Resolve the basket id from snapshot or by fetching the basket if needed.
  *
  * @param context - React Router request context
@@ -431,7 +412,7 @@ export const ensureBasketId = async (context: Readonly<RouterContextProvider>): 
  * ```ts
  * updateBasketResource(context, (current) => ({
  *   ...current,
- *   totalItemCount: (current?.totalItemCount ?? 0) + 1,
+ *   itemsCount: (current?.itemsCount ?? 0) + 1,
  * }));
  * ```
  */

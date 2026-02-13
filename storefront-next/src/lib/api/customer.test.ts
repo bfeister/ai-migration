@@ -25,12 +25,13 @@ import {
 import { getAuth } from '@/middlewares/auth.server';
 import { createApiClients } from '@/lib/api-clients';
 import { getTranslation } from '@/lib/i18next';
+import type { ActionFunctionArgs } from 'react-router';
 import { createTestContext } from '@/lib/test-utils';
 
 vi.mock('@/middlewares/auth.server');
 vi.mock('@/lib/api-clients');
 
-const mockContext = createTestContext();
+const mockContext = createTestContext() as ActionFunctionArgs['context'];
 const { t } = getTranslation();
 
 describe('Customer API', () => {
@@ -56,9 +57,9 @@ describe('Customer API', () => {
         test('should check current user email when logged in as registered user', async () => {
             const mockSession = {
                 userType: 'registered' as const,
-                customerId: 'cust123',
-                accessToken: 'token',
-                accessTokenExpiry: Date.now() + 10000,
+                customer_id: 'cust123',
+                access_token: 'token',
+                access_token_expiry: Date.now() + 10000,
             };
 
             const mockCustomer = {
@@ -92,7 +93,7 @@ describe('Customer API', () => {
         test('should handle case mismatch in email comparison', async () => {
             const mockSession = {
                 userType: 'registered' as const,
-                customerId: 'cust123',
+                customer_id: 'cust123',
             };
 
             const mockCustomer = {
@@ -118,7 +119,7 @@ describe('Customer API', () => {
         test('should return guest result when current user email does not match', async () => {
             const mockSession = {
                 userType: 'registered' as const,
-                customerId: 'cust123',
+                customer_id: 'cust123',
             };
 
             const mockCustomer = {
@@ -144,7 +145,7 @@ describe('Customer API', () => {
         test('should handle API errors gracefully', async () => {
             const mockSession = {
                 userType: 'registered' as const,
-                customerId: 'cust123',
+                customer_id: 'cust123',
             };
 
             const mockClient = {
@@ -180,9 +181,9 @@ describe('Customer API', () => {
         test('should return true for valid registered user session', () => {
             const mockSession = {
                 userType: 'registered' as const,
-                customerId: 'cust123',
-                accessToken: 'token',
-                accessTokenExpiry: Date.now() + 10000,
+                customer_id: 'cust123',
+                access_token: 'token',
+                access_token_expiry: Date.now() + 10000,
             };
 
             vi.mocked(getAuth).mockReturnValue(mockSession);
@@ -205,9 +206,9 @@ describe('Customer API', () => {
         test('should return false for expired token', () => {
             const mockSession = {
                 userType: 'registered' as const,
-                customerId: 'cust123',
-                accessToken: 'token',
-                accessTokenExpiry: Date.now() - 10000, // Expired
+                customer_id: 'cust123',
+                access_token: 'token',
+                access_token_expiry: Date.now() - 10000, // Expired
             };
 
             vi.mocked(getAuth).mockReturnValue(mockSession);
@@ -216,11 +217,11 @@ describe('Customer API', () => {
             expect(result).toBe(false);
         });
 
-        test('should return false for missing customerId', () => {
+        test('should return false for missing customer_id', () => {
             const mockSession = {
                 userType: 'registered' as const,
-                accessToken: 'token',
-                accessTokenExpiry: Date.now() + 10000,
+                access_token: 'token',
+                access_token_expiry: Date.now() + 10000,
             };
 
             vi.mocked(getAuth).mockReturnValue(mockSession);
@@ -234,9 +235,9 @@ describe('Customer API', () => {
         test('should return customer for valid registered user', async () => {
             const mockSession = {
                 userType: 'registered' as const,
-                customerId: 'cust123',
-                accessToken: 'token',
-                accessTokenExpiry: Date.now() + 10000,
+                customer_id: 'cust123',
+                access_token: 'token',
+                access_token_expiry: Date.now() + 10000,
             };
 
             const mockCustomer = {
@@ -268,7 +269,7 @@ describe('Customer API', () => {
         test('should return null for guest user', async () => {
             const mockSession = {
                 userType: 'guest' as const,
-                // no customerId
+                // no customer_id
             };
 
             vi.mocked(getAuth).mockReturnValue(mockSession);
@@ -282,7 +283,7 @@ describe('Customer API', () => {
         test('should return current_user recommendation for matching email', async () => {
             const mockSession = {
                 userType: 'registered' as const,
-                customerId: 'cust123',
+                customer_id: 'cust123',
             };
 
             const mockCustomer = {
@@ -517,10 +518,10 @@ describe('Customer API', () => {
                             JSON.stringify({
                                 success: true,
                                 data: {
-                                    accessToken: 'mock-access-token',
-                                    customerId: 'new-customer-123',
-                                    refreshToken: 'mock-refresh-token',
-                                    accessTokenExpiry: Date.now() + 3600000,
+                                    access_token: 'mock-access-token',
+                                    customer_id: 'new-customer-123',
+                                    refresh_token: 'mock-refresh-token',
+                                    access_token_expiry: Date.now() + 3600000,
                                     userType: 'registered' as const,
                                 },
                             }),
@@ -570,7 +571,7 @@ describe('Customer API', () => {
             } as any);
 
             vi.mocked(getAuth).mockReturnValue({
-                customerId: 'new-customer-123',
+                customer_id: 'new-customer-123',
                 userType: 'registered' as const,
             } as any);
 

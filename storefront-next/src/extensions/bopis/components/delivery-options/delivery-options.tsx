@@ -21,7 +21,6 @@ import PickupOrDelivery from './pickup-or-delivery';
 import { useDeliveryOptions } from '@/extensions/bopis/hooks/use-delivery-options';
 import { useStoreLocator } from '@/extensions/store-locator/providers/store-locator';
 import type { SelectedStoreInfo } from '@/extensions/store-locator/stores/store-locator-store';
-import ProductContentProvider from '@/providers/product-content';
 
 const ShippingCalculator = lazy(() => import('./shipping-calculator'));
 
@@ -98,12 +97,7 @@ export default function DeliveryOptions({
                         {/* Lazy loaded to reduce initial bundle size */}
                         {selectedDeliveryOption === 'delivery' && (
                             <Suspense fallback={<div className="p-4 text-sm text-muted-foreground">Loading...</div>}>
-                                <ProductContentProvider>
-                                    <ShippingCalculator
-                                        onCalculate={handleCalculate}
-                                        productId={product.currentVariant?.productId || product.id}
-                                    />
-                                </ProductContentProvider>
+                                <ShippingCalculator onCalculate={handleCalculate} />
                             </Suspense>
                         )}
                     </>

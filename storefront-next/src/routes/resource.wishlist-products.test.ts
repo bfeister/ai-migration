@@ -33,11 +33,12 @@ vi.mock('@/middlewares/auth.server', () => ({
     getAuth: () => mockGetAuth(),
 }));
 
-vi.mock('@/lib/api/customer', () => ({
+vi.mock('@/lib/api/customer.server', () => ({
     isRegisteredCustomer: () => mockIsRegisteredCustomer(),
 }));
 
 vi.mock('@/config', async (importOriginal) => {
+    // eslint-disable-next-line @typescript-eslint/consistent-type-imports
     const actual = await importOriginal<typeof import('@/config')>();
     return {
         ...actual,
@@ -85,7 +86,7 @@ describe('resource.wishlist-products', () => {
         // Default mocks
         mockIsRegisteredCustomer.mockReturnValue(true);
         mockGetAuth.mockReturnValue({
-            customerId: 'test-customer-id',
+            customer_id: 'test-customer-id',
         });
         mockGetConfig.mockReturnValue({
             global: {
@@ -124,7 +125,7 @@ describe('resource.wishlist-products', () => {
 
         test('should return empty result when customer_id is missing', async () => {
             mockGetAuth.mockReturnValue({
-                customerId: null,
+                customer_id: null,
             });
 
             const result = await loader({

@@ -17,15 +17,20 @@ import type { AppConfig } from '@/config';
 import { createEinsteinAdapter } from './einstein';
 import { addAdapter } from '@/lib/adapters';
 import { createActiveDataAdapter } from './active-data';
+import {
+    createCustomerPreferencesMockAdapter,
+    CUSTOMER_PREFERENCES_MOCK_ADAPTER_NAME,
+} from './customer-preferences-mock';
+import { addCustomerPreferencesAdapter } from '@/lib/adapters/customer-preferences-store';
 
 /**
- * Initialize engagement adapters.
+ * Initialize engagement adapterss.
  *
  * Uses properties defined in appConfig.engagement.adapters to set up default adapters.
  *
  * This is the place to modify when adding new engagement adapters to the system.
  */
-export function initializeEngagementAdapters(appConfig: AppConfig): void {
+export function initializeEngagementAdapters(appConfig: AppConfig) {
     const engagementAdapterConfigs = appConfig?.engagement?.adapters;
 
     // Register default adapters
@@ -65,5 +70,28 @@ export function initializeEngagementAdapters(appConfig: AppConfig): void {
             // eslint-disable-next-line no-console
             console.warn('Failed to initialize Active Data adapter:', (error as Error).message);
         }
+    }
+
+    /* Example custom adapter registration
+    addAdapter('custom', {
+        name: 'custom',
+        // sendEvent handles how to send the event to the analytics provider
+        sendEvent: async (event: AnalyticsEvent) => Promise.resolve({}),
+    });
+    */
+
+    // Initialize customer preferences adapter (mock implementation)
+    // This adapter is always enabled for now since it's a mock
+    try {
+        addCustomerPreferencesAdapter(
+            CUSTOMER_PREFERENCES_MOCK_ADAPTER_NAME,
+            createCustomerPreferencesMockAdapter({
+                enabled: true,
+                mockDelay: 300,
+            })
+        );
+    } catch (error) {
+        // eslint-disable-next-line no-console
+        console.warn('Failed to initialize Customer Preferences adapter:', (error as Error).message);
     }
 }

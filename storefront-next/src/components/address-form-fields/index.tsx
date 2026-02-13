@@ -24,7 +24,7 @@ import { Input } from '@/components/ui/input';
 import AddressSuggestionDropdown, { type AddressSuggestion } from '@/components/address-suggestion-dropdown';
 import { MIN_INPUT_LENGTH, useAutocompleteSuggestions } from '@/hooks/use-autocomplete-suggestions';
 import { processAddressSuggestion } from '@/lib/address-suggestions';
-import { UITarget } from '@/targets/ui-target';
+import { PluginComponent } from '@/plugins/plugin-component';
 
 /**
  * Base address field names that the form must support
@@ -165,8 +165,8 @@ export function AddressFormFields<TFormValues extends FieldValues>({
     };
 
     /**
-     * Renders the address autocomplete dropdown with target extensibility.
-     * Uses different targetIds for shipping vs billing addresses to allow
+     * Renders the address autocomplete dropdown with plugin extensibility.
+     * Uses different pluginIds for shipping vs billing addresses to allow
      * extension developers to customize each independently.
      */
     const renderAddressAutocomplete = (): React.ReactNode => {
@@ -187,7 +187,9 @@ export function AddressFormFields<TFormValues extends FieldValues>({
         if (fieldPrefix === 'billing') {
             return (
                 <div>
-                    <UITarget targetId="checkout.payment.billingAddress.autocomplete">{dropdown}</UITarget>
+                    <PluginComponent pluginId="checkout.payment.billingAddress.autocomplete">
+                        {dropdown}
+                    </PluginComponent>
                 </div>
             );
         }
@@ -195,7 +197,7 @@ export function AddressFormFields<TFormValues extends FieldValues>({
         // Default: shipping address (no fieldPrefix)
         return (
             <div>
-                <UITarget targetId="checkout.shippingAddress.autocomplete">{dropdown}</UITarget>
+                <PluginComponent pluginId="checkout.shippingAddress.autocomplete">{dropdown}</PluginComponent>
             </div>
         );
     };

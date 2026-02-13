@@ -68,6 +68,7 @@ vi.mock('@/middlewares/auth.server', () => ({
 }));
 
 vi.mock('@/config', async (importOriginal) => {
+    // eslint-disable-next-line @typescript-eslint/consistent-type-imports
     const actual = await importOriginal<typeof import('@/config')>();
     return {
         ...actual,
@@ -563,12 +564,12 @@ describe('account.wishlist loaders', () => {
         vi.clearAllMocks();
         mockGetAuthServer.mockReturnValue({
             userType: 'registered',
-            customerId: 'test-customer-id',
-            accessToken: 'test-token',
-            accessTokenExpiry: Date.now() + 3600000, // 1 hour from now
+            customer_id: 'test-customer-id',
+            access_token: 'test-token',
+            access_token_expiry: Date.now() + 3600000, // 1 hour from now
         });
         mockGetAuth.mockReturnValue({
-            customerId: 'test-customer-id',
+            customer_id: 'test-customer-id',
         });
         mockIsRegisteredCustomer.mockReturnValue(true);
         mockGetConfig.mockReturnValue({
@@ -594,7 +595,7 @@ describe('account.wishlist loaders', () => {
         test('should return empty wishlist when user is not authenticated', async () => {
             mockGetAuthServer.mockReturnValue({
                 userType: 'guest',
-                customerId: null,
+                customer_id: null,
             });
 
             const result = await loader({
@@ -613,9 +614,9 @@ describe('account.wishlist loaders', () => {
         test('should return empty wishlist when access token is expired', async () => {
             mockGetAuthServer.mockReturnValue({
                 userType: 'registered',
-                customerId: 'test-customer-id',
-                accessToken: 'test-token',
-                accessTokenExpiry: Date.now() - 1000, // Expired
+                customer_id: 'test-customer-id',
+                access_token: 'test-token',
+                access_token_expiry: Date.now() - 1000, // Expired
             });
 
             const result = await loader({

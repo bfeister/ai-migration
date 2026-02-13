@@ -19,8 +19,6 @@ import type React from 'react';
 import { cn } from '@/lib/utils';
 import { DynamicImage } from '@/components/dynamic-image';
 import { useAnalytics } from '@/hooks/use-analytics';
-import { toImageUrl } from '@/lib/dynamic-image';
-import { useConfig } from '@/config';
 
 interface Suggestion {
     name: string;
@@ -39,7 +37,6 @@ interface SuggestionsProps {
 
 const Suggestions: React.FC<SuggestionsProps> = ({ suggestions, searchPhrase, closeAndNavigate, className }) => {
     const analytics = useAnalytics();
-    const config = useConfig();
     if (!suggestions || suggestions.length === 0) {
         return null;
     }
@@ -66,7 +63,7 @@ const Suggestions: React.FC<SuggestionsProps> = ({ suggestions, searchPhrase, cl
                             <div className="w-10 h-8 mr-4 rounded-full bg-transparent flex items-center justify-center overflow-hidden shrink-0">
                                 {suggestion.image ? (
                                     <DynamicImage
-                                        src={`${toImageUrl({ src: suggestion.image, config })}[?sw={width}]`}
+                                        src={`${suggestion.image}[?sw={width}]`}
                                         alt=""
                                         className="w-full h-full"
                                         imageProps={{

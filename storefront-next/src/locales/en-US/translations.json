@@ -261,12 +261,6 @@
             "completeTheLook": "Complete the look",
             "recentlyViewed": "Recently viewed"
         },
-        "rating": {
-            "starContainerAriaLabel": "{{rating}} out of {{total}} stars, {{count}} reviews",
-            "viewAllReviews": "View all reviews",
-            "distributionAriaLabel": "{{rating}} stars: {{percentage}} percent of reviews",
-            "distributionsAriaLabel": "Star rating distribution, {{total}} total reviews"
-        },
         "from": "from",
         "outOfStock": "Out of stock for {{productName}}",
         "onlyLeft": "Only {{stockLevel}} left for {{productName}}!",
@@ -284,10 +278,6 @@
         "addingToWishlist": "Adding to Wishlist...",
         "addToWishlist": "Add to Wishlist",
         "share": "Share",
-        "expressPayments": {
-            "separatorBuyWith": "Or buy with",
-            "venmoUnavailable": "Venmo is not available on this device."
-        },
         "productSetNotice": "This is a product set. Select individual items below to add to cart.",
         "productBundleNotice": "This is a product bundle. All items will be added together.",
         "productDetails": "Product Details",
@@ -307,13 +297,6 @@
         "returns": "Returns: 30-day return policy",
         "reviews": "Reviews",
         "reviewsComingSoon": "Customer reviews coming soon.",
-        "verifiedPurchase": "Verified Purchase",
-        "helpful": "Helpful ({{count}})",
-        "helpfulNoCount": "Helpful",
-        "report": "Report",
-        "readMore": "Read More",
-        "readLess": "Read less",
-        "showingReviews": "Showing {{from}}-{{to}} of {{total}} reviews",
         "careInstructions": "Care Instructions",
         "careInstructionsComingSoon": "Care instructions coming soon.",
         "productSet": "Product Set",
@@ -590,10 +573,6 @@
             "noPaymentMethodSaved": "No payment method saved",
             "billingSummaryTitle": "Billing Address"
         },
-        "expressPayments": {
-            "separator": "Or",
-            "venmoUnavailable": "Venmo is not available on this device."
-        },
         "common": {
             "edit": "Edit",
             "submitting": "Submitting",
@@ -714,76 +693,7 @@
             "wishlist": "Wishlist",
             "orderHistory": "Order History",
             "addresses": "Addresses",
-            "paymentMethods": "Payment Methods",
-            "storePreferences": "Store Preferences",
             "logOut": "Log Out"
-        },
-        "storePreferences": {
-            "title": "Store Preferences",
-            "subtitle": "Manage your preferred store locations and pickup preferences",
-            "preferredStore": {
-                "heading": "Preferred Store for Pickup",
-                "description": "Select your preferred store for in-store pickup orders",
-                "changeStore": "Change store"
-            },
-            "authorizedPickupPeople": {
-                "heading": "Authorized Pickup People",
-                "description": "Add people who are authorized to pick up orders on your behalf",
-                "addPerson": "Add Person",
-                "idNote": "Authorized pickup people will need to show a valid ID matching the name on file when picking up orders.",
-                "modal": {
-                    "addTitle": "Add Authorized Person",
-                    "editTitle": "Edit Authorized Person",
-                    "firstName": "First Name",
-                    "firstNamePlaceholder": "First Name",
-                    "lastName": "Last Name",
-                    "lastNamePlaceholder": "Last Name",
-                    "email": "Email Address",
-                    "emailPlaceholder": "email@example.com",
-                    "relationship": "Relationship",
-                    "relationshipPlaceholder": "Select Relationship",
-                    "modalNote": "This person will be authorized to pick up orders on your behalf. They will need to show a valid ID matching the name provided when picking up orders.",
-                    "cancel": "Cancel",
-                    "save": "Save",
-                    "firstNameRequired": "First name is required",
-                    "firstNameMax": "First name must be 50 characters or less",
-                    "lastNameRequired": "Last name is required",
-                    "lastNameMax": "Last name must be 50 characters or less",
-                    "emailRequired": "Email is required",
-                    "emailInvalid": "Please enter a valid email address",
-                    "emailMax": "Email must be 100 characters or less",
-                    "relationshipRequired": "Please select a relationship"
-                },
-                "statusActive": "Active",
-                "relationshipLabel": "Relationship: {{relationship}}",
-                "edit": "Edit",
-                "delete": "Delete",
-                "emptyState": "No authorized pickup people yet. Add someone who can pick up orders on your behalf.",
-                "deleteConfirmTitle": "Remove authorized person",
-                "deleteConfirmDescription": "Are you sure you want to remove {{name}}? They will no longer be able to pick up orders on your behalf.",
-                "deleteConfirmCancel": "Cancel",
-                "deleteConfirmRemove": "Remove",
-                "relationships": {
-                    "spouse": "Spouse",
-                    "familyMember": "Family Member",
-                    "friend": "Friend",
-                    "other": "Other"
-                }
-            },
-            "pickupPreferences": {
-                "heading": "Pickup Preferences",
-                "description": "Manage your pickup notification and store preferences",
-                "edit": "Edit",
-                "save": "Save",
-                "cancel": "Cancel",
-                "autoSelectStore": "Auto-select preferred store",
-                "autoSelectStoreDescription": "Automatically use your preferred store for pickup orders",
-                "pickupNotifications": "Pickup notifications",
-                "pickupNotificationsDescription": "Get notified when your order is ready for pickup",
-                "storeEventsPromotions": "Store events & promotions",
-                "storeEventsPromotionsDescription": "Receive updates about events and promotions at your preferred store",
-                "saveSuccess": "Pickup preferences saved successfully"
-            }
         },
         "overview": {
             "welcomeBack": "Welcome back, {{name}}!",
@@ -814,15 +724,6 @@
         "orders": {
             "empty": "No orders found. Start shopping to see your order history!",
             "subtitle": "View and track your orders",
-            "orderDate": "Order Date",
-            "total": "Total",
-            "items": "Items",
-            "pickupLocation": "Pickup Location",
-            "location": "Location",
-            "address": "Address",
-            "pickupWindow": "Pickup Window",
-            "viewOrderDetails": "View Order Details",
-            "downloadReceipt": "Download Receipt",
             "tableHeaders": {
                 "orderNumber": "Order Number",
                 "status": "Status",
@@ -830,32 +731,7 @@
                 "amount": "Amount",
                 "actions": "Actions"
             },
-            "viewDetails": "View Details",
-            "orderDetailsTitle": "Order",
-            "orderDetailsPageTitle": "Order Details",
-            "status": {
-                "created": "Created",
-                "new": "New",
-                "failed": "Failed",
-                "failedWithReopen": "Failed With Reopen",
-                "completed": "Completed",
-                "cancelled": "Cancelled"
-            },
-            "totalOrders_one": "Viewing {{count}} order",
-            "totalOrders_other": "Viewing {{count}} orders",
-            "invalidDate": "Invalid Date",
-            "shipmentNumber": "Shipment {{n}}",
-            "itemsOrdered": "Items Ordered",
-            "orderSummary": "Order Summary",
-            "backToOrderHistory": "Back to Order History",
-            "orderNotFound": "Order Not Found",
-            "orderNotFoundDescription": "We couldn't find the order you're looking for.",
-            "buyAgain": "Buy Again",
-            "emptyItemsFallback": "No items.",
-            "productPlaceholderInitial": "Item",
-            "quantityLabel": "Qty: {{count}}",
-            "trackingNumber": "Tracking Number",
-            "shippingAddress": "Shipping Address"
+            "viewDetails": "View Details"
         },
         "addresses": {
             "subtitle": "Manage your shipping addresses",
@@ -885,33 +761,6 @@
             "removeConfirmDescription": "Are you sure you want to remove address \"{{addressName}}\"?",
             "removeCancelButton": "Cancel",
             "removeConfirmButton": "Yes, remove address"
-        },
-        "paymentMethods": {
-            "pageSubtitle": "Manage your payment methods, gift cards, and store credit",
-            "subtitle": "Manage your saved payment methods",
-            "noSavedPaymentMethods": "No Saved Payment Methods",
-            "empty": "Add a payment method to make checkout faster!",
-            "addPaymentMethod": "Add payment method",
-            "setDefault": "Set Default",
-            "remove": "Remove",
-            "default": "Default",
-            "expires": "Expires",
-            "addPaymentMethodTitle": "Add Payment Method",
-            "creditCard": "Credit Card",
-            "nameOnCard": "Name on Card*",
-            "cardNumberPlaceholder": "Card Number*",
-            "expiryPlaceholder": "mm/yy*",
-            "cvvPlaceholder": "CVV*",
-            "saveAsDefault": "Save as default payment",
-            "billingAddress": "Billing Address*",
-            "selectAddress": "Select an Address",
-            "addNewAddress": "Add New Address",
-            "cancel": "Cancel",
-            "save": "Save",
-            "removePaymentMethod": "Remove Payment Method",
-            "removeConfirmation": "Are you sure you want to remove this payment method?",
-            "paymentMethod": "Payment Method",
-            "defaultRemovalWarning": "This is your default payment method. Removing it will automatically set another payment method as default if available."
         },
         "addressForm": {
             "addressTitleLabel": "Address Title",
@@ -1332,20 +1181,5 @@
         "suggested": "SUGGESTED",
         "closeSuggestions": "Close suggestions",
         "loading": "Loading suggestions..."
-    },
-    "infoModal": {
-        "paymentScheduleDescription": "Payment schedule details",
-        "writeReviewDescription": "Write a review form"
-    },
-    "writeReview": {
-        "validation": {
-            "ratingRequired": "Please select a rating",
-            "reviewRequired": "Please fill out this field.",
-            "reviewMinLength": "Please enter at least {{count}} characters.",
-            "reviewMaxLength": "Please enter no more than {{count}} characters.",
-            "titleMaxLength": "Please enter no more than {{count}} characters."
-        },
-        "minCharactersHint": "Minimum {{count}} characters.",
-        "maxCharactersHint": "Maximum {{count}} characters."
     }
 }

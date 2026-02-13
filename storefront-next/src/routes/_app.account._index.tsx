@@ -51,7 +51,7 @@ function AccountDetailsContent({ customer }: { customer: Customer | null }): Rea
     const revalidator = useRevalidator();
     const auth = useAuth();
     const { t, i18n } = useTranslation('account');
-    const customerId = auth?.customerId;
+    const customerId = auth?.customer_id;
 
     const updateProfileFetcher = useScapiFetcher('shopperCustomers', 'updateCustomer', {
         params: {

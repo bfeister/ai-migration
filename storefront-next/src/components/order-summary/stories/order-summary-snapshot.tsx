@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { vi, expect, test, describe, afterEach } from 'vitest';
-import type { AnchorHTMLAttributes, FormHTMLAttributes, ReactNode } from 'react';
+import type { AnchorHTMLAttributes, ReactNode, FormHTMLAttributes } from 'react';
 
 const fetcherMock = {
     data: null as unknown,
@@ -96,14 +96,8 @@ import { composeStories } from '@storybook/react-vite';
 
 import * as OrderSummaryStories from './index.stories';
 import { render, cleanup } from '@testing-library/react';
-import { ConfigProvider } from '@/config';
-import { mockConfig } from '@/test-utils/config';
 
 const composed = composeStories(OrderSummaryStories);
-
-const wrapper = ({ children }: { children: ReactNode }) => (
-    <ConfigProvider config={mockConfig}>{children}</ConfigProvider>
-);
 
 afterEach(() => {
     cleanup();
@@ -113,7 +107,7 @@ describe('OrderSummary stories snapshot', () => {
     for (const [storyName, Story] of Object.entries(composed)) {
         if (Story?.parameters?.snapshot === false || /interactiontests?/i.test(storyName)) continue;
         test(`${storyName} story renders and matches snapshot`, () => {
-            const { container } = render(<Story />, { wrapper });
+            const { container } = render(<Story />);
             // Normalize dynamic Radix IDs so snapshots are stable across runs
             const root = container as unknown as HTMLElement;
             const attrs = ['id', 'aria-controls', 'aria-labelledby'];

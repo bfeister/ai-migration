@@ -20,10 +20,7 @@ import { ShoppingCart, Lock } from 'lucide-react';
 import { Link } from 'react-router';
 
 // Commerce SDK
-import type { ShopperBasketsV2, ShopperOrders, ShopperProducts } from '@salesforce/storefront-next-runtime/scapi';
-
-/** Basket or Order – OrderSummary displays totals for both (e.g. cart and order details). */
-export type OrderSummaryBasket = ShopperBasketsV2.schemas['Basket'] | ShopperOrders.schemas['Order'];
+import type { ShopperBasketsV2, ShopperProducts } from '@salesforce/storefront-next-runtime/scapi';
 
 // Components
 import { Typography } from '@/components/typography';
@@ -40,13 +37,13 @@ import { formatCurrency } from '@/lib/currency';
 import { useTranslation } from 'react-i18next';
 import PromoPopover from '@/components/promo-popover';
 import { useCurrency } from '@/providers/currency';
-import { UITarget } from '@/targets/ui-target';
+import { PluginComponent } from '@/plugins/plugin-component';
 
 /**
  * Props for the OrderSummary component
  *
  * @interface OrderSummaryProps
- * @property {OrderSummaryBasket} basket - The basket or order containing items and totals (cart or order details)
+ * @property {ShopperBasketsV2.schemas['Basket']} basket - The shopping basket containing items and totals
  * @property {boolean} [showPromoCodeForm] - Whether to display the promo code form
  * @property {boolean} [showCartItems] - Whether to display the cart items accordion
  * @property {boolean} [showHeading] - Whether to display the "Order Summary" heading
@@ -58,12 +55,9 @@ import { UITarget } from '@/targets/ui-target';
  *   If not provided, the component will navigate to '/cart' using the default navigation behavior.
  *   This is useful for custom actions like closing a cart sheet before navigation.
  * @property {boolean} [showCheckoutAction] - Whether to display the checkout button and payment icons
- *
- * Note : OrderSummary accepts both Basket and Order, make sure you pass other props accordingly.
- * Eg If you pass Order as basket, make sure you pass showPromoCodeForm, showCartItems as false etc.
  */
 interface OrderSummaryProps {
-    basket: OrderSummaryBasket;
+    basket: ShopperBasketsV2.schemas['Basket'];
     showPromoCodeForm?: boolean;
     showCartItems?: boolean;
     showHeading?: boolean;
@@ -180,9 +174,7 @@ export default function OrderSummary({
     const { t, i18n } = useTranslation('cart');
     const currency = useCurrency();
 
-    const hasBasketId = 'basketId' in basket && basket.basketId;
-    const hasOrderNo = 'orderNo' in basket && basket.orderNo;
-    if (!hasBasketId && !hasOrderNo) {
+    if (!basket?.basketId && !basket?.orderNo) {
         return <div>{t('summary.noBasketData')}</div>;
     }
 
@@ -205,7 +197,7 @@ export default function OrderSummary({
                 <div className="space-y-5" data-testid="sf-order-summary">
                     {showHeading && (
                         <>
-                            <UITarget targetId="checkout.myCart.header.before" />
+                            <PluginComponent pluginId="checkout.myCart.header.before" />
                             <Typography variant="h4" as="h3" id="order-summary-heading">
                                 {t('summary.orderSummary')}
                             </Typography>
@@ -227,18 +219,18 @@ export default function OrderSummary({
                         {/* Order Summary Details */}
                         <div className="space-y-4 text-sm">
                             {/* Subtotal */}
-                            <UITarget targetId="orderSummary.subtotal.before" />
-                            <UITarget targetId="orderSummary.subtotal">
+                            <PluginComponent pluginId="orderSummary.subtotal.before" />
+                            <PluginComponent pluginId="orderSummary.subtotal">
                                 <div className="flex justify-between items-center">
                                     <span>{t('summary.subtotal')}</span>
                                     <span>{formatCurrency(basket?.productSubTotal ?? 0, i18n.language, currency)}</span>
                                 </div>
-                            </UITarget>
-                            <UITarget targetId="orderSummary.subtotal.after" />
+                            </PluginComponent>
+                            <PluginComponent pluginId="orderSummary.subtotal.after" />
 
                             {/* Order Price Adjustments */}
-                            <UITarget targetId="orderSummary.adjustments.before" />
-                            <UITarget targetId="orderSummary.adjustments">
+                            <PluginComponent pluginId="orderSummary.adjustments.before" />
+                            <PluginComponent pluginId="orderSummary.adjustments">
                                 {basket.orderPriceAdjustments?.map((adjustment) => (
                                     <div
                                         key={adjustment.priceAdjustmentId}
@@ -249,12 +241,12 @@ export default function OrderSummary({
                                         </span>
                                     </div>
                                 ))}
-                            </UITarget>
-                            <UITarget targetId="orderSummary.adjustments.after" />
+                            </PluginComponent>
+                            <PluginComponent pluginId="orderSummary.adjustments.after" />
 
                             {/* Shipping */}
-                            <UITarget targetId="orderSummary.shipping.before" />
-                            <UITarget targetId="orderSummary.shipping">
+                            <PluginComponent pluginId="orderSummary.shipping.before" />
+                            <PluginComponent pluginId="orderSummary.shipping">
                                 <div className="flex justify-between items-center">
                                     <div className="flex items-center">
                                         <span>
@@ -277,12 +269,12 @@ export default function OrderSummary({
                                     </div>
                                     {renderShippingInfo()}
                                 </div>
-                            </UITarget>
-                            <UITarget targetId="orderSummary.shipping.after" />
+                            </PluginComponent>
+                            <PluginComponent pluginId="orderSummary.shipping.after" />
 
                             {/* Tax */}
-                            <UITarget targetId="orderSummary.tax.before" />
-                            <UITarget targetId="orderSummary.tax">
+                            <PluginComponent pluginId="orderSummary.tax.before" />
+                            <PluginComponent pluginId="orderSummary.tax">
                                 <div className="flex justify-between items-center">
                                     <span>{t('summary.tax')}</span>
                                     {typeof basket.taxTotal === 'number' && basket.taxTotal >= 0 ? (
@@ -291,13 +283,13 @@ export default function OrderSummary({
                                         <span className="text-muted-foreground">{t('summary.taxTbd')}</span>
                                     )}
                                 </div>
-                            </UITarget>
-                            <UITarget targetId="orderSummary.tax.after" />
+                            </PluginComponent>
+                            <PluginComponent pluginId="orderSummary.tax.after" />
                         </div>
 
                         {/* Total */}
-                        <UITarget targetId="orderSummary.total.before" />
-                        <UITarget targetId="orderSummary.total">
+                        <PluginComponent pluginId="orderSummary.total.before" />
+                        <PluginComponent pluginId="orderSummary.total">
                             <div className="space-y-4 w-full text-sm">
                                 <div className="flex w-full justify-between items-center">
                                     <span className="font-bold">
@@ -312,15 +304,15 @@ export default function OrderSummary({
                                     </span>
                                 </div>
                             </div>
-                        </UITarget>
-                        <UITarget targetId="orderSummary.total.after" />
+                        </PluginComponent>
+                        <PluginComponent pluginId="orderSummary.total.after" />
 
                         {/* Promo Code Form */}
-                        <UITarget targetId="orderSummary.promoCode.before" />
-                        <UITarget targetId="orderSummary.promoCode">
+                        <PluginComponent pluginId="orderSummary.promoCode.before" />
+                        <PluginComponent pluginId="orderSummary.promoCode">
                             {showPromoCodeForm ? <PromoCodeForm basket={basket} /> : <Separator className="w-full" />}
-                        </UITarget>
-                        <UITarget targetId="orderSummary.promoCode.after" />
+                        </PluginComponent>
+                        <PluginComponent pluginId="orderSummary.promoCode.after" />
 
                         {/* Checkout Action */}
                         {showCheckoutAction && (

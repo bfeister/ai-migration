@@ -17,6 +17,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { customerLookup, getCustomerProfileForCheckout } from './customer';
 import { getAuth } from '@/middlewares/auth.server';
 import { createApiClients } from '@/lib/api-clients';
+import type { ActionFunctionArgs } from 'react-router';
 import { createTestContext } from '@/lib/test-utils';
 
 // Define proper types for the mock client
@@ -33,7 +34,7 @@ const mockClient: MockShopperCustomersClient = {
 vi.mock('@/middlewares/auth.server');
 vi.mock('@/lib/api-clients');
 
-const mockContext = createTestContext();
+const mockContext = createTestContext() as ActionFunctionArgs['context'];
 
 describe('Customer Lookup Functions', () => {
     beforeEach(() => {
@@ -72,9 +73,9 @@ describe('Customer Lookup Functions', () => {
             };
             vi.mocked(getAuth).mockReturnValue({
                 userType: 'registered',
-                customerId: 'customer123',
-                accessToken: 'token123',
-                accessTokenExpiry: Date.now() + 3600000,
+                customer_id: 'customer123',
+                access_token: 'token123',
+                access_token_expiry: Date.now() + 3600000,
             });
             mockClient.getCustomer.mockResolvedValue({ data: mockCustomer });
 
@@ -122,9 +123,9 @@ describe('Customer Lookup Functions', () => {
             };
             vi.mocked(getAuth).mockReturnValue({
                 userType: 'registered',
-                customerId: 'customer123',
-                accessToken: 'token123',
-                accessTokenExpiry: Date.now() + 3600000,
+                customer_id: 'customer123',
+                access_token: 'token123',
+                access_token_expiry: Date.now() + 3600000,
             });
             mockClient.getCustomer.mockResolvedValue({ data: mockCustomer });
 
@@ -182,7 +183,7 @@ describe('Customer Lookup Functions', () => {
                 ],
             };
 
-            vi.mocked(getAuth).mockReturnValue({ customerId: 'customer123', accessToken: 'token123' });
+            vi.mocked(getAuth).mockReturnValue({ customer_id: 'customer123', access_token: 'token123' });
             mockClient.getCustomer.mockResolvedValue({ data: mockCustomer });
 
             const result = await getCustomerProfileForCheckout(mockContext, 'customer123');
@@ -208,7 +209,7 @@ describe('Customer Lookup Functions', () => {
         });
 
         it('should throw error when customer not found', async () => {
-            vi.mocked(getAuth).mockReturnValue({ customerId: 'invalid_id', accessToken: 'token123' });
+            vi.mocked(getAuth).mockReturnValue({ customer_id: 'invalid_id', access_token: 'token123' });
             mockClient.getCustomer.mockRejectedValue(new Error('Customer not found'));
 
             await expect(getCustomerProfileForCheckout(mockContext, 'invalid_id')).rejects.toThrow(
@@ -224,7 +225,7 @@ describe('Customer Lookup Functions', () => {
                 paymentInstruments: [],
             };
 
-            vi.mocked(getAuth).mockReturnValue({ customerId: 'customer456', accessToken: 'token456' });
+            vi.mocked(getAuth).mockReturnValue({ customer_id: 'customer456', access_token: 'token456' });
             mockClient.getCustomer.mockResolvedValue({ data: mockCustomer });
 
             const result = await getCustomerProfileForCheckout(mockContext, 'customer456');
@@ -262,7 +263,7 @@ describe('Customer Lookup Functions', () => {
                 paymentInstruments: [],
             };
 
-            vi.mocked(getAuth).mockReturnValue({ customerId: 'customer789', accessToken: 'token789' });
+            vi.mocked(getAuth).mockReturnValue({ customer_id: 'customer789', access_token: 'token789' });
             mockClient.getCustomer.mockResolvedValue({ data: mockCustomer });
 
             const result = await getCustomerProfileForCheckout(mockContext, 'customer789');
@@ -299,7 +300,7 @@ describe('Customer Lookup Functions', () => {
                 ],
             };
 
-            vi.mocked(getAuth).mockReturnValue({ customerId: 'customer999', accessToken: 'token999' });
+            vi.mocked(getAuth).mockReturnValue({ customer_id: 'customer999', access_token: 'token999' });
             mockClient.getCustomer.mockResolvedValue({ data: mockCustomer });
 
             const result = await getCustomerProfileForCheckout(mockContext, 'customer999');

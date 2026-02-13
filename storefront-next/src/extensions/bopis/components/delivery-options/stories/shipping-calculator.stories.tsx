@@ -19,20 +19,6 @@ import { waitForStorybookReady } from '@storybook/test-utils';
 import { useEffect, useRef, type ReactElement, type ReactNode } from 'react';
 import { action } from 'storybook/actions';
 import ShippingCalculator from '../shipping-calculator';
-import ProductContentProvider from '@/providers/product-content';
-import type { ShippingEstimate } from '@/lib/adapters/product-content-data-types';
-import { addProductContentAdapter } from '@/lib/adapters/product-content-store';
-
-// Register a mock adapter for Storybook
-addProductContentAdapter('mock', {
-    getShippingEstimates: async (_productId?: string, _zipcode?: string): Promise<ShippingEstimate> => {
-        return {
-            delivery_date: '2026-02-10',
-            cost: 0,
-            days: 3,
-        };
-    },
-});
 
 function ActionLogger({ children }: { children: ReactNode }): ReactElement {
     const containerRef = useRef<HTMLDivElement | null>(null);
@@ -92,7 +78,7 @@ The ShippingCalculator component allows users to calculate estimated delivery ti
 ## Features
 
 - **ZIP Code Input**: Validates US postal codes (5 digits or 5+4 format)
-- **Calculate Button**: Always enabled - validation happens on button click
+- **Calculate Button**: Disabled until valid ZIP code is entered
 - **Delivery Estimate**: Shows estimated delivery days and shipping cost
 - **Accessibility**: Proper ARIA labels and live regions for screen readers
 
@@ -104,10 +90,6 @@ This component is used within DeliveryOptions when the delivery option is select
         },
     },
     argTypes: {
-        productId: {
-            description: 'Product ID for shipping calculation',
-            control: 'text',
-        },
         onCalculate: {
             description: 'Callback function called when calculation is performed',
             action: 'onCalculate',
@@ -116,9 +98,7 @@ This component is used within DeliveryOptions when the delivery option is select
     decorators: [
         (Story: React.ComponentType) => (
             <ActionLogger>
-                <ProductContentProvider adapterName="mock">
-                    <Story />
-                </ProductContentProvider>
+                <Story />
             </ActionLogger>
         ),
     ],
@@ -129,7 +109,6 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
     args: {
-        productId: 'test-product-123',
         onCalculate: action('calculate'),
     },
     parameters: {
@@ -138,7 +117,7 @@ export const Default: Story = {
                 story: `
 Default shipping calculator showing:
 - Empty ZIP code input field
-- Enabled calculate button
+- Disabled calculate button
 - Instruction message
 
 This is the initial state before user enters a ZIP code.
@@ -154,10 +133,9 @@ This is the initial state before user enters a ZIP code.
         const input = await canvas.findByLabelText(/zip code/i, {}, { timeout: 5000 });
         await expect(input).toBeInTheDocument();
 
-        // Verify calculate button is enabled (changed behavior: always enabled)
+        // Verify calculate button is disabled initially
         const calculateButton = await canvas.findByRole('button', { name: /calculate/i }, { timeout: 5000 });
-        await expect(calculateButton).toBeInTheDocument();
-        await expect(calculateButton).not.toBeDisabled();
+        await expect(calculateButton).toBeDisabled();
 
         // Verify instruction message is shown
         const instruction = canvasElement.querySelector('#delivery-message');
@@ -167,7 +145,6 @@ This is the initial state before user enters a ZIP code.
 
 export const WithValidZip: Story = {
     args: {
-        productId: 'test-product-123',
         onCalculate: action('calculate'),
     },
     parameters: {
@@ -203,7 +180,6 @@ This state appears when user enters a valid 5-digit ZIP code.
 
 export const WithResult: Story = {
     args: {
-        productId: 'test-product-123',
         onCalculate: action('calculate'),
     },
     parameters: {
@@ -245,7 +221,6 @@ This state appears after user clicks calculate with a valid ZIP code.
 
 export const InvalidZip: Story = {
     args: {
-        productId: 'test-product-123',
         onCalculate: action('calculate'),
     },
     parameters: {
@@ -254,11 +229,10 @@ export const InvalidZip: Story = {
                 story: `
 Shipping calculator with invalid ZIP code entered. Shows:
 - Partial ZIP code in input field
-- Enabled calculate button (validation happens on click)
-- Error message after clicking calculate
-- Input marked as invalid after validation
+- Disabled calculate button
+- Input marked as invalid
 
-This state appears when user enters less than 5 digits and clicks calculate.
+This state appears when user enters less than 5 digits.
                 `,
             },
         },
@@ -274,16 +248,9 @@ This state appears when user enters less than 5 digits and clicks calculate.
         // Type an invalid ZIP code (less than 5 digits)
         await userEvent.type(input, '941');
 
-        // Verify calculate button is enabled (changed behavior: always enabled, validation on click)
+        // Verify calculate button is still disabled
         const calculateButton = await canvas.findByRole('button', { name: /calculate/i }, { timeout: 5000 });
-        await expect(calculateButton).not.toBeDisabled();
-
-        // Click calculate to trigger validation
-        await userEvent.click(calculateButton);
-
-        // Verify validation error appears after clicking
-        const validationError = await canvas.findByRole('alert', {}, { timeout: 5000 });
-        await expect(validationError).toBeInTheDocument();
+        await expect(calculateButton).toBeDisabled();
 
         // Verify input is marked as invalid
         await expect(input).toHaveAttribute('aria-invalid', 'true');
@@ -292,7 +259,6 @@ This state appears when user enters less than 5 digits and clicks calculate.
 
 export const MobileLayout: Story = {
     args: {
-        productId: 'test-product-123',
         onCalculate: action('calculate'),
     },
     parameters: {
@@ -328,7 +294,6 @@ The component automatically adapts for mobile screens.
 
 export const DesktopLayout: Story = {
     args: {
-        productId: 'test-product-123',
         onCalculate: action('calculate'),
     },
     parameters: {

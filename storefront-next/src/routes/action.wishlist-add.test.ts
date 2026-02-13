@@ -30,7 +30,7 @@ vi.mock('@/middlewares/auth.server', () => ({
     getAuth: () => mockGetAuth(),
 }));
 
-vi.mock('@/lib/api/customer', () => ({
+vi.mock('@/lib/api/customer.server', () => ({
     isRegisteredCustomer: () => mockIsRegisteredCustomer(),
 }));
 
@@ -126,7 +126,7 @@ describe('action.wishlist-add', () => {
         // Setup default mocks
         mockIsRegisteredCustomer.mockReturnValue(true);
         mockGetAuth.mockReturnValue({
-            customerId: 'customer-123',
+            customer_id: 'customer-123',
             userType: 'registered',
             access_token: 'token-123',
         } as any);

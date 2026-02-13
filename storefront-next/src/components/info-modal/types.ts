@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import type { WriteReviewFormData } from '@/lib/adapters/product-content-data-types';
+import { type ReactNode } from 'react';
 
 /**
  * Payment schedule data for installment payment modal
@@ -43,32 +43,42 @@ export interface StepInfo {
     text: string;
 }
 
-/** Shared fields for modal header */
-interface InfoModalDataBase {
-    title?: string;
-    description?: string;
-}
-
-/** Data for payment schedule modal (e.g. Pay in 4) */
-export interface PaymentScheduleModalData extends InfoModalDataBase {
-    type: 'payment-schedule';
-    paymentSchedule?: PaymentSchedule;
-    steps?: StepInfo[];
-    disclaimer?: string;
-}
-
-/** Data for write a review modal */
-export interface WriteReviewModalData extends InfoModalDataBase {
-    type: 'write-review';
-    /** Form labels, placeholders, and config from product content adapter (e.g. getWriteReviewForm). Optional until loaded. */
-    formConfig?: WriteReviewFormData;
+/**
+ * Link information for footer links
+ */
+export interface ModalLink {
+    /** Link text */
+    text: string;
+    /** Link URL */
+    url: string;
+    /** Whether to open in new tab */
+    openInNewTab?: boolean;
 }
 
 /**
- * Structured data for the info modal. Add new modal types by defining a new variant
- * (e.g. SizeGuideModalData) and extending this union.
+ * Structured data for different modal types
  */
-export type InfoModalData = PaymentScheduleModalData | WriteReviewModalData;
+export interface InfoModalData {
+    /** Modal type - determines rendering logic */
+    type?: 'payment-schedule' | 'generic';
+    /** Modal title */
+    title?: string;
+    /** Modal description/subtitle */
+    description?: string;
+
+    // Payment schedule-specific data
+    /** Payment schedule for payment plans */
+    paymentSchedule?: PaymentSchedule;
+    /** Steps for "How it works" section */
+    steps?: StepInfo[];
+    /** Disclaimer text */
+    disclaimer?: string;
+    /** Footer links */
+    links?: ModalLink[];
+
+    /** Generic content (ReactNode) - used when type is 'generic' or no specific type data */
+    content?: ReactNode;
+}
 
 export interface InfoModalProps {
     open: boolean;

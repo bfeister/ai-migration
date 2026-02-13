@@ -19,7 +19,7 @@ import tailwindcss from '@tailwindcss/vite';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import tsconfigPaths from 'vite-tsconfig-paths';
-import { transformTargetPlaceholderPlugin } from '@salesforce/storefront-next-dev';
+import { transformPluginPlaceholderPlugin } from '@salesforce/storefront-next-dev';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -39,7 +39,7 @@ export default defineConfig({
         tailwindcss(), // Include Tailwind CSS plugin
         tsconfigPaths(),
         // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Plugin type mismatch with Vite plugin types
-        transformTargetPlaceholderPlugin() as any, // Transform target placeholders for extensibility
+        transformPluginPlaceholderPlugin() as any, // Transform plugin placeholders for extensibility
     ],
     resolve: {
         alias: {

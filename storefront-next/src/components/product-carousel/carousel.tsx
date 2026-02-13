@@ -19,7 +19,7 @@ import { type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { ShopperSearch } from '@salesforce/storefront-next-runtime/scapi';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
-import { ProductTile, ProductTileProvider } from '@/components/product-tile';
+import { ProductTile } from '@/components/product-tile';
 import withSuspense from '@/components/with-suspense';
 import ProductCarouselSkeleton from './skeleton';
 import { cn } from '@/lib/utils';
@@ -95,17 +95,15 @@ export default function ProductCarousel({ products, title, className }: ProductC
                     aria-label={title ? `${title} carousel` : t('productCarousel')}>
                     {/* Passing -ml-4 to the CarouselContent to prevent CLS issues during hydration */}
                     <CarouselContent className="-ml-4 items-stretch flex-nowrap">
-                        <ProductTileProvider>
-                            {products.map((product) => (
-                                <CarouselItem
-                                    key={product.productId}
-                                    className="basis-1/2 sm:basis-1/3 md:basis-1/4 py-1 flex pl-0 min-w-0">
-                                    <div className="w-full max-w-full min-w-0 flex">
-                                        <ProductTile product={product} className="h-full w-full" />
-                                    </div>
-                                </CarouselItem>
-                            ))}
-                        </ProductTileProvider>
+                        {products.map((product) => (
+                            <CarouselItem
+                                key={product.productId}
+                                className="basis-1/2 sm:basis-1/3 md:basis-1/4 py-1 flex pl-0 min-w-0">
+                                <div className="w-full max-w-full min-w-0 flex">
+                                    <ProductTile product={product} className="h-full w-full" />
+                                </div>
+                            </CarouselItem>
+                        ))}
                     </CarouselContent>
                     {/* Position arrows outside the product area */}
                     <CarouselPrevious className="-left-14" />

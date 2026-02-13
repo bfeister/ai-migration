@@ -23,8 +23,8 @@ import { AttributeDefinition } from '@/lib/decorators/attribute-definition';
 import withSuspense from '@/components/with-suspense';
 import HeroCarouselSkeleton from './skeleton';
 import { RegionDefinition } from '@/lib/decorators/region-definition';
+import type { ShopperExperience } from '@salesforce/storefront-next-runtime/scapi';
 import heroImage from '/images/hero-cube.webp';
-import type { ComponentType } from '@/components/region';
 
 @Component('heroCarousel', {
     name: 'Hero Carousel',
@@ -114,7 +114,7 @@ interface HeroCarouselProps {
     showDots?: boolean;
     showNavigation?: boolean;
     /** Component data containing regions from Page Designer */
-    component?: ComponentType;
+    component?: ShopperExperience.schemas['Component'];
 }
 
 export function HeroCarouselPlain({
@@ -267,11 +267,11 @@ export function HeroCarouselPlain({
                     loop: true,
                     containScroll: 'trimSnaps',
                 }}
-                className="w-full h-full [&_[data-slot=carousel-content]]:h-full [&_[data-slot=carousel-item]]:h-full">
+                className="w-full h-full">
                 {/* Passing -ml-4 to the CarouselContent to prevent CLS issues during hydration */}
-                <CarouselContent className="h-full">
+                <CarouselContent>
                     {slides.map((slide) => (
-                        <CarouselItem key={slide.id} className="h-full">
+                        <CarouselItem key={slide.id}>
                             <HeroSlideContent slide={image ? { ...slide, imageUrl: image.url } : slide} />
                         </CarouselItem>
                     ))}

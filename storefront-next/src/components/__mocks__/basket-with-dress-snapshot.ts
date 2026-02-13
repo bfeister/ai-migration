@@ -18,8 +18,7 @@ import type { BasketSnapshot } from '@/middlewares/basket.server';
 
 const basketWithOneItemSnapshot: BasketSnapshot = {
     basketId: basketWithOneItem.basketId ?? '',
-    totalItemCount: 1,
-    uniqueProductCount: 1,
+    itemsCount: 1,
 };
 
 export default basketWithOneItemSnapshot;

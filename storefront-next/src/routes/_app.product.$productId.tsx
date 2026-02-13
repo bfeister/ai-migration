@@ -15,7 +15,7 @@
  */
 import { use, useEffect, useRef, useMemo, Suspense, Fragment } from 'react';
 import { type LoaderFunctionArgs } from 'react-router';
-import { type ShopperProducts } from '@salesforce/storefront-next-runtime/scapi';
+import { type ShopperProducts, type ShopperExperience } from '@salesforce/storefront-next-runtime/scapi';
 import { createApiClients } from '@/lib/api-clients';
 import { currencyContext } from '@/lib/currency';
 import ProductSkeleton from '@/components/product-skeleton';
@@ -32,7 +32,7 @@ import { ProductProvider } from '@/providers/product-context';
 import ProductContentProvider from '@/providers/product-content';
 import { PageType } from '@/lib/decorators/page-type';
 import { RegionDefinition } from '@/lib/decorators/region-definition';
-import { fetchPageWithComponentData, type PageWithComponentData } from '@/lib/util/pageLoader';
+import { collectComponentDataPromises, fetchPageFromLoader } from '@/lib/util/pageLoader';
 import { JsonLd } from '@/components/json-ld';
 import { generateProductSchema } from '@/utils/product-schema';
 // @sfdc-extension-block-start SFDC_EXT_BOPIS
@@ -65,7 +65,8 @@ export class ProductPageMetadata {}
 export type ProductPageData = {
     product: Promise<ShopperProducts.schemas['Product']>;
     category: Promise<ShopperProducts.schemas['Category'] | undefined>;
-    page: Promise<PageWithComponentData>;
+    page: Promise<ShopperExperience.schemas['Page']>;
+    componentData: Promise<Record<string, Promise<unknown>>>;
     pageKey: string;
     productSchema: Promise<ReturnType<typeof generateProductSchema> | null>;
 };
@@ -178,6 +179,12 @@ export function loader(args: LoaderFunctionArgs): ProductPageData {
         return undefined;
     });
 
+    // Fetch page data from Page Designer API
+    const pagePromise = fetchPageFromLoader(args, {
+        pageId: 'pdp',
+        productId: searchParams.get('pid') || productId,
+    });
+
     // Generate product schema in loader (server-side) for SEO
     // This ensures it's available immediately and can be rendered outside Suspense
     const productSchemaPromise = productPromise
@@ -198,14 +205,12 @@ export function loader(args: LoaderFunctionArgs): ProductPageData {
     return {
         product: productPromise,
         category: categoryPromise,
+        page: pagePromise,
         /**
-         * Fetch page data from Page Designer API with nested componentData promises.
-         * Handle errors gracefully - return page with empty componentData if fetch failed.
+         * Collect component data promises for components in regions.
+         * Handle errors gracefully - return empty object if page fetch failed.
          */
-        page: fetchPageWithComponentData(args, {
-            pageId: 'pdp',
-            productId: searchParams.get('pid') || productId,
-        }),
+        componentData: collectComponentDataPromises(args, pagePromise).catch(() => ({})),
         pageKey: productId,
         productSchema: productSchemaPromise,
     };
@@ -345,12 +350,17 @@ function ProductDetailView({ loaderData }: { loaderData: ProductPageData }) {
     /**
      * Renders the page content based on Page Designer regions
      */
-    const renderPageContent = (page: Promise<PageWithComponentData>) => {
+    const renderPageContent = (page: Promise<ShopperExperience.schemas['Page']>) => {
         return (
             <>
                 {/* Promo Content Region - Promotional content above main product */}
                 <div className="mb-8">
-                    <Region page={page} regionId="promoContent" errorElement={<div />} />
+                    <Region
+                        page={page}
+                        regionId="promoContent"
+                        componentData={loaderData.componentData}
+                        errorElement={<div />}
+                    />
                 </div>
 
                 {/* Mobile Product Title - shown on mobile only */}
@@ -370,7 +380,12 @@ function ProductDetailView({ loaderData }: { loaderData: ProductPageData }) {
 
                 {/* Engagement Content Region - Shows page content or recommendations */}
                 <div className="mt-16">
-                    <Region page={page} regionId="engagementContent" errorElement={<ProductRecommendationsSection />} />
+                    <Region
+                        page={page}
+                        regionId="engagementContent"
+                        componentData={loaderData.componentData}
+                        errorElement={<ProductRecommendationsSection />}
+                    />
                 </div>
             </>
         );

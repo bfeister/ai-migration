@@ -25,7 +25,6 @@ import { createApiClients } from '@/lib/api-clients';
 import { formatCurrency, currencyContext } from '@/lib/currency';
 import { useCurrency } from '@/providers/currency';
 import { useBasketReset } from '@/providers/basket';
-import { useConfig } from '@/config';
 import type {
     ShopperOrders,
     ShopperProducts,
@@ -36,7 +35,6 @@ import { getCardTypeDisplay } from '@/lib/payment-utils';
 import { getDisplayVariationValues } from '@/lib/product-utils';
 import OrderSkeleton from '@/components/order-skeleton';
 import { useTranslation } from 'react-i18next';
-import { toImageUrl } from '@/lib/dynamic-image';
 // @sfdc-extension-block-start SFDC_EXT_BOPIS
 import { fetchStoresForOrder } from '@/extensions/bopis/lib/api/stores';
 import { getOrderDeliveryShipments, getOrderPickupShipment } from '@/extensions/bopis/lib/order-utils';
@@ -223,7 +221,6 @@ function OrderConfirmationContent({
     // @sfdc-extension-line SFDC_EXT_BOPIS
     storesByStoreId,
 }: OrderConfirmationData): ReactElement {
-    const config = useConfig();
     const { t, i18n } = useTranslation('checkout');
     const currency = useCurrency();
     const resetBasket = useBasketReset();
@@ -446,7 +443,7 @@ function OrderConfirmationContent({
                                                 <div className="h-24 w-24 rounded-xl bg-muted overflow-hidden flex items-center justify-center text-muted-foreground text-lg font-semibold">
                                                     {imageSrc ? (
                                                         <ProductImage
-                                                            src={toImageUrl({ src: imageSrc, config }) ?? imageSrc}
+                                                            src={imageSrc}
                                                             alt={productName}
                                                             className="h-full w-full object-cover"
                                                             loading="lazy"

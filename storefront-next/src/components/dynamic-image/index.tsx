@@ -16,8 +16,7 @@
 import { type ElementType, type ImgHTMLAttributes, useMemo } from 'react';
 import { useConfig } from '@/config';
 import { cn, isServer } from '@/lib/utils';
-import { defaultImageFormats, getResponsivePictureAttributes, replaceImageFormat } from '@/lib/dynamic-image';
-import { useDynamicImageContext } from '@/providers/dynamic-image';
+import { defaultImageFormats, getResponsivePictureAttributes, replaceImageFormat } from './utils';
 
 interface DynamicImageProps {
     src: string;
@@ -99,14 +98,11 @@ const DynamicImage = ({
             formats: defaultFormats,
         });
     }, [src, widths, defaultQuality, defaultFormats]);
-    const imageContext = useDynamicImageContext();
 
-    const effectivePriority = priority ?? (imageContext?.hasSource(src) ? 'high' : 'auto');
-    const effectiveLoading = loading ?? (effectivePriority === 'high' ? 'eager' : 'lazy');
     const effectiveImageProps = {
         ...imageProps,
-        loading: effectiveLoading,
-        fetchPriority: effectivePriority,
+        loading: loading ?? (priority === 'high' ? 'eager' : 'lazy'),
+        fetchPriority: priority ?? 'auto',
         alt,
         src: replaceImageFormat(responsiveImageProps.src, defaultFallbackFormat),
     };
@@ -115,7 +111,7 @@ const DynamicImage = ({
     // This avoids hydration mismatches and prevents useless preloads in pure CSR scenarios.
     // React 19 automatically hoists <link> elements to <head>.
     const preloadLinks =
-        effectivePriority === 'high' && isServer() ? (
+        priority === 'high' && isServer() ? (
             <>
                 {responsiveImageProps.links.map(({ type, media, sizes, srcSet }, idx) => (
                     <link

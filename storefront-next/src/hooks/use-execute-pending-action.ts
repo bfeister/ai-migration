@@ -62,7 +62,9 @@ export function useExecutePendingAction() {
     // Create a generic fetcher that can be used for any action
     const actionFetcher = useFetcher<ActionResponse>();
 
-    const isAuthenticated = Boolean(session?.userType === 'registered' && session?.customerId);
+    const isAuthenticated = Boolean(
+        session?.userType === 'registered' && session?.customer_id && session?.access_token
+    );
 
     // Reset execution flag when authentication state changes from false to true
     // This ensures the action executes after a fresh login

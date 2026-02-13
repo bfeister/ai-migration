@@ -78,7 +78,7 @@ async function trackEvent<TEventType extends AnalyticsEvent['eventType']>(
         ...eventData,
         payload: {
             userType: auth.userType ?? 'guest',
-            encUserId: auth.encUserId ?? undefined,
+            encUserId: auth.enc_user_id ?? undefined,
             usid: auth.usid,
         },
     } as Parameters<typeof createEvent<TEventType>>[1]);

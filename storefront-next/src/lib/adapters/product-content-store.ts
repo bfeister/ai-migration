@@ -15,9 +15,6 @@
  */
 import type { ProductContentAdapter } from './product-content-types';
 
-/** Default adapter name for the product content mock (used by provider and lazy registration) */
-export const PRODUCT_CONTENT_DEFAULT_ADAPTER_NAME = 'product-content-mock' as const;
-
 // Global product content adapter store
 const productContentAdapterStore = new Map<string, ProductContentAdapter>();
 

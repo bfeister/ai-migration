@@ -18,7 +18,7 @@ import { type ShopperCustomers, ApiError } from '@salesforce/storefront-next-run
 import { getAuth } from '@/middlewares/auth.server';
 import { extractStatusCode } from '@/lib/utils';
 import { createApiClients } from '@/lib/api-clients';
-import { isRegisteredCustomer } from '@/lib/api/customer';
+import { isRegisteredCustomer } from '@/lib/api/customer.server';
 import { getTranslation } from '@/lib/i18next';
 import { getWishlist } from '@/lib/api/wishlist';
 
@@ -70,7 +70,7 @@ async function removeFromWishlist(
     }
 
     const session = getAuth(context);
-    if (!session.customerId) {
+    if (!session.customer_id) {
         return {
             success: false,
             error: t('errors:customer.notAuthenticated'),
@@ -78,7 +78,7 @@ async function removeFromWishlist(
     }
 
     try {
-        const customerId = session.customerId;
+        const customerId = session.customer_id;
         const clients = createApiClients(context);
 
         const { wishlist, items, id: listId } = await getWishlist(context, customerId);

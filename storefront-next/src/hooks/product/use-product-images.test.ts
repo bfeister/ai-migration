@@ -23,16 +23,8 @@
 
 import { describe, it, expect } from 'vitest';
 import { renderHook } from '@testing-library/react';
-import { createElement, type ComponentType, type ReactNode } from 'react';
 import { useProductImages } from './use-product-images';
-import { ConfigProvider, type AppConfig } from '@/config/context';
-import { mockConfig } from '@/test-utils/config';
 import type { ShopperProducts } from '@salesforce/storefront-next-runtime/scapi';
-
-const ConfigProviderWrapper = ConfigProvider as ComponentType<{ config: AppConfig }>;
-
-const wrapper = ({ children }: { children: ReactNode }) =>
-    createElement(ConfigProviderWrapper, { config: mockConfig }, children);
 
 const createMockProduct = (
     imageGroups?: ShopperProducts.schemas['ImageGroup'][]
@@ -82,13 +74,11 @@ describe('useProductImages', () => {
             ];
             const product = createMockProduct([createMockImageGroup('large', defaultImages)]);
 
-            const { result } = renderHook(
-                () =>
-                    useProductImages({
-                        product,
-                        selectedAttributes: undefined,
-                    }),
-                { wrapper }
+            const { result } = renderHook(() =>
+                useProductImages({
+                    product,
+                    selectedAttributes: undefined,
+                })
             );
 
             expect(result.current.galleryImages).toHaveLength(2);
@@ -99,12 +89,10 @@ describe('useProductImages', () => {
         it('should return empty array when no image groups exist', () => {
             const product = createMockProduct();
 
-            const { result } = renderHook(
-                () =>
-                    useProductImages({
-                        product,
-                    }),
-                { wrapper }
+            const { result } = renderHook(() =>
+                useProductImages({
+                    product,
+                })
             );
 
             expect(result.current.galleryImages).toEqual([]);
@@ -113,12 +101,10 @@ describe('useProductImages', () => {
         it('should return empty array when no images in default group', () => {
             const product = createMockProduct([createMockImageGroup('large', [])]);
 
-            const { result } = renderHook(
-                () =>
-                    useProductImages({
-                        product,
-                    }),
-                { wrapper }
+            const { result } = renderHook(() =>
+                useProductImages({
+                    product,
+                })
             );
 
             expect(result.current.galleryImages).toEqual([]);
@@ -138,13 +124,11 @@ describe('useProductImages', () => {
                 createMockImageGroup('large', colorRedImages, { color: 'red' }),
             ]);
 
-            const { result } = renderHook(
-                () =>
-                    useProductImages({
-                        product,
-                        selectedAttributes: { color: 'red' },
-                    }),
-                { wrapper }
+            const { result } = renderHook(() =>
+                useProductImages({
+                    product,
+                    selectedAttributes: { color: 'red' },
+                })
             );
 
             expect(result.current.galleryImages).toHaveLength(2);
@@ -159,13 +143,11 @@ describe('useProductImages', () => {
                 createMockImageGroup('large', [], { color: 'blue' }),
             ]);
 
-            const { result } = renderHook(
-                () =>
-                    useProductImages({
-                        product,
-                        selectedAttributes: { color: 'red' },
-                    }),
-                { wrapper }
+            const { result } = renderHook(() =>
+                useProductImages({
+                    product,
+                    selectedAttributes: { color: 'red' },
+                })
             );
 
             expect(result.current.galleryImages).toHaveLength(1);
@@ -183,13 +165,11 @@ describe('useProductImages', () => {
                 createMockImageGroup('medium', mediumImages),
             ]);
 
-            const { result } = renderHook(
-                () =>
-                    useProductImages({
-                        product,
-                        viewType: 'medium',
-                    }),
-                { wrapper }
+            const { result } = renderHook(() =>
+                useProductImages({
+                    product,
+                    viewType: 'medium',
+                })
             );
 
             expect(result.current.galleryImages).toHaveLength(1);
@@ -205,12 +185,10 @@ describe('useProductImages', () => {
                 createMockImageGroup('medium', mediumImages),
             ]);
 
-            const { result } = renderHook(
-                () =>
-                    useProductImages({
-                        product,
-                    }),
-                { wrapper }
+            const { result } = renderHook(() =>
+                useProductImages({
+                    product,
+                })
             );
 
             expect(result.current.galleryImages).toHaveLength(1);
@@ -227,12 +205,10 @@ describe('useProductImages', () => {
 
             const product = createMockProduct([createMockImageGroup('large', images)]);
 
-            const { result } = renderHook(
-                () =>
-                    useProductImages({
-                        product,
-                    }),
-                { wrapper }
+            const { result } = renderHook(() =>
+                useProductImages({
+                    product,
+                })
             );
 
             expect(result.current.galleryImages[0]).toEqual({
@@ -255,12 +231,10 @@ describe('useProductImages', () => {
             const product = createMockProduct([createMockImageGroup('large', images)]);
             product.name = 'Test Product Name';
 
-            const { result } = renderHook(
-                () =>
-                    useProductImages({
-                        product,
-                    }),
-                { wrapper }
+            const { result } = renderHook(() =>
+                useProductImages({
+                    product,
+                })
             );
 
             expect(result.current.galleryImages[0].alt).toBe('Test Product Name');
@@ -275,12 +249,10 @@ describe('useProductImages', () => {
 
             const product = createMockProduct([createMockImageGroup('large', [image])]);
 
-            const { result } = renderHook(
-                () =>
-                    useProductImages({
-                        product,
-                    }),
-                { wrapper }
+            const { result } = renderHook(() =>
+                useProductImages({
+                    product,
+                })
             );
 
             expect(result.current.galleryImages[0].src).toBe('https://example.com/disBaseLink.jpg');
@@ -295,12 +267,10 @@ describe('useProductImages', () => {
 
             const product = createMockProduct([createMockImageGroup('large', [image])]);
 
-            const { result } = renderHook(
-                () =>
-                    useProductImages({
-                        product,
-                    }),
-                { wrapper }
+            const { result } = renderHook(() =>
+                useProductImages({
+                    product,
+                })
             );
 
             expect(result.current.galleryImages[0].src).toBe('');

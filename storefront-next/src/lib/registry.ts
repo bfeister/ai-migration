@@ -14,10 +14,7 @@
  * limitations under the License.
  */
 
-import {
-    createReactAdapter,
-    type ReactDesignComponentType,
-} from '@salesforce/storefront-next-runtime/design/react/core';
+import { createReactAdapter, type ReactDesignComponentType } from '@salesforce/storefront-next-runtime/design/react';
 import { ComponentRegistry } from '@salesforce/storefront-next-runtime/design';
 
 /**

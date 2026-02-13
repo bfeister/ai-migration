@@ -71,11 +71,11 @@ const mockAnalytics: EventMediator = {
 
 // Mock user
 const mockAuth: SessionData = {
-    accessToken: 'test-token',
-    refreshToken: 'test-refresh-token',
+    access_token: 'test-token',
+    refresh_token: 'test-refresh-token',
     usid: 'test-usid',
-    customerId: 'test-customer-id',
-    idpAccessToken: 'test-idp-token',
+    customer_id: 'test-customer-id',
+    idp_access_token: 'test-idp-token',
     userType: 'registered',
 };
 

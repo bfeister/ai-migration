@@ -15,11 +15,9 @@
  */
 import { createContext, type PropsWithChildren, useContext, useEffect, useState } from 'react';
 import type { CustomerInterestsPreferencesAdapter } from '@/lib/adapters/customer-preferences-types';
-import {
-    getCustomerPreferencesAdapter,
-    CUSTOMER_PREFERENCES_MOCK_ADAPTER_NAME,
-} from '@/lib/adapters/customer-preferences-store';
-import { ensureCustomerPreferencesAdapterRegistered } from '@/lib/adapters/ensure-customer-preferences-adapter';
+import { getCustomerPreferencesAdapter } from '@/lib/adapters/customer-preferences-store';
+import { ensureAdaptersInitialized } from '@/lib/adapters/initialize-adapters';
+import { CUSTOMER_PREFERENCES_MOCK_ADAPTER_NAME } from '@/adapters/customer-preferences-mock';
 import { useConfig } from '@/config';
 
 const CustomerPreferencesContext = createContext<CustomerInterestsPreferencesAdapter | undefined>(undefined);
@@ -46,10 +44,11 @@ const CustomerPreferencesProvider = ({
     const [adapter, setAdapter] = useState<CustomerInterestsPreferencesAdapter | undefined>(undefined);
 
     useEffect(() => {
-        // Register customer preferences adapter only when this provider mounts
+        // Ensure adapters are initialized before trying to get the adapter
         const initializeAdapter = async () => {
             try {
-                await ensureCustomerPreferencesAdapterRegistered(config);
+                await ensureAdaptersInitialized(config);
+                // Get the adapter from the customer preferences registry after initialization
                 const initializedAdapter = getCustomerPreferencesAdapter(adapterName);
                 setAdapter(initializedAdapter);
             } catch (error) {

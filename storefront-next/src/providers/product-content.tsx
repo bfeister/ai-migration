@@ -15,8 +15,9 @@
  */
 import { createContext, type PropsWithChildren, useContext, useEffect, useState } from 'react';
 import type { ProductContentAdapter } from '@/lib/adapters/product-content-types';
-import { getProductContentAdapter, PRODUCT_CONTENT_DEFAULT_ADAPTER_NAME } from '@/lib/adapters/product-content-store';
-import { ensureProductContentAdapterRegistered } from '@/lib/adapters/ensure-product-content-adapter';
+import { getProductContentAdapter } from '@/lib/adapters/product-content-store';
+import { ensureAdaptersInitialized } from '@/lib/adapters/initialize-adapters';
+import { PRODUCT_CONTENT_DEFAULT_ADAPTER_NAME } from '@/adapters/product-content-mock';
 import { useConfig } from '@/config';
 
 const ProductContentContext = createContext<ProductContentAdapter | undefined>(undefined);
@@ -43,10 +44,11 @@ const ProductContentProvider = ({
     const [adapter, setAdapter] = useState<ProductContentAdapter | undefined>(undefined);
 
     useEffect(() => {
-        // Register product content adapter only when this provider mounts (e.g. on PDP)
+        // Ensure adapters are initialized before trying to get the adapter
         const initializeAdapter = async () => {
             try {
-                await ensureProductContentAdapterRegistered(config);
+                await ensureAdaptersInitialized(config);
+                // Get the adapter from the product content registry after initialization
                 const initializedAdapter = getProductContentAdapter(adapterName);
                 setAdapter(initializedAdapter);
             } catch (error) {

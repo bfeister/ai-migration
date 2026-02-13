@@ -82,7 +82,6 @@ vi.mock('@/components/product-tile', () => ({
             <p>${product.price}</p>
         </div>
     ),
-    ProductTileProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
 // Mock the carousel UI components

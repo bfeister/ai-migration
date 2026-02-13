@@ -82,8 +82,8 @@ describe('Checkout Server Utils', () => {
             const { createApiClients } = await import('@/lib/api-clients');
 
             const mockAuthSession: SessionData = {
-                accessToken: 'test-token',
-                customerId: 'test-customer-id',
+                access_token: 'test-token',
+                customer_id: 'test-customer-id',
                 userType: 'registered',
             };
 
@@ -125,8 +125,8 @@ describe('Checkout Server Utils', () => {
 
         it('should return null for guest users', async () => {
             const mockAuthSession: SessionData = {
-                accessToken: 'test-token',
-                customerId: 'test-customer-id',
+                access_token: 'test-token',
+                customer_id: 'test-customer-id',
                 userType: 'guest',
             };
 
@@ -143,8 +143,8 @@ describe('Checkout Server Utils', () => {
 
         it('should return null when customer_id is missing', async () => {
             const mockAuthSession: SessionData = {
-                accessToken: 'test-token',
-                customerId: undefined,
+                access_token: 'test-token',
+                customer_id: undefined,
                 userType: 'registered',
             };
 
@@ -187,8 +187,8 @@ describe('Checkout Server Utils', () => {
             const { fetchShippingMethodsMapForBasket } = await import('@/lib/checkout-loaders');
 
             const mockAuthSession: SessionData = {
-                accessToken: 'test-token',
-                customerId: 'test-customer-id',
+                access_token: 'test-token',
+                customer_id: 'test-customer-id',
                 userType: 'registered',
             };
 
@@ -259,8 +259,8 @@ describe('Checkout Server Utils', () => {
             const { fetchShippingMethodsMapForBasket } = await import('@/lib/checkout-loaders');
 
             const mockAuthSession: SessionData = {
-                accessToken: 'test-token',
-                customerId: 'guest-customer-id',
+                access_token: 'test-token',
+                customer_id: 'guest-customer-id',
                 userType: 'guest',
             };
 

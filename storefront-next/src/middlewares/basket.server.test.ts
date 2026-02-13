@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { beforeEach, describe, expect, test, vi } from 'vitest';
-import { createCookie, RouterContextProvider } from 'react-router';
+import { createCookie, type RouterContextProvider } from 'react-router';
 import { createTestContext } from '@/lib/test-utils';
 import { createApiClients } from '@/lib/api-clients';
 import { getCookieConfig } from '@/lib/cookie-utils';
@@ -23,7 +23,6 @@ import createBasketMiddleware, {
     basketResourceContext,
     destroyBasket,
     getBasket,
-    getBasketSnapshot,
     type BasketSnapshot,
 } from './basket.server';
 
@@ -44,9 +43,9 @@ vi.mock('@/lib/cookie-utils', () => ({
 
 describe('basket.server middleware', () => {
     let mockRequest: Request;
-    let mockContext: ReturnType<typeof createTestContext>;
+    let mockContext: RouterContextProvider;
     let mockNext: ReturnType<typeof vi.fn>;
-    const createArgs = (request: Request, context: Readonly<RouterContextProvider>) =>
+    const createArgs = (request: Request, context: RouterContextProvider) =>
         ({ request, context, params: {}, unstable_pattern: '' }) as any;
 
     beforeEach(() => {
@@ -108,8 +107,7 @@ describe('basket.server middleware', () => {
         const basketCookie = createCookie('__sfdc_basket', cookieConfig);
         const snapshot: BasketSnapshot = {
             basketId: 'basket-from-cookie',
-            totalItemCount: 1,
-            uniqueProductCount: 1,
+            itemsCount: 1,
         };
         const cookieHeader = await basketCookie.serialize(snapshot);
         mockRequest = new Request('https://example.com', {
@@ -122,29 +120,6 @@ describe('basket.server middleware', () => {
         const basketResource = mockContext.get(basketResourceContext);
         expect(basketResource?.snapshot).toEqual(snapshot);
         expect(basketResource?.hydrated).toBe(false);
-    });
-
-    test('getBasketSnapshot returns null when no context is set', () => {
-        const contextProvider = new RouterContextProvider();
-        contextProvider.set(basketResourceContext, undefined);
-        expect(getBasketSnapshot(contextProvider)).toBeNull();
-    });
-
-    test('getBasketSnapshot returns the current snapshot', () => {
-        const snapshot: BasketSnapshot = {
-            basketId: 'basket-snapshot',
-            totalItemCount: 3,
-            uniqueProductCount: 2,
-        };
-        const contextProvider = new RouterContextProvider();
-        contextProvider.set(basketResourceContext, {
-            snapshot,
-            current: null,
-            hydrated: false,
-            error: null,
-        });
-
-        expect(getBasketSnapshot(contextProvider)).toEqual(snapshot);
     });
 
     test('merges custom snapshot fields while preserving defaults', async () => {
@@ -163,8 +138,7 @@ describe('basket.server middleware', () => {
             mode: 'eager',
             calculateBasketSnapshot: () => ({
                 basketId: 'override-id',
-                totalItemCount: 99,
-                uniqueProductCount: 99,
+                itemsCount: 99,
                 hasPickupItems: true,
             }),
         });
@@ -173,8 +147,7 @@ describe('basket.server middleware', () => {
         const snapshot = mockContext.get(basketResourceContext)?.snapshot;
         expect(snapshot).toMatchObject({
             basketId: 'basket-merge',
-            totalItemCount: 2,
-            uniqueProductCount: 1,
+            itemsCount: 2,
             hasPickupItems: true,
         });
 
@@ -184,8 +157,7 @@ describe('basket.server middleware', () => {
         const cookieSnapshot = (await basketCookie.parse(cookieHeader)) as BasketSnapshot;
         expect(cookieSnapshot).toMatchObject({
             basketId: 'basket-merge',
-            totalItemCount: 2,
-            uniqueProductCount: 1,
+            itemsCount: 2,
             hasPickupItems: true,
         });
     });

@@ -20,22 +20,17 @@ exports[`ProductCartActions stories snapshot > Default story renders and matches
         class="text-sm text-muted-foreground"
       >
         <span>
-          Pay in 
-          4
-           interest-free payments of
-           
+          Pay in 4 interest-free payments of 
           <span
             class="font-bold text-foreground"
           >
-            $
-            12.25
+            $12.25
           </span>
           .
            
         </span>
         <button
-          class="cursor-pointer font-normal text-primary hover:underline"
-          type="button"
+          class="text-primary hover:underline font-medium cursor-pointer"
         >
           Learn more
         </button>
@@ -60,7 +55,7 @@ exports[`ProductCartActions stories snapshot > Default story renders and matches
           data-slot="dropdown-menu-trigger"
           data-state="closed"
           data-variant="outline"
-          id="radix-_r_0_"
+          id="radix-_r_3_"
           type="button"
         >
           Share
@@ -92,22 +87,17 @@ exports[`ProductCartActions stories snapshot > EditMode story renders and matche
           class="text-sm text-muted-foreground"
         >
           <span>
-            Pay in 
-            4
-             interest-free payments of
-             
+            Pay in 4 interest-free payments of 
             <span
               class="font-bold text-foreground"
             >
-              $
-              12.25
+              $12.25
             </span>
             .
              
           </span>
           <button
-            class="cursor-pointer font-normal text-primary hover:underline"
-            type="button"
+            class="text-primary hover:underline font-medium cursor-pointer"
           >
             Learn more
           </button>

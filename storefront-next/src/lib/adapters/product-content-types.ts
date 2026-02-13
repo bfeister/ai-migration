@@ -13,21 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type {
-    BuyNowPayLaterLearnMoreData,
-    BuyNowPayLaterMessageData,
-    CareInstructionsData,
-    EstimatedDeliveryData,
-    IngredientsData,
-    ProductDescriptionData,
-    ReturnsAndWarrantyData,
-    ReviewsData,
-    ShippingEstimate,
-    SizeGuideData,
-    TechSpecsData,
-    UsageInstructionsData,
-    WriteReviewFormData,
-} from './product-content-data-types';
 
 /**
  * Product Content Adapter Interface
@@ -35,81 +20,55 @@ import type {
  * All methods are optional to allow separate service implementations later.
  * Data for PDP modals may come from different APIs (e.g. product API).
  * Implementations (e.g. mock or product API) can provide any subset of methods.
- *
- * @example
- * ```typescript
- * // Implement only the methods you need
- * export const myAdapter: ProductContentAdapter = {
- *   getSizeGuide: async (productId) => {
- *     const data = await fetchFromAPI(productId);
- *     return transformToSizeGuideData(data);
- *   },
- * };
- * ```
  */
 export interface ProductContentAdapter {
     /**
      * Get size guide content for PDP modal
      */
-    getSizeGuide?(productId?: string): Promise<SizeGuideData>;
+    getSizeGuide?(productId?: string): Promise<unknown>;
 
     /**
      * Get returns and warranty content for PDP modal
      */
-    getReturnsAndWarranty?(productId?: string): Promise<ReturnsAndWarrantyData>;
+    getReturnsAndWarranty?(productId?: string): Promise<unknown>;
 
     /**
      * Get message content for Buy Now Pay Later (BNPL) component
      */
-    getBuyNowPayLaterMessageContent?(productId?: string): Promise<BuyNowPayLaterMessageData>;
+    getBuyNowPayLaterMessageContent?(productId?: string): Promise<unknown>;
 
     /**
      * Get learn more section content for Buy Now Pay Later (BNPL) component
      */
-    getBuyNowPayLaterLearnMoreContent?(productId?: string): Promise<BuyNowPayLaterLearnMoreData>;
+    getBuyNowPayLaterLearnMoreContent?(productId?: string): Promise<unknown>;
 
     /**
-     * Get estimated delivery content for PDP (Fulfillment & Shipping modal)
+     * Get estimated delivery content for PDP
      */
-    getEstimatedDelivery?(productId?: string): Promise<EstimatedDeliveryData>;
+    getEstimatedDelivery?(productId?: string): Promise<unknown>;
 
     /**
-     * Get product description for PDP (intro paragraph + features)
+     * Get ingredients data for collapsible content on PDP
      */
-    getProductDescription?(productId?: string): Promise<ProductDescriptionData>;
-
-    /**
-     * Get ingredients/materials data for collapsible content on PDP
-     */
-    getIngredientsData?(productId?: string): Promise<IngredientsData>;
+    getIngredientsData?(productId?: string): Promise<unknown>;
 
     /**
      * Get usage instructions for collapsible content on PDP
      */
-    getUsageInstructions?(productId?: string): Promise<UsageInstructionsData>;
+    getUsageInstructions?(productId?: string): Promise<unknown>;
 
     /**
      * Get care instructions for collapsible content on PDP
      */
-    getCareInstructions?(productId?: string): Promise<CareInstructionsData>;
+    getCareInstructions?(productId?: string): Promise<unknown>;
 
     /**
      * Get tech specs for collapsible content on PDP
      */
-    getTechSpecs?(productId?: string): Promise<TechSpecsData>;
+    getTechSpecs?(productId?: string): Promise<unknown>;
 
     /**
-     * Get customer reviews for PDP reviews section
+     * Get shipping estimates content for PDP
      */
-    getReviews?(productId?: string): Promise<ReviewsData>;
-
-    /**
-     * Get Write a Review form config for PDP (submit review modal). Excludes name and email.
-     */
-    getWriteReviewForm?(productId?: string): Promise<WriteReviewFormData>;
-
-    /**
-     * Get shipping estimates for a product to a destination zipcode
-     */
-    getShippingEstimates?(productId?: string, zipcode?: string): Promise<ShippingEstimate>;
+    getShippingEstimates?(productId?: string): Promise<unknown>;
 }

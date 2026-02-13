@@ -16,37 +16,34 @@
 'use client';
 
 import { createContext, type PropsWithChildren, useContext } from 'react';
-import type { PublicSessionData } from '@/lib/api/types';
-
-/* eslint-disable react-refresh/only-export-components */
-
-export const AuthContext = createContext<PublicSessionData | undefined>(undefined);
+import type { SessionData } from '@/lib/api/types';
+import { getAuthDataFromCookies } from '@/middlewares/auth.client';
 
 /**
- * Provider for public (non-sensitive) auth/session data.
+ * Bootstrap auth data used during client hydration before loader data is available.
  *
- * In a server-only auth architecture:
- * - Server middleware reads cookies and populates full session data
- * - Root loader extracts only non-sensitive fields (userType, customerId, usid, etc.)
- * - These non-sensitive fields are serialized and sent to the client
- * - AuthProvider makes this data available to components via useAuth()
+ * - On the client: snapshot of auth data from cookies at call time.
+ * - On the server: always undefined.
  *
- * This provider does NOT have access to sensitive data like accessToken or refreshToken.
- * Server actions should use getAuth(context) from auth.server.ts for authenticated operations.
+ * This is consumed by the root App component to provide a fallback value when
+ * the loader-based auth value is not yet available.
  */
-const AuthProvider = ({ children, value }: PropsWithChildren<{ value?: PublicSessionData }>) => {
+/* eslint-disable react-refresh/only-export-components */
+
+export const getBootstrapSession = (): SessionData | undefined =>
+    typeof window === 'undefined' ? undefined : (getAuthDataFromCookies() as SessionData | undefined);
+
+export const AuthContext = createContext<SessionData | undefined>(undefined);
+
+/**
+ * Provider for given auth/session data that's typically retrieved by the auth middleware.
+ * @see {@link authMiddleware}
+ */
+const AuthProvider = ({ children, value }: PropsWithChildren<{ value?: SessionData }>) => {
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
-/**
- * Hook to access public (non-sensitive) session data.
- *
- * Returns non-sensitive user info: userType, customerId, usid, encUserId, trackingConsent.
- * Does NOT include tokens - those are server-only.
- *
- * @returns PublicSessionData or undefined if not available
- */
-export const useAuth = (): PublicSessionData | undefined => {
+export const useAuth = (): SessionData | undefined => {
     return useContext(AuthContext);
 };
 
