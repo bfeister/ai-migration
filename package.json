@@ -2,7 +2,6 @@
 	"scripts": {
 		"start": "tsx scripts/run-setup.ts",
 		"discover": "tsx scripts/discover-features-claude.ts",
-		"setup": "tsx scripts/setup-migration.ts",
 		"baselines": "tsx scripts/capture-baselines.ts",
 		"analyze": "tsx scripts/analyze-features.ts",
 		"map-isml": "tsx scripts/map-isml-templates.ts",

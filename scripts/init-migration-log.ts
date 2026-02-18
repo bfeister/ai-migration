@@ -27,20 +27,12 @@ interface URLMappings {
   mappings: FeatureConfig[];
 }
 
-interface SetupConfig {
-  createdAt: string;
-  sourceBaseUrl: string;
-  targetBaseUrl: string;
-  selectedFeatures: string[];
-}
-
 // ============================================================================
 // Constants
 // ============================================================================
 
 const WORKSPACE_ROOT = process.env.WORKSPACE_ROOT || process.cwd();
 const URL_MAPPINGS_FILE = path.join(WORKSPACE_ROOT, 'url-mappings.json');
-const SETUP_CONFIG_FILE = path.join(WORKSPACE_ROOT, '.migration-state', 'setup-config.json');
 const SUBPLANS_DIR = path.join(WORKSPACE_ROOT, 'sub-plans');
 const LOG_FILE = path.join(WORKSPACE_ROOT, 'migration-log.md');
 
@@ -59,13 +51,6 @@ function success(msg: string): void {
 function loadMappings(): URLMappings | null {
   if (fs.existsSync(URL_MAPPINGS_FILE)) {
     return JSON.parse(fs.readFileSync(URL_MAPPINGS_FILE, 'utf-8'));
-  }
-  return null;
-}
-
-function loadSetupConfig(): SetupConfig | null {
-  if (fs.existsSync(SETUP_CONFIG_FILE)) {
-    return JSON.parse(fs.readFileSync(SETUP_CONFIG_FILE, 'utf-8'));
   }
   return null;
 }
@@ -97,20 +82,19 @@ function countSubPlans(): { total: number; byFeature: Record<string, number> } {
 
 async function main(): Promise<void> {
   const mappings = loadMappings();
-  const setupConfig = loadSetupConfig();
   const { total: totalSubplans, byFeature } = countSubPlans();
 
-  if (!mappings && !setupConfig) {
-    log('Warning: No configuration found. Run setup first.');
+  if (!mappings) {
+    log('Warning: No url-mappings.json found. Run discovery first.');
   }
 
   const timestamp = new Date().toISOString();
-  const sourceUrl = setupConfig?.sourceBaseUrl || mappings?.source_base_url || 'Not configured';
-  const targetUrl = setupConfig?.targetBaseUrl || mappings?.target_base_url || 'Not configured';
-  const selectedFeatures = setupConfig?.selectedFeatures || mappings?.mappings.map(m => m.feature_id) || [];
+  const sourceUrl = mappings?.source_base_url || 'Not configured';
+  const targetUrl = mappings?.target_base_url || 'Not configured';
+  const allFeatures = mappings?.mappings.map(m => m.feature_id) || [];
 
   // Build feature table
-  const featureRows = selectedFeatures.map(featureId => {
+  const featureRows = allFeatures.map(featureId => {
     const feature = mappings?.mappings.find(m => m.feature_id === featureId);
     const planCount = byFeature[featureId] || 0;
     return `| ${featureId} | ${feature?.name || featureId} | ${planCount} | Pending |`;
@@ -129,7 +113,7 @@ async function main(): Promise<void> {
 |---------|-------|
 | Source | ${sourceUrl} |
 | Target | ${targetUrl} |
-| Setup Completed | ${setupConfig?.createdAt || timestamp} |
+| Initialized | ${timestamp} |
 | Total Sub-Plans | ${totalSubplans} |
 
 ## Features to Migrate
@@ -151,7 +135,7 @@ ${featureRows.join('\n')}
 ### ${timestamp.split('T')[0]}
 
 - **${timestamp}** - Migration log initialized
-- Setup completed with ${selectedFeatures.length} features
+- Setup completed with ${allFeatures.length} features
 - Generated ${totalSubplans} sub-plans
 
 ---

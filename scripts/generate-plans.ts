@@ -29,10 +29,6 @@ interface URLMappings {
   mappings: FeatureConfig[];
 }
 
-interface SetupConfig {
-  selectedFeatures: string[];
-}
-
 interface AnalysisSummary {
   totalElements: number;
   links: { href: string; text?: string }[];
@@ -61,7 +57,6 @@ interface SubPlanContext {
 
 const WORKSPACE_ROOT = process.env.WORKSPACE_ROOT || process.cwd();
 const URL_MAPPINGS_FILE = path.join(WORKSPACE_ROOT, 'url-mappings.json');
-const SETUP_CONFIG_FILE = path.join(WORKSPACE_ROOT, '.migration-state', 'setup-config.json');
 const ANALYSIS_DIR = path.join(WORKSPACE_ROOT, 'analysis');
 const SUBPLANS_DIR = path.join(WORKSPACE_ROOT, 'sub-plans');
 
@@ -129,13 +124,6 @@ function loadMappings(): URLMappings {
     throw new Error(`url-mappings.json not found. Run setup first.`);
   }
   return JSON.parse(fs.readFileSync(URL_MAPPINGS_FILE, 'utf-8'));
-}
-
-function loadSetupConfig(): SetupConfig | null {
-  if (fs.existsSync(SETUP_CONFIG_FILE)) {
-    return JSON.parse(fs.readFileSync(SETUP_CONFIG_FILE, 'utf-8'));
-  }
-  return null;
 }
 
 function loadAnalysis(featureId: string): AnalysisSummary | null {
@@ -331,7 +319,6 @@ function generateSubPlansForFeature(
 async function main(): Promise<void> {
   const args = parseArgs(process.argv.slice(2));
   const mappings = loadMappings();
-  const setupConfig = loadSetupConfig();
 
   // Compile template
   const template = Handlebars.compile(SUBPLAN_TEMPLATE);
@@ -339,7 +326,7 @@ async function main(): Promise<void> {
   // Determine which features to process
   let featureIds = args.features;
   if (!featureIds) {
-    featureIds = setupConfig?.selectedFeatures || mappings.mappings.map((m) => m.feature_id);
+    featureIds = mappings.mappings.map((m) => m.feature_id);
   }
 
   const features = mappings.mappings.filter((m) => featureIds!.includes(m.feature_id));

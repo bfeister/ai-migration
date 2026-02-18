@@ -37,17 +37,12 @@ interface URLMappings {
   mappings: FeatureConfig[];
 }
 
-interface SetupConfig {
-  selectedFeatures: string[];
-}
-
 // ============================================================================
 // Constants
 // ============================================================================
 
 const WORKSPACE_ROOT = process.env.WORKSPACE_ROOT || process.cwd();
 const URL_MAPPINGS_FILE = path.join(WORKSPACE_ROOT, 'url-mappings.json');
-const SETUP_CONFIG_FILE = path.join(WORKSPACE_ROOT, '.migration-state', 'setup-config.json');
 const SCREENSHOTS_DIR = path.join(WORKSPACE_ROOT, 'screenshots');
 
 // ============================================================================
@@ -71,13 +66,6 @@ function loadMappings(): URLMappings {
     throw new Error(`url-mappings.json not found. Run setup first.`);
   }
   return JSON.parse(fs.readFileSync(URL_MAPPINGS_FILE, 'utf-8'));
-}
-
-function loadSetupConfig(): SetupConfig | null {
-  if (fs.existsSync(SETUP_CONFIG_FILE)) {
-    return JSON.parse(fs.readFileSync(SETUP_CONFIG_FILE, 'utf-8'));
-  }
-  return null;
 }
 
 function parseArgs(args: string[]): { features?: string[] } {
@@ -143,12 +131,11 @@ async function captureBaseline(feature: FeatureConfig): Promise<string> {
 async function main(): Promise<void> {
   const args = parseArgs(process.argv.slice(2));
   const mappings = loadMappings();
-  const setupConfig = loadSetupConfig();
 
   // Determine which features to capture
   let featureIds = args.features;
   if (!featureIds) {
-    featureIds = setupConfig?.selectedFeatures || mappings.mappings.map((m) => m.feature_id);
+    featureIds = mappings.mappings.map((m) => m.feature_id);
   }
 
   const features = mappings.mappings.filter((m) => featureIds!.includes(m.feature_id));

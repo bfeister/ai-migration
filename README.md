@@ -43,6 +43,323 @@ AUTO_START=false docker compose up
 
 ---
 
+## 📚 Complete Pipeline Overview (From Zero to React)
+
+The migration pipeline consists of **two major phases** that transform SFRA templates into React components:
+
+---
+
+### **Phase 1: Bootstrap** (Automated via `docker/entrypoint.sh`)
+
+Prepares the development environment and tooling. Runs automatically on `docker compose up`.
+
+#### Phase 1.1: Build Monorepo & Generate Standalone Project
+
+-   **What:** Builds the Storefront Next monorepo and generates a standalone React project
+-   **Actions:**
+    -   Copy monorepo source to `/tmp` (container) or use in-place (host)
+    -   Run `pnpm install` and `pnpm -r build` to build all packages
+    -   Run `create-storefront` CLI to generate standalone project from template
+    -   Convert `workspace:*` dependencies to `file://` references to local packages
+    -   Install dependencies with symlinked node_modules (container) or direct (host)
+-   **Output:**
+    -   Built monorepo at `/tmp/SFCC-Odyssey` (container) or `$MONOREPO_SOURCE` (host)
+    -   Standalone project at `storefront-next/` with working `sfnext` CLI
+-   **Marker:** `.migration-state/phase1-complete`
+
+#### Phase 1.2: Commit Storefront-Next Baseline
+
+-   **What:** Create initial git commit for the generated React project
+-   **Actions:**
+    -   Add `storefront-next/` directory to git
+    -   Commit with message "chore: add storefront-next baseline after bootstrap"
+-   **Output:** Git commit establishing baseline for tracking migration changes
+-   **Marker:** `.migration-state/baseline-committed`
+
+#### Phase 1.3: MCP Server Setup
+
+-   **What:** Configure MCP servers for Claude Code automation
+-   **Actions:**
+    -   Build `mcp-server/` TypeScript project
+    -   Generate `~/.config/claude-code/mcp.json` with server configurations:
+        -   `migration-tools` - Custom MCP server with intervention, logging, screenshot tools
+        -   `playwright` - Microsoft Playwright MCP for browser automation
+    -   Install Playwright browsers (Chromium)
+-   **Output:**
+    -   `mcp-server/dist/migration-server.js`
+    -   `~/.config/claude-code/mcp.json`
+-   **Marker:** `.migration-state/phase3-complete`
+
+**To run Phase 1 only:**
+
+```bash
+# Manual (host)
+MONOREPO_SOURCE=/path/to/SFCC-Odyssey ./docker/entrypoint.sh
+
+# Automated (future feature)
+docker compose up
+```
+
+---
+
+### **Phase 2: Feature Discovery & Sub-Plan Generation** (Scripts in `scripts/`)
+
+Dynamically discovers features from ISML templates and generates atomic migration sub-plans.
+
+**Architecture:** Discovery drives Phase 2. `discover-features-claude.ts` dynamically discovers features from ISML templates and writes them to `migration-plans/{page-id}-features.json`. `url-mappings.json` provides page-level config (URLs, ISML paths, viewport).
+
+See [`scripts/WORKFLOW.md`](./scripts/WORKFLOW.md) for detailed architecture.
+
+#### Step 2.1: Feature Discovery (`discover-features-claude.ts`)
+
+-   **What:** Claude analyzes ISML template to discover migratable features
+-   **How:**
+    -   Parse ISML for `<isslot>`, `<isinclude>`, and static sections
+    -   Resolve slot configurations via `slots.xml`
+    -   Capture full-page screenshot + DOM extraction
+    -   Invoke Claude CLI with discovery prompt (uses file paths, not inline content)
+    -   Claude determines feature boundaries, selectors, priorities
+-   **Input:**
+    -   ISML template path (e.g., `home/homePage.isml`)
+    -   `slots.xml` for slot resolution
+    -   SFRA URL for screenshot capture
+-   **Output:** `migration-plans/{page-id}-features.json` with:
+    -   Feature IDs (e.g., `01-home-hero`, `02-home-categories`)
+    -   Feature names and descriptions
+    -   CSS selectors for DOM extraction
+    -   Slot IDs and ISML line references
+    -   Migration priority order
+
+**Run:**
+
+```bash
+CLAUDECODE= npx tsx scripts/discover-features-claude.ts --page home
+```
+
+**Key Innovation:** Features are **discovered dynamically** by Claude, not hardcoded. Claude reads ISML template files on-demand using the Read tool, avoiding massive prompt context.
+
+#### Step 2.2: Feature-Specific Analysis (`analyze-features.ts`)
+
+-   **What:** Extract DOM structure and capture screenshots for each discovered feature
+-   **How:**
+    -   Read feature definitions from `migration-plans/{page-id}-features.json`
+    -   For each feature, use Claude-determined selector
+    -   Extract DOM structure with Playwright
+    -   Capture focused screenshot of that section
+-   **Output:** For each feature in `analysis/{feature-id}/`:
+    -   `dom-extraction.json` - Structural data (headings, colors, fonts, layout)
+    -   `screenshot.png` - Visual reference
+
+**Run:**
+
+```bash
+npx tsx scripts/analyze-features.ts --features 01-home-hero,02-home-categories
+```
+
+#### Step 2.3: Sub-Plan Generation (`generate-subplan-claude.ts`)
+
+-   **What:** Generate atomic migration sub-plans iteratively using Claude CLI
+-   **How:**
+    -   For each discovered feature, read:
+        -   DOM extraction + screenshots from Step 2.2
+        -   ISML template content (via file path reference)
+        -   Slot configurations (via file path reference)
+        -   Previously generated sub-plans (for context)
+    -   Invoke Claude CLI with iterative sub-plan prompt
+    -   Claude generates ONE sub-plan per invocation
+    -   Continue until Claude outputs `<!-- STATUS: COMPLETE -->`
+-   **Input:**
+    -   Feature discovery results from Step 2.1
+    -   Feature analysis from Step 2.2
+    -   `prompts/isml-migration/iterative-subplan.hbs` template
+-   **Output:** `sub-plans/{feature-id}/subplan-01-01.md`, `subplan-01-02.md`, etc.
+    -   Each sub-plan is an atomic unit of work
+    -   Ordered by dependency (layout → components → data → styling)
+
+**Run:**
+
+```bash
+CLAUDECODE= npx tsx scripts/generate-subplan-claude.ts \
+  --features 01-home-hero \
+  --max-plans 10
+```
+
+**Key Innovation:** Prompts pass **file paths** to Claude, not full file contents. Claude uses Read/Grep tools to explore on-demand, avoiding context overload.
+
+#### Step 2.4: Initialize Migration Log (`init-migration-log.ts`)
+
+-   **What:** Create initial migration log with headers and feature summary
+-   **Output:** `migration-log.md` ready for progress tracking
+
+**Run:**
+
+```bash
+npx tsx scripts/init-migration-log.ts
+```
+
+---
+
+### **Phase 2 Architecture Diagram**
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  STEP 2.1: Feature Discovery                                │
+│  discover-features-claude.ts                                │
+│                                                              │
+│  Input:   home/homePage.isml, slots.xml, SFRA URL          │
+│  Process: Claude CLI reads ISML + resolves slots           │
+│  Output:  migration-plans/home-features.json               │
+│           (5 discovered features with selectors)            │
+└─────────────────────────────────────────────────────────────┘
+                          ↓
+┌─────────────────────────────────────────────────────────────┐
+│  STEP 2.2: Feature Analysis                                 │
+│  analyze-features.ts                                        │
+│                                                              │
+│  Input:   Feature definitions from Step 2.1                │
+│  Process: Playwright extracts DOM + captures screenshots   │
+│  Output:  analysis/{feature-id}/dom-extraction.json        │
+│           analysis/{feature-id}/screenshot.png             │
+└─────────────────────────────────────────────────────────────┘
+                          ↓
+┌─────────────────────────────────────────────────────────────┐
+│  STEP 2.3: Sub-Plan Generation                              │
+│  generate-subplan-claude.ts                                 │
+│                                                              │
+│  Input:   Features + Analysis from Steps 2.1-2.2           │
+│  Process: Claude CLI generates sub-plans iteratively       │
+│  Output:  sub-plans/01-home-hero/subplan-01-01.md         │
+│           sub-plans/01-home-hero/subplan-01-02.md         │
+│           ... (until COMPLETE)                              │
+└─────────────────────────────────────────────────────────────┘
+```
+
+---
+
+### **Running the Complete Pipeline**
+
+#### Option 1: Fully Automated (Docker)
+
+```bash
+# Clean start - runs both Phase 1 and Phase 2
+CLEAN_START=true docker compose up
+
+# What happens:
+# 1. Phase 1: Bootstrap (entrypoint.sh phases 1-3)
+# 2. Phase 2: Feature discovery + sub-plan generation
+#    - discover-features-claude.ts analyzes ISML → migration-plans/*.json
+#    - analyze-features.ts extracts DOM + captures screenshots
+#    - generate-subplan-claude.ts generates atomic sub-plans
+#    - init-migration-log.ts initializes progress tracking
+# 3. Phase 3: Claude Code executes sub-plans with MCP tools
+```
+
+#### Option 2: Manual (Step-by-Step)
+
+```bash
+# Phase 1: Bootstrap
+docker compose up  # Or run entrypoint.sh manually
+
+# Phase 2: Feature Discovery & Sub-Plan Generation
+cd /workspace  # or your project root
+
+# Step 2.1: Discover features from ISML
+CLAUDECODE= npx tsx scripts/discover-features-claude.ts --page home
+
+# Step 2.2: Analyze discovered features
+npx tsx scripts/analyze-features.ts --features 01-home-hero,02-home-categories
+
+# Step 2.3: Generate sub-plans
+CLAUDECODE= npx tsx scripts/generate-subplan-claude.ts \
+  --features 01-home-hero \
+  --max-plans 10
+
+# Step 2.4: Initialize log
+npx tsx scripts/init-migration-log.ts
+
+# Phase 3: Execute sub-plans with Claude Code
+claude code run < migration-main-plan.md
+```
+
+---
+
+### **Key Scripts Reference**
+
+| Script                                | Purpose                                  | Phase        | Reads                                      | Writes                           |
+| ------------------------------------- | ---------------------------------------- | ------------ | ------------------------------------------ | -------------------------------- |
+| `docker/entrypoint.sh`                | Bootstrap: build monorepo, setup MCP     | 1            | -                                          | `.migration-state/phase*`        |
+| `scripts/discover-features-claude.ts` | Discover features from ISML (Claude)     | 2.1          | `url-mappings.json` (page config) + ISML   | `migration-plans/*.json`         |
+| `scripts/analyze-features.ts`         | Extract DOM + screenshots                | 2.2          | `migration-plans/*.json`                   | `analysis/*/`                    |
+| `scripts/generate-subplan-claude.ts`  | Generate atomic sub-plans                | 2.3          | `migration-plans/*.json` + `analysis/`     | `sub-plans/*/subplan-*.md`       |
+| `scripts/init-migration-log.ts`       | Initialize migration log                 | 2.4          | `migration-plans/*.json`                   | `migration-log.md`               |
+| `scripts/run-setup.ts`               | Run all Phase 2 steps                    | 2 (wrapper)  | -                                          | -                                |
+
+**Note:** `url-mappings.json` provides page-level config (URLs, ISML paths, viewport). Features flow from discovery output (`migration-plans/*.json`) to downstream scripts.
+
+---
+
+### **Key Files & Directories**
+
+| Path                      | Purpose                                   |
+| ------------------------- | ----------------------------------------- |
+| `docker/entrypoint.sh`    | Phase 1 bootstrap script                  |
+| `scripts/`                | Phase 2 TypeScript scripts                |
+| `prompts/isml-migration/` | Handlebars prompt templates               |
+| `mcp-server/`             | Custom MCP tools server                   |
+| `storefront-next/`        | Generated React project                   |
+| `migration-plans/`        | Feature discovery output                  |
+| `analysis/`               | DOM + screenshot data per feature         |
+| `sub-plans/`              | Generated sub-plan markdown files         |
+| `screenshots/`            | Screenshot comparisons (source vs target) |
+| `migration-log.md`        | Progress log with commits                 |
+| `url-mappings.json`       | Page-level config (URLs, ISML paths)      |
+| `.migration-state/`       | Phase completion markers                  |
+
+---
+
+### **Critical Implementation Details**
+
+**Why File Paths, Not Inline Content?**
+
+From `PLAN-isml-subplan-generation.md`:
+
+❌ **Before (BAD - caused timeouts):**
+
+````handlebars
+## ISML Template ```isml
+{{{ismlContent}}}
+<!-- 500+ lines injected -->
+````
+
+````
+
+✅ **After (GOOD - uses agentic tools):**
+```handlebars
+## File References
+
+Use the Read tool to examine these files as needed:
+
+### ISML Template
+**Path:** `{{ismlTemplatePath}}`
+````
+
+**Benefits:**
+
+-   Smaller prompts (only metadata and instructions)
+-   Targeted discovery (Claude reads only what it needs)
+-   Better context (Claude builds understanding incrementally)
+-   Leverages agentic tools (Read, Grep work better than massive context dumps)
+
+---
+
+**For detailed prompt templates, see:**
+
+-   `prompts/isml-migration/README.md` - Template architecture
+-   `prompts/isml-migration/INTEGRATION-GUIDE.md` - Integration patterns
+-   `PLAN-isml-subplan-generation.md` - Phase 2 implementation details
+
+---
+
 ## 🎯 What Happens
 
 That's it! The container will:

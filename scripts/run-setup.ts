@@ -26,7 +26,6 @@ import path from 'path';
 
 const WORKSPACE_ROOT = process.env.WORKSPACE_ROOT || process.cwd();
 const STATE_DIR = path.join(WORKSPACE_ROOT, '.migration-state');
-const SETUP_CONFIG_FILE = path.join(STATE_DIR, 'setup-config.json');
 const ANALYSIS_DIR = path.join(WORKSPACE_ROOT, 'analysis');
 const SUBPLANS_DIR = path.join(WORKSPACE_ROOT, 'sub-plans');
 const SCREENSHOTS_DIR = path.join(WORKSPACE_ROOT, 'screenshots');
@@ -44,11 +43,6 @@ interface Phase {
   args?: string[];
   optional?: boolean;
   completionCheck: () => boolean;
-}
-
-interface SetupConfig {
-  createdAt: string;
-  selectedFeatures: string[];
 }
 
 // ============================================================================
@@ -94,55 +88,6 @@ function header(text: string): void {
 
 function subheader(text: string): void {
   console.log(`\n${colors.magenta}▶${colors.reset} ${colors.bold}${text}${colors.reset}\n`);
-}
-
-function loadSetupConfig(): SetupConfig | null {
-  if (fs.existsSync(SETUP_CONFIG_FILE)) {
-    try {
-      return JSON.parse(fs.readFileSync(SETUP_CONFIG_FILE, 'utf-8'));
-    } catch {
-      return null;
-    }
-  }
-  return null;
-}
-
-interface URLMappings {
-  mappings: Array<{
-    feature_id: string;
-    isml_template_path?: string;
-  }>;
-}
-
-function loadURLMappings(): URLMappings | null {
-  const urlMappingsFile = path.join(WORKSPACE_ROOT, 'url-mappings.json');
-  if (fs.existsSync(urlMappingsFile)) {
-    try {
-      return JSON.parse(fs.readFileSync(urlMappingsFile, 'utf-8'));
-    } catch {
-      return null;
-    }
-  }
-  return null;
-}
-
-/**
- * Check if all features in the config have ISML template paths mapped
- */
-function allFeaturesHaveISMLPath(): boolean {
-  const config = loadSetupConfig();
-  const mappings = loadURLMappings();
-
-  if (!config || !mappings) return false;
-
-  const selectedFeatures = new Set(config.selectedFeatures);
-  const featuresWithISML = mappings.mappings.filter(
-    m => selectedFeatures.has(m.feature_id) && m.isml_template_path
-  );
-
-  // Return true if at least one feature has ISML path mapped
-  // (not requiring all, since some features may not need ISML mapping)
-  return featuresWithISML.length > 0;
 }
 
 function countFiles(dir: string, pattern: RegExp): number {
@@ -192,7 +137,7 @@ function runScript(script: string, args: string[] = []): Promise<number> {
  * Display current state summary
  */
 function showStatus(): void {
-  const config = loadSetupConfig();
+  const discoveryCount = hasFeatureDiscovery() ? fs.readdirSync(MIGRATION_PLANS_DIR).filter(f => f.endsWith('-features.json')).length : 0;
   const analysisCount = countFiles(ANALYSIS_DIR, /\.json$/);
   const subplanCount = countFiles(SUBPLANS_DIR, /\.md$/);
   const screenshotCount = countFiles(SCREENSHOTS_DIR, /\.png$/);
@@ -202,7 +147,7 @@ function showStatus(): void {
   console.log(`${colors.dim}┌─────────────────────────────────────────────┐${colors.reset}`);
   console.log(`${colors.dim}│${colors.reset} ${colors.bold}Current Status${colors.reset}                              ${colors.dim}│${colors.reset}`);
   console.log(`${colors.dim}├─────────────────────────────────────────────┤${colors.reset}`);
-  console.log(`${colors.dim}│${colors.reset} Config:      ${config ? colors.green + '✓' : colors.yellow + '○'} ${config ? `${config.selectedFeatures.length} features selected` : 'Not configured'}${colors.reset}`.padEnd(60) + `${colors.dim}│${colors.reset}`);
+  console.log(`${colors.dim}│${colors.reset} Discovery:   ${discoveryCount > 0 ? colors.green + '✓' : colors.yellow + '○'} ${discoveryCount > 0 ? `${discoveryCount} page(s) discovered` : 'Not discovered'}${colors.reset}`.padEnd(60) + `${colors.dim}│${colors.reset}`);
   console.log(`${colors.dim}│${colors.reset} Screenshots: ${screenshotCount > 0 ? colors.green + '✓' : colors.yellow + '○'} ${screenshotCount} captured${colors.reset}`.padEnd(60) + `${colors.dim}│${colors.reset}`);
   console.log(`${colors.dim}│${colors.reset} Analysis:    ${analysisCount > 0 ? colors.green + '✓' : colors.yellow + '○'} ${analysisCount} files${colors.reset}`.padEnd(60) + `${colors.dim}│${colors.reset}`);
   console.log(`${colors.dim}│${colors.reset} Sub-plans:   ${subplanCount > 0 ? colors.green + '✓' : colors.yellow + '○'} ${subplanCount} generated${colors.reset}`.padEnd(60) + `${colors.dim}│${colors.reset}`);
@@ -351,28 +296,25 @@ async function main(): Promise<void> {
 
   if (resume) {
     log('Resuming from previous state...');
-  } else {
-    const config = loadSetupConfig();
-    if (config) {
-      const { action } = await prompts({
-        type: 'select',
-        name: 'action',
-        message: 'Existing configuration found. What would you like to do?',
-        choices: [
-          { title: 'Continue from where I left off', value: 'continue' },
-          { title: 'Start fresh (reset all)', value: 'reset' },
-          { title: 'Exit', value: 'exit' },
-        ],
-      });
+  } else if (hasFeatureDiscovery()) {
+    const { action } = await prompts({
+      type: 'select',
+      name: 'action',
+      message: 'Existing discovery results found. What would you like to do?',
+      choices: [
+        { title: 'Continue from where I left off', value: 'continue' },
+        { title: 'Start fresh (reset all)', value: 'reset' },
+        { title: 'Exit', value: 'exit' },
+      ],
+    });
 
-      if (!action || action === 'exit') {
-        log('Exiting');
-        process.exit(0);
-      }
+    if (!action || action === 'exit') {
+      log('Exiting');
+      process.exit(0);
+    }
 
-      if (action === 'reset') {
-        shouldReset = true;
-      }
+    if (action === 'reset') {
+      shouldReset = true;
     }
   }
 
@@ -402,13 +344,14 @@ async function main(): Promise<void> {
   // Final summary
   header('Setup Complete!');
 
-  const config = loadSetupConfig();
   const subplanCount = countFiles(SUBPLANS_DIR, /subplan-.*\.md$/);
   const screenshotCount = countFiles(SCREENSHOTS_DIR, /\.png$/);
+  const discoveredPages = hasFeatureDiscovery()
+    ? fs.readdirSync(MIGRATION_PLANS_DIR).filter(f => f.endsWith('-features.json')).length
+    : 0;
 
-  console.log(`${colors.green}✓${colors.reset} Configuration saved`);
+  console.log(`${colors.green}✓${colors.reset} ${discoveredPages} page(s) discovered`);
   console.log(`${colors.green}✓${colors.reset} ${screenshotCount} screenshots captured`);
-  console.log(`${colors.green}✓${colors.reset} ${config?.selectedFeatures.length || 0} features analyzed`);
   console.log(`${colors.green}✓${colors.reset} ${subplanCount} sub-plans generated`);
   console.log(`${colors.green}✓${colors.reset} Migration log initialized`);
 

@@ -969,75 +969,65 @@ log_info "Chromium available: $([ -n "$CHROMIUM_PATH" ] && echo "Yes ($CHROMIUM_
 
 if [ -f "$STATE_DIR/phase4-complete" ]; then
     log_success "Phase 4 already complete (setup: $(cat "$STATE_DIR/phase4-complete"))"
-    log_info "  Features: $(jq -r '.selectedFeatures | length' "$STATE_DIR/setup-config.json" 2>/dev/null || echo 'unknown') selected"
+    log_info "  Discovery: $(find "$WORKSPACE_ROOT/migration-plans" -name '*-features.json' 2>/dev/null | wc -l | tr -d ' ') page(s)"
     log_info "  Sub-plans: $(find "$WORKSPACE_ROOT/sub-plans" -name '*.md' 2>/dev/null | wc -l | tr -d ' ')"
     log_info "Skipping to Phase 5..."
 else
-    log_info "Running Phase 4: Interactive Setup"
+    log_info "Running Phase 4: Feature Discovery & Plan Generation"
 
-    # Check if running interactively
-    if [ -t 0 ]; then
-        # Install setup script dependencies if needed
-        if [ -f "$WORKSPACE_ROOT/package.json" ]; then
-            log_info "Installing setup dependencies..."
-            cd "$WORKSPACE_ROOT"
-            if ! pnpm install --frozen-lockfile 2>/dev/null; then
-                pnpm install 2>&1 | tail -5
-            fi
-        fi
-
-        # Step 1: Interactive prompts for configuration
-        log_info "Step 1/4: Running interactive setup..."
-        if npx tsx "$WORKSPACE_ROOT/scripts/setup-migration.ts"; then
-            log_success "Configuration saved"
-        else
-            log_error "Setup failed or cancelled"
-            exit_or_keepalive 1 "Interactive setup failed"
-        fi
-
-        # Step 2: Run analysis on selected features
-        FEATURES=$(jq -r '.selectedFeatures | join(",")' "$STATE_DIR/setup-config.json" 2>/dev/null || echo "")
-        if [ -n "$FEATURES" ]; then
-            log_info "Step 2/4: Analyzing features..."
-            if npx tsx "$WORKSPACE_ROOT/scripts/analyze-features.ts" --features "$FEATURES"; then
-                log_success "Feature analysis complete"
-            else
-                log_warning "Feature analysis failed (continuing anyway)"
-            fi
-        fi
-
-        # Step 3: Generate sub-plans
-        log_info "Step 3/4: Generating sub-plans..."
-        if npx tsx "$WORKSPACE_ROOT/scripts/generate-plans.ts" --features "$FEATURES"; then
-            log_success "Sub-plans generated"
-        else
-            log_error "Sub-plan generation failed"
-            exit_or_keepalive 1 "Sub-plan generation failed"
-        fi
-
-        # Step 4: Initialize migration log
-        log_info "Step 4/4: Initializing migration log..."
-        if npx tsx "$WORKSPACE_ROOT/scripts/init-migration-log.ts"; then
-            log_success "Migration log initialized"
-        else
-            log_warning "Migration log initialization failed (continuing anyway)"
-        fi
-
-        # Mark Phase 4 complete
-        echo "$(date -u +"%Y-%m-%dT%H:%M:%SZ")" > "$STATE_DIR/phase4-complete"
-        log_success "Phase 4 complete: Setup finished"
-    else
-        # Non-interactive mode - check if setup is required
-        if [ ! -f "$WORKSPACE_ROOT/url-mappings.json" ]; then
-            log_warning "Setup required but running non-interactively"
-            log_info "Run interactively first: npx tsx scripts/setup-migration.ts"
-            log_info "Or provide url-mappings.json manually"
-            exit_or_keepalive 1 "Interactive setup required"
-        else
-            log_info "Using existing url-mappings.json (non-interactive mode)"
-            echo "$(date -u +"%Y-%m-%dT%H:%M:%SZ")" > "$STATE_DIR/phase4-complete"
+    # Install setup script dependencies if needed
+    if [ -f "$WORKSPACE_ROOT/package.json" ]; then
+        log_info "Installing setup dependencies..."
+        cd "$WORKSPACE_ROOT"
+        if ! pnpm install --frozen-lockfile 2>/dev/null; then
+            pnpm install 2>&1 | tail -5
         fi
     fi
+
+    # Check that url-mappings.json exists (page-level config)
+    if [ ! -f "$WORKSPACE_ROOT/url-mappings.json" ]; then
+        log_error "url-mappings.json not found - required for page-level config"
+        log_info "Create url-mappings.json with page definitions (URLs, ISML paths, viewport)"
+        exit_or_keepalive 1 "url-mappings.json required"
+    fi
+
+    # Step 1: Feature discovery via Claude
+    log_info "Step 1/4: Discovering features from ISML..."
+    if CLAUDECODE= npx tsx "$WORKSPACE_ROOT/scripts/discover-features-claude.ts" --page home; then
+        log_success "Feature discovery complete"
+    else
+        log_error "Feature discovery failed"
+        exit_or_keepalive 1 "Feature discovery failed"
+    fi
+
+    # Step 2: Run analysis on discovered features
+    log_info "Step 2/4: Analyzing features..."
+    if npx tsx "$WORKSPACE_ROOT/scripts/analyze-features.ts"; then
+        log_success "Feature analysis complete"
+    else
+        log_warning "Feature analysis failed (continuing anyway)"
+    fi
+
+    # Step 3: Generate sub-plans
+    log_info "Step 3/4: Generating sub-plans..."
+    if npx tsx "$WORKSPACE_ROOT/scripts/generate-plans.ts"; then
+        log_success "Sub-plans generated"
+    else
+        log_error "Sub-plan generation failed"
+        exit_or_keepalive 1 "Sub-plan generation failed"
+    fi
+
+    # Step 4: Initialize migration log
+    log_info "Step 4/4: Initializing migration log..."
+    if npx tsx "$WORKSPACE_ROOT/scripts/init-migration-log.ts"; then
+        log_success "Migration log initialized"
+    else
+        log_warning "Migration log initialization failed (continuing anyway)"
+    fi
+
+    # Mark Phase 4 complete
+    echo "$(date -u +"%Y-%m-%dT%H:%M:%SZ")" > "$STATE_DIR/phase4-complete"
+    log_success "Phase 4 complete: Discovery and plan generation finished"
 fi
 
 # ============================================================================
