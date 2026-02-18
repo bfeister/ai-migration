@@ -1,59 +1,22 @@
 {
-  "version": "1.0",
-  "source_base_url": "https://zzrf-001.dx.commercecloud.salesforce.com/s/RefArchGlobal/en_US/home",
+  "version": "2.0",
+  "description": "Page-level URL mappings for SFRA to Storefront Next migration. Features are discovered dynamically via Claude analysis.",
+  "source_base_url": "https://zzrf-001.dx.commercecloud.salesforce.com/s/RefArchGlobal/en_US",
   "target_base_url": "http://localhost:5173",
-  "mappings": [
+  "sfra_templates_base": "storefront-reference-architecture/cartridges/app_storefront_base/cartridge/templates/default",
+  "slots_xml_path": "slots/slots.xml",
+  "pages": [
     {
-      "feature_id": "01-homepage-hero",
-      "name": "Homepage Hero",
-      "source_path": "home",
-      "target_path": "",
-      "selector": ".hero, .home-hero, [class*=\"hero\"]",
+      "page_id": "home",
+      "name": "Home Page",
+      "description": "Main storefront home page with hero, categories, products, and email signup",
+      "sfra_url": "https://zzrf-001.dx.commercecloud.salesforce.com/s/RefArchGlobal/en_US/home",
+      "target_url": "http://localhost:5173",
+      "isml_template": "home/homePage.isml",
       "viewport": {
         "width": 1920,
         "height": 1080
       },
-      "sfra_url": "https://zzrf-001.dx.commercecloud.salesforce.com/s/RefArchGlobal/en_US/home",
-      "target_url": "http://localhost:5173",
-      "source_config": {
-        "dismiss_consent": true,
-        "consent_button_selector": ".tracking-consent button.affirm"
-      },
-      "discovered": {
-        "analyzed_at": "2026-02-12T22:55:24.222Z",
-        "matched_selector": ".hero, .home-hero, [class*=\"hero\"]",
-        "element_count": 2,
-        "headings": [
-          "Summer Style"
-        ],
-        "image_count": 0,
-        "link_count": 0,
-        "fonts": [
-          "Dosis"
-        ],
-        "colors": {
-          "text": [
-            "rgb(255, 255, 255)"
-          ],
-          "background": [
-            "rgb(0, 161, 224)"
-          ]
-        }
-      },
-      "isml_template_path": "storefront-reference-architecture/cartridges/app_storefront_base/cartridge/templates/default/home/homePage.isml"
-    },
-    {
-      "feature_id": "02-homepage-featured",
-      "name": "Featured Products",
-      "source_path": "home",
-      "target_path": "",
-      "selector": ".featured-products, [class*=\"featured\"]",
-      "viewport": {
-        "width": 1920,
-        "height": 1080
-      },
-      "sfra_url": "https://zzrf-001.dx.commercecloud.salesforce.com/s/RefArchGlobal/en_US/home",
-      "target_url": "http://localhost:5173",
       "source_config": {
         "dismiss_consent": true,
         "consent_button_selector": ".tracking-consent button.affirm"

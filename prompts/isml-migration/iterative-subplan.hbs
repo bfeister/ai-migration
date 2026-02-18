@@ -216,19 +216,48 @@ Each sub-plan must be:
 4. **Dependency-Aware** - Build on previous sub-plans in correct order
 5. **Verifiable** - Include concrete acceptance criteria
 
-### Sub-Plan Sequence (typical order):
+### Sub-Plan Sequence (MUST follow this order):
 
-1. **Component Scaffolding** - Create component structure, TypeScript types
-2. **Layout Structure** - Main containers, grid/flex layout matching SFRA
-3. **Static Content** - Headings, text, placeholder content
-4. **Images/Media** - Background images, product images, responsive handling
-5. **Data Integration** - Connect to loader, wire up API data
-6. **Interactive Elements** - Forms, buttons, click handlers
-7. **Links/Navigation** - Internal links, external links, routing
-8. **Styling Polish** - Colors, fonts, spacing to match screenshot pixel-perfect
-9. **Route Integration** - Add component to route, pass loader data
+**CRITICAL: Sub-Plan #1 MUST establish the route foundation.**
+
+1. **Route Foundation** (Sub-Plan #1 ONLY):
+   - **If route already exists**: Archive it by renaming (e.g., `_app._index.tsx` → `_app._index.original.tsx`)
+   - **Then create the new route** at the original path with SFRA-matching structure
+   - The new route should have: loader stub, placeholder component, TypeScript types
+   - This ensures SFRA migration becomes the default route
+
+2. **Component Scaffolding** - Create component directory, TypeScript types, barrel exports
+3. **Layout Structure** - Main containers, grid/flex layout matching SFRA
+4. **Static Content** - Headings, text, placeholder content
+5. **Images/Media** - Background images, product images, responsive handling
+6. **Data Integration** - Connect loader to API, wire up data fetching
+7. **Interactive Elements** - Forms, buttons, click handlers
+8. **Links/Navigation** - Internal links, external links, routing
+9. **Styling Polish** - Colors, fonts, spacing to match screenshot pixel-perfect
+10. **Route Completion** - Import all components into route, connect loader data, finalize
 
 ### Current Sub-Plan Number: {{subPlanNumber}}
+
+{{#if (eq subPlanNumber 1)}}
+**⚠️ MANDATORY: Sub-Plan #1 must establish the route file.**
+
+**Step 1 - Archive existing route (if any):**
+- Check if the target route file exists (e.g., `src/routes/_app._index.tsx` for home page)
+- If it exists, move it to the archive directory: `src/routes/original/`
+- Example: `mv src/routes/_app._index.tsx src/routes/original/_app._index.tsx`
+- Create the `src/routes/original/` directory if it doesn't exist
+- This archives the existing implementation outside the active routes
+
+**Step 2 - Create new SFRA-matching route:**
+- Create the route file at the original path (e.g., `src/routes/_app._index.tsx`)
+- Include:
+  - Basic React Router 7 route structure
+  - Empty `loader` function stub with TypeScript types
+  - Placeholder component that subsequent sub-plans will populate
+  - Export pattern: `export { loader }; export default function Page() {...}`
+
+**DO NOT** do research/analysis only - you MUST archive (if needed) and create the route file.
+{{/if}}
 
 ---
 

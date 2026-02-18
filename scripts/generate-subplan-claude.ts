@@ -218,6 +218,10 @@ Handlebars.registerHelper('jsonSubset', function (context, keysStr: string) {
     return JSON.stringify(subset, null, 2);
 });
 
+Handlebars.registerHelper('eq', function (a: unknown, b: unknown) {
+    return a === b;
+});
+
 Handlebars.registerHelper('add', function (a: number, b: number) {
     return a + b;
 });
@@ -518,12 +522,40 @@ function parseClaudeResponse(response: string): ParsedResponse {
     const isComplete = response.includes('STATUS: COMPLETE');
 
     // Extract the markdown sub-plan content
-    // Look for content between ```markdown and ``` or the raw frontmatter
     let subPlanContent = '';
 
-    const markdownMatch = response.match(/```markdown\n([\s\S]*?)\n```/);
-    if (markdownMatch) {
-        subPlanContent = markdownMatch[1];
+    // Find the start of ```markdown block
+    const markdownStart = response.indexOf('```markdown\n');
+    if (markdownStart !== -1) {
+        // Find the END of the markdown block by counting nested code blocks
+        const contentStart = markdownStart + '```markdown\n'.length;
+        let depth = 1;
+        let pos = contentStart;
+
+        while (pos < response.length && depth > 0) {
+            // Look for ``` at current position
+            if (response.substring(pos, pos + 3) === '```') {
+                // Check if this opens or closes a code block
+                // If followed by a newline or word chars, it opens; if at line start after content, it closes
+                const beforeBackticks = pos > 0 ? response[pos - 1] : '\n';
+                const afterBackticks = response.substring(pos + 3, pos + 4);
+
+                if (beforeBackticks === '\n' && (afterBackticks === '\n' || afterBackticks === '' || pos + 3 >= response.length)) {
+                    // Closing backticks
+                    depth--;
+                } else if (beforeBackticks === '\n') {
+                    // Opening backticks (followed by language identifier or content)
+                    depth++;
+                }
+                pos += 3;
+            } else {
+                pos++;
+            }
+        }
+
+        // Extract content up to closing backticks (pos - 3 because we moved past them)
+        const contentEnd = depth === 0 ? pos - 3 : response.length;
+        subPlanContent = response.substring(contentStart, contentEnd).trim();
     } else {
         // Try to find frontmatter directly
         const frontmatterMatch = response.match(/(---\n[\s\S]*?\n---[\s\S]*?)(?=STATUS:|$)/);
@@ -534,6 +566,7 @@ function parseClaudeResponse(response: string): ParsedResponse {
 
     // Clean up any STATUS markers from the content
     subPlanContent = subPlanContent
+        .replace(/<!--\s*STATUS:\s*(COMPLETE|CONTINUE)\s*-->/g, '')
         .replace(/\nSTATUS:\s*(COMPLETE|CONTINUE)\s*$/gm, '')
         .trim();
 
