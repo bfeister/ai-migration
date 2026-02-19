@@ -43,6 +43,7 @@ interface FeatureConfig {
   source_config?: {
     dismiss_consent?: boolean;
     wait_for_selector?: string;
+    consent_button_selector?: string;
   };
   discovered?: DiscoveredData;
 }
@@ -91,6 +92,7 @@ function loadFeatures(pageConfig: URLMappingsV2): FeatureConfig[] {
         viewport: page?.viewport,
         source_config: page?.source_config ? {
           dismiss_consent: page.source_config.dismiss_consent,
+          consent_button_selector: page.source_config.consent_button_selector,
         } : undefined,
       });
     }
@@ -263,6 +265,7 @@ async function analyzeFeature(feature: FeatureConfig, screenshotPath: string): P
     maxDepth: 10,
     viewport: viewport,
     dismissConsent: feature.source_config?.dismiss_consent ?? false,
+    consentButtonSelector: feature.source_config?.consent_button_selector,
     includeHidden: false,
     format: 'json',
     screenshotPath: screenshotPath,

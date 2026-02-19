@@ -258,6 +258,7 @@ interface ExtractionOptions {
   maxDepth: number;
   viewport: { width: number; height: number };
   dismissConsent: boolean;
+  consentButtonSelector?: string; // Optional: custom CSS selector for consent button
   includeHidden: boolean;
   format: 'json' | 'uidl' | 'react-prompt';
   screenshotPath?: string; // Optional: capture screenshot of matched element
@@ -359,8 +360,12 @@ async function extractDomStructure(options: ExtractionOptions): Promise<Extracti
 
     // Dismiss consent modals if requested
     if (dismissConsent) {
-      console.error(`[Extract] Attempting to dismiss consent modals...`);
-      await dismissConsentModals(page);
+      if (options.consentButtonSelector) {
+        console.error(`[Extract] Attempting to dismiss consent modals...`);
+        await dismissConsentModals(page, options.consentButtonSelector);
+      } else {
+        console.error(`[Extract] dismissConsent is true but no consentButtonSelector provided — skipping`);
+      }
     }
 
     // Wait a bit for any animations/transitions
@@ -679,47 +684,18 @@ function buildSummary(node: ExtractedNode): ExtractionResult['summary'] {
   };
 }
 
-async function dismissConsentModals(page: Page): Promise<void> {
-  // Common consent button selectors
-  const consentSelectors = [
-    // Generic patterns
-    'button[class*="consent"]',
-    'button[class*="cookie"]',
-    'button[class*="accept"]',
-    'button[id*="consent"]',
-    'button[id*="cookie"]',
-    'button[id*="accept"]',
-    '[class*="consent"] button',
-    '[class*="cookie"] button',
-    // Specific services
-    '#onetrust-accept-btn-handler',
-    '.cc-accept',
-    '.cc-btn.cc-dismiss',
-    '[data-testid="cookie-accept"]',
-    '#CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll',
-    '.evidon-banner-acceptbutton',
-    '#didomi-notice-agree-button',
-    '.qc-cmp2-summary-buttons button:first-child',
-    // Text-based
-    'button:has-text("Accept")',
-    'button:has-text("Accept all")',
-    'button:has-text("I agree")',
-    'button:has-text("Got it")',
-    'button:has-text("OK")',
-  ];
-
-  for (const selector of consentSelectors) {
-    try {
-      const button = await page.locator(selector).first();
-      if (await button.isVisible({ timeout: 500 })) {
-        await button.click();
-        console.error(`[Extract] Dismissed consent modal with selector: ${selector}`);
-        await page.waitForTimeout(500);
-        return;
-      }
-    } catch {
-      // Selector not found, continue
+async function dismissConsentModals(page: Page, selector: string): Promise<void> {
+  try {
+    const button = await page.locator(selector).first();
+    if (await button.isVisible({ timeout: 2000 })) {
+      await button.click();
+      console.error(`[Extract] Dismissed consent modal with selector: ${selector}`);
+      await page.waitForTimeout(500);
+    } else {
+      console.error(`[Extract] Consent selector not visible: ${selector}`);
     }
+  } catch (err: any) {
+    console.error(`[Extract] Failed to dismiss consent modal with selector "${selector}": ${err.message}`);
   }
 }
 
@@ -1001,6 +977,9 @@ async function main(): Promise<void> {
     }
     if (featureConfig.source_config?.dismiss_consent) {
       options.dismissConsent = true;
+      if (featureConfig.source_config.consent_button_selector) {
+        options.consentButtonSelector = featureConfig.source_config.consent_button_selector;
+      }
     }
 
     console.error(`[Extract] Using config from url-mappings.json for feature: ${options.featureId}`);
