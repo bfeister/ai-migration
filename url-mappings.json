@@ -1,26 +1,52 @@
 {
-  "version": "2.0",
-  "description": "Page-level URL mappings for SFRA to Storefront Next migration. Features are discovered dynamically via Claude analysis.",
-  "source_base_url": "https://zzrf-001.dx.commercecloud.salesforce.com/s/RefArchGlobal/en_US",
-  "target_base_url": "http://localhost:5173",
-  "sfra_templates_base": "storefront-reference-architecture/cartridges/app_storefront_base/cartridge/templates/default",
-  "slots_xml_path": "slots/slots.xml",
-  "pages": [
-    {
-      "page_id": "home",
-      "name": "Home Page",
-      "description": "Main storefront home page with hero, categories, products, and email signup",
-      "sfra_url": "https://zzrf-001.dx.commercecloud.salesforce.com/s/RefArchGlobal/en_US/home",
-      "target_url": "http://localhost:5173",
-      "isml_template": "home/homePage.isml",
-      "viewport": {
-        "width": 1920,
-        "height": 1080
-      },
-      "source_config": {
-        "dismiss_consent": true,
-        "consent_button_selector": ".tracking-consent button.affirm"
-      }
-    }
-  ]
+    "version": "2.0",
+    "description": "Page-level URL mappings for SFRA to Storefront Next migration. Features are discovered dynamically via Claude analysis.",
+    "source_base_url": "https://zzrf-001.dx.commercecloud.salesforce.com/s/RefArchGlobal/en_US",
+    "target_base_url": "http://localhost:5173",
+    "sfra_templates_base": "storefront-reference-architecture/cartridges/app_storefront_base/cartridge/templates/default",
+    "slots_xml_path": "slots/slots.xml",
+    "pages": [
+        {
+            "page_id": "home",
+            "name": "Home Page",
+            "description": "Main storefront home page with hero, categories, products, and email signup",
+            "selected": true,
+            "sfra_url": "https://zzrf-001.dx.commercecloud.salesforce.com/s/RefArchGlobal/en_US/home",
+            "target_url": "http://localhost:5173",
+            "isml_template": "home/homePage.isml",
+            "viewport": { "width": 1920, "height": 1080 },
+            "source_config": {
+                "dismiss_consent": true,
+                "consent_button_selector": ".tracking-consent button.affirm"
+            }
+        },
+        {
+            "page_id": "pdp",
+            "name": "Product Detail Page",
+            "description": "Product detail with images, pricing, variations, and add-to-cart",
+            "selected": false,
+            "sfra_url": "https://zzrf-001.dx.commercecloud.salesforce.com/s/RefArchGlobal/en_US/belted-cardigan-with-studs/25502228M.html",
+            "target_url": "http://localhost:5173/product/25502228M",
+            "isml_template": "product/productDetails.isml",
+            "viewport": { "width": 1920, "height": 1080 },
+            "source_config": {
+                "dismiss_consent": true,
+                "consent_button_selector": ".tracking-consent button.affirm"
+            }
+        },
+        {
+            "page_id": "plp",
+            "name": "Product List Page",
+            "description": "Search results / category product grid with filters and sorting",
+            "selected": false,
+            "sfra_url": "https://zzrf-001.dx.commercecloud.salesforce.com/s/RefArchGlobal/en_US/category/womens-jewelry-earrings",
+            "target_url": "http://localhost:5173/category/womens-jewelry-earrings",
+            "isml_template": "search/searchResults.isml",
+            "viewport": { "width": 1920, "height": 1080 },
+            "source_config": {
+                "dismiss_consent": true,
+                "consent_button_selector": ".tracking-consent button.affirm"
+            }
+        }
+    ]
 }

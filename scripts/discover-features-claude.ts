@@ -33,6 +33,7 @@ interface PageConfig {
     page_id: string;
     name: string;
     description?: string;
+    selected?: boolean;
     sfra_url: string;
     target_url: string;
     isml_template: string;
@@ -590,12 +591,20 @@ async function main(): Promise<void> {
     }
 
     // Determine which pages to process
-    let pagesToProcess = mappings.pages;
+    let pagesToProcess: PageConfig[];
     if (cliArgs.pageId) {
         pagesToProcess = mappings.pages.filter(p => p.page_id === cliArgs.pageId);
         if (pagesToProcess.length === 0) {
             error(`Page not found: ${cliArgs.pageId}`);
             log(`Available pages: ${mappings.pages.map(p => p.page_id).join(', ')}`);
+            process.exit(1);
+        }
+    } else {
+        // No --page flag: process only selected pages
+        pagesToProcess = mappings.pages.filter(p => p.selected !== false);
+        if (pagesToProcess.length === 0) {
+            error('No pages are selected in url-mappings.json');
+            log('Run setup-migration.ts to select pages, or set "selected": true on desired pages.');
             process.exit(1);
         }
     }

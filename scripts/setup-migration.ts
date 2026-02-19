@@ -1,12 +1,14 @@
 #!/usr/bin/env tsx
 /**
- * Interactive Migration Setup
+ * Interactive Migration Setup (v2)
  *
- * Collects project-specific configuration before Claude migration begins.
- * Saves configuration to url-mappings.json.
+ * Reads url-mappings.json, prompts the user to confirm/edit page-level config
+ * (URLs, ISML paths, consent selector), select which routes to migrate,
+ * and writes the result back with `selected` flags.
  *
  * Usage:
  *   npx tsx scripts/setup-migration.ts
+ *   npx tsx scripts/setup-migration.ts --reset
  */
 
 import prompts from 'prompts';
@@ -14,30 +16,32 @@ import fs from 'fs';
 import path from 'path';
 
 // ============================================================================
-// Types
+// Types (match discover-features-claude.ts exactly)
 // ============================================================================
 
-interface FeatureConfig {
-    feature_id: string;
+interface PageConfig {
+    page_id: string;
     name: string;
-    source_path: string; // URL path appended to source base URL (e.g., "home", "product/123")
-    target_path: string; // URL path appended to target base URL (may differ from source)
+    description?: string;
+    selected?: boolean;
     sfra_url: string;
     target_url: string;
-    selector: string;
-    viewport: { width: number; height: number };
+    isml_template: string;
+    viewport?: { width: number; height: number };
     source_config?: {
         dismiss_consent?: boolean;
         consent_button_selector?: string;
     };
-    isml_template_path?: string; // Absolute path to ISML template file
 }
 
-interface URLMappings {
+interface URLMappingsV2 {
     version: string;
+    description?: string;
     source_base_url: string;
     target_base_url: string;
-    mappings: FeatureConfig[];
+    sfra_templates_base: string;
+    slots_xml_path: string;
+    pages: PageConfig[];
 }
 
 // ============================================================================
@@ -53,57 +57,13 @@ const GENERATED_ARTIFACTS = {
         path.join(WORKSPACE_ROOT, 'screenshots'),
         path.join(WORKSPACE_ROOT, 'analysis'),
         path.join(WORKSPACE_ROOT, 'sub-plans'),
-        path.join(WORKSPACE_ROOT, 'generated'),
+        path.join(WORKSPACE_ROOT, 'migration-plans'),
+        path.join(WORKSPACE_ROOT, 'plans'),
     ],
     files: [
         path.join(WORKSPACE_ROOT, 'migration-log.md'),
     ],
 };
-
-// Default features to suggest
-// Each feature has source_path (SFRA) and target_path (Storefront Next) which may differ
-const DEFAULT_FEATURES: Omit<FeatureConfig, 'sfra_url' | 'target_url'>[] = [
-    {
-        feature_id: '01-homepage-hero',
-        name: 'Homepage Hero',
-        source_path: 'home',
-        target_path: '',
-        selector: '.hero, .home-hero, [class*="hero"]',
-        viewport: { width: 1920, height: 1080 }
-    },
-    {
-        feature_id: '02-homepage-featured',
-        name: 'Featured Products',
-        source_path: 'home',
-        target_path: '',
-        selector: '.featured-products, [class*="featured"]',
-        viewport: { width: 1920, height: 1080 }
-    },
-    {
-        feature_id: '03-header-nav',
-        name: 'Header Navigation',
-        source_path: 'home',
-        target_path: '',
-        selector: 'header, .header, nav',
-        viewport: { width: 1920, height: 1080 }
-    },
-    {
-        feature_id: '04-footer',
-        name: 'Footer',
-        source_path: 'home',
-        target_path: '',
-        selector: 'footer, .footer',
-        viewport: { width: 1920, height: 1080 }
-    },
-    {
-        feature_id: '05-pdp',
-        name: 'Product Detail Page',
-        source_path: 'product/25502228M',
-        target_path: 'product/25502228M',
-        selector: '.pdp, .product-detail, main',
-        viewport: { width: 1920, height: 1080 }
-    }
-];
 
 // ============================================================================
 // Utilities
@@ -121,14 +81,9 @@ function warn(msg: string): void {
     console.log(`\x1b[33m[Setup]\x1b[0m ${msg}`);
 }
 
-/**
- * Remove all generated artifacts for a clean reset.
- * This centralizes cleanup so downstream scripts don't need to handle it.
- */
 function cleanupGeneratedArtifacts(): void {
     log('Cleaning up generated artifacts...');
 
-    // Remove directories (recursively)
     for (const dir of GENERATED_ARTIFACTS.directories) {
         if (fs.existsSync(dir)) {
             fs.rmSync(dir, { recursive: true, force: true });
@@ -136,7 +91,6 @@ function cleanupGeneratedArtifacts(): void {
         }
     }
 
-    // Remove individual files
     for (const file of GENERATED_ARTIFACTS.files) {
         if (fs.existsSync(file)) {
             fs.unlinkSync(file);
@@ -147,17 +101,35 @@ function cleanupGeneratedArtifacts(): void {
     success('Cleanup complete');
 }
 
-function loadExistingMappings(): URLMappings | null {
-    if (fs.existsSync(URL_MAPPINGS_FILE)) {
-        try {
-            return JSON.parse(fs.readFileSync(URL_MAPPINGS_FILE, 'utf-8'));
-        } catch {
-            return null;
+function loadMappings(): URLMappingsV2 | null {
+    if (!fs.existsSync(URL_MAPPINGS_FILE)) return null;
+    try {
+        const content = JSON.parse(fs.readFileSync(URL_MAPPINGS_FILE, 'utf-8'));
+        if (content.version === '2.0' && content.pages) {
+            return content;
         }
+        warn('url-mappings.json is not version 2.0. Expected v2 schema.');
+        return null;
+    } catch {
+        return null;
     }
-    return null;
 }
 
+function saveMappings(mappings: URLMappingsV2): void {
+    fs.writeFileSync(URL_MAPPINGS_FILE, JSON.stringify(mappings, null, 2) + '\n');
+}
+
+function createSkeletonMappings(): URLMappingsV2 {
+    return {
+        version: '2.0',
+        description: 'Page-level URL mappings for SFRA to Storefront Next migration.',
+        source_base_url: 'https://example.com/s/SiteID/en_US',
+        target_base_url: 'http://localhost:5173',
+        sfra_templates_base: 'storefront-reference-architecture/cartridges/app_storefront_base/cartridge/templates/default',
+        slots_xml_path: 'slots/slots.xml',
+        pages: [],
+    };
+}
 
 // ============================================================================
 // CLI Arguments
@@ -177,282 +149,170 @@ function parseArgs(): { reset: boolean } {
 async function main(): Promise<void> {
     const cliArgs = parseArgs();
 
-    console.log('\n\x1b[1m=== Migration Setup ===\x1b[0m\n');
+    console.log('\n\x1b[1m=== Page Configuration ===\x1b[0m\n');
 
-    // Step 1: Check for existing config
-    let existingMappings = loadExistingMappings();
+    // Load url-mappings.json (the seed / single source of truth)
+    let mappings = loadMappings();
 
-    // Handle --reset flag (passed by run-setup.ts orchestrator)
+    if (!mappings) {
+        warn('url-mappings.json not found or invalid.');
+        log('Creating skeleton — edit the generated file or run `git checkout url-mappings.json` to restore defaults.');
+        mappings = createSkeletonMappings();
+        saveMappings(mappings);
+    }
+
+    // Handle --reset
     if (cliArgs.reset) {
-        if (existingMappings) {
-            warn('Resetting configuration (--reset)...');
-            cleanupGeneratedArtifacts();
-        }
-        existingMappings = null;
-        // Continue to configuration prompts below
-    } else if (existingMappings) {
-        // Interactive prompt only when running standalone (not via orchestrator)
-        const { action } = await prompts({
-            type: 'select',
-            name: 'action',
-            message: 'Existing configuration found. What would you like to do?',
-            choices: [
-                { title: 'Continue with existing config', value: 'continue' },
-                { title: 'Modify existing config', value: 'modify' },
-                { title: 'Start fresh', value: 'reset' }
-            ]
-        });
+        warn('Resetting generated artifacts (--reset)...');
+        cleanupGeneratedArtifacts();
+    } else {
+        // Check if downstream artifacts already exist — offer to keep or reset
+        const hasArtifacts = GENERATED_ARTIFACTS.directories.some(d => fs.existsSync(d))
+            || GENERATED_ARTIFACTS.files.some(f => fs.existsSync(f));
 
-        if (!action) {
-            log('Setup cancelled');
-            process.exit(0);
-        }
+        if (hasArtifacts) {
+            const { action } = await prompts({
+                type: 'select',
+                name: 'action',
+                message: 'Existing migration artifacts found. What would you like to do?',
+                choices: [
+                    { title: 'Continue (keep artifacts, update config)', value: 'continue' },
+                    { title: 'Reset (clean artifacts, reconfigure)', value: 'reset' },
+                    { title: 'Exit (no changes)', value: 'exit' },
+                ],
+            });
 
-        if (action === 'continue') {
-            success('Using existing configuration');
-            process.exit(0);
-        }
+            if (!action || action === 'exit') {
+                log('Setup cancelled');
+                process.exit(0);
+            }
 
-        if (action === 'reset') {
-            warn('Resetting configuration...');
-            // Clean up all generated artifacts from previous runs
-            cleanupGeneratedArtifacts();
-            // Clear cached config so defaults are used
-            existingMappings = null;
+            if (action === 'reset') {
+                cleanupGeneratedArtifacts();
+            }
         }
     }
 
-    // Step 2: Source (SFRA) Configuration
-    log('Step 1/4: Source (SFRA) Configuration');
+    // ── Step 1/3: Global Settings ──────────────────────────────────────────
 
-    const sourceConfig = await prompts([
+    log('Step 1/3: Global Settings');
+
+    const globalConfig = await prompts([
         {
             type: 'text',
-            name: 'baseUrl',
-            message: 'SFRA base URL (with locale):',
-            initial:
-                existingMappings?.source_base_url ||
-                'https://zzrf-001.dx.commercecloud.salesforce.com/s/RefArchGlobal/en_US/home',
-            validate: (v) => v.startsWith('http') || 'Must be a valid URL'
+            name: 'source_base_url',
+            message: 'SFRA base URL:',
+            initial: mappings.source_base_url,
+            validate: (v: string) => v.startsWith('http') || 'Must be a valid URL',
         },
         {
             type: 'text',
-            name: 'consentSelector',
-            message:
-                'Cookie consent button selector (leave empty for auto-detect):',
-            initial: '.tracking-consent button.affirm'
-        }
+            name: 'target_base_url',
+            message: 'Target dev server:',
+            initial: mappings.target_base_url,
+            validate: (v: string) => v.startsWith('http') || 'Must be a valid URL',
+        },
     ]);
 
-    if (!sourceConfig.baseUrl) {
+    if (!globalConfig.source_base_url) {
         log('Setup cancelled');
         process.exit(0);
     }
 
-    // Step 3: Target Configuration
-    log('Step 2/4: Target Configuration');
+    mappings.source_base_url = globalConfig.source_base_url;
+    mappings.target_base_url = globalConfig.target_base_url;
 
-    const targetConfig = await prompts([
-        {
-            type: 'text',
-            name: 'baseUrl',
-            message: 'Target dev server URL:',
-            initial:
-                existingMappings?.target_base_url || 'http://localhost:5173',
-            validate: (v) => v.startsWith('http') || 'Must be a valid URL'
+    // ── Step 2/3: Per-Page Config ──────────────────────────────────────────
+
+    log('Step 2/3: Page Config');
+
+    for (const page of mappings.pages) {
+        console.log(`\n  \x1b[1m── ${page.name} (${page.page_id}) ──\x1b[0m`);
+
+        const pageEdits = await prompts([
+            {
+                type: 'text',
+                name: 'sfra_url',
+                message: 'SFRA URL:',
+                initial: page.sfra_url,
+            },
+            {
+                type: 'text',
+                name: 'target_url',
+                message: 'Target URL:',
+                initial: page.target_url,
+            },
+            {
+                type: 'text',
+                name: 'isml_template',
+                message: 'ISML template:',
+                initial: page.isml_template,
+            },
+            {
+                type: 'text',
+                name: 'consent_selector',
+                message: 'Consent selector:',
+                initial: page.source_config?.consent_button_selector || '',
+            },
+        ]);
+
+        if (pageEdits.sfra_url !== undefined) page.sfra_url = pageEdits.sfra_url;
+        if (pageEdits.target_url !== undefined) page.target_url = pageEdits.target_url;
+        if (pageEdits.isml_template !== undefined) page.isml_template = pageEdits.isml_template;
+
+        if (pageEdits.consent_selector) {
+            page.source_config = {
+                dismiss_consent: true,
+                consent_button_selector: pageEdits.consent_selector,
+            };
+        } else if (pageEdits.consent_selector === '') {
+            // User explicitly cleared — remove consent config
+            delete page.source_config;
         }
-    ]);
-
-    if (!targetConfig.baseUrl) {
-        log('Setup cancelled');
-        process.exit(0);
     }
 
-    // Step 4: Viewport Configuration
-    log('Step 3/4: Viewport Configuration');
+    // ── Step 3/3: Route Selection ──────────────────────────────────────────
 
-    const viewportConfig = await prompts([
-        {
-            type: 'select',
-            name: 'viewport',
-            message: 'Default viewport size:',
-            choices: [
-                {
-                    title: 'Desktop (1920x1080)',
-                    value: { width: 1920, height: 1080 }
-                },
-                {
-                    title: 'Laptop (1440x900)',
-                    value: { width: 1440, height: 900 }
-                },
-                {
-                    title: 'Tablet (768x1024)',
-                    value: { width: 768, height: 1024 }
-                },
-                {
-                    title: 'Mobile (375x812)',
-                    value: { width: 375, height: 812 }
-                }
-            ],
-            initial: 0
-        }
-    ]);
+    log('Step 3/3: Select Routes to Migrate');
 
-    // Step 5: Feature Selection
-    log('Step 4/4: Feature Selection');
-
-    // Merge existing features with defaults
-    // Construct full URLs from base URL + path
-    const existingFeatureIds = new Set(
-        existingMappings?.mappings?.map((m) => m.feature_id) || []
-    );
-    const allFeatures = [
-        ...(existingMappings?.mappings || []),
-        ...DEFAULT_FEATURES.filter(
-            (f) => !existingFeatureIds.has(f.feature_id)
-        ).map((f) => ({
-            ...f,
-            sfra_url: new URL(f.source_path, sourceConfig.baseUrl).toString(),
-            target_url: f.target_path
-                ? new URL(f.target_path, targetConfig.baseUrl).toString()
-                : targetConfig.baseUrl
-        }))
-    ];
-
-    const { selectedFeatures } = await prompts({
+    const { selectedPageIds } = await prompts({
         type: 'multiselect',
-        name: 'selectedFeatures',
-        message: 'Select features to migrate:',
-        choices: allFeatures.map((f) => ({
-            title: `${f.feature_id}: ${f.name}`,
-            value: f.feature_id,
-            selected:
-                true
+        name: 'selectedPageIds',
+        message: 'Select pages to migrate:',
+        choices: mappings.pages.map(p => ({
+            title: `${p.name} (${p.page_id})`,
+            value: p.page_id,
+            selected: p.selected !== false,
         })),
-        hint: '- Space to select. Return to submit'
+        hint: '- Space to select. Return to submit',
     });
 
-    if (!selectedFeatures || selectedFeatures.length === 0) {
-        warn('No features selected. Exiting.');
+    if (!selectedPageIds || selectedPageIds.length === 0) {
+        warn('No pages selected. Exiting.');
         process.exit(0);
     }
 
-    // Allow adding custom features
-    const { addCustom } = await prompts({
-        type: 'confirm',
-        name: 'addCustom',
-        message: 'Add a custom feature?',
-        initial: false
-    });
-
-    const customFeatures: FeatureConfig[] = [];
-    if (addCustom) {
-        let addMore = true;
-        while (addMore) {
-            const custom = await prompts([
-                {
-                    type: 'text',
-                    name: 'id',
-                    message: 'Feature ID (e.g., 06-cart):',
-                    validate: (v) =>
-                        /^[\w-]+$/.test(v) ||
-                        'Use alphanumeric and hyphens only'
-                },
-                {
-                    type: 'text',
-                    name: 'name',
-                    message: 'Feature name:'
-                },
-                {
-                    type: 'text',
-                    name: 'source_path',
-                    message: 'Source (SFRA) URL path (e.g., "home", "cart"):',
-                    initial: 'home'
-                },
-                {
-                    type: 'text',
-                    name: 'target_path',
-                    message:
-                        'Target URL path (leave empty if same as root, or enter path):',
-                    initial: ''
-                },
-                {
-                    type: 'text',
-                    name: 'selector',
-                    message: 'CSS selector for main content:',
-                    initial: 'main'
-                }
-            ]);
-
-            if (custom.id && custom.name) {
-                customFeatures.push({
-                    feature_id: custom.id,
-                    name: custom.name,
-                    source_path: custom.source_path,
-                    target_path: custom.target_path,
-                    sfra_url: new URL(
-                        custom.source_path,
-                        sourceConfig.baseUrl
-                    ).toString(),
-                    target_url: custom.target_path
-                        ? new URL(
-                              custom.target_path,
-                              targetConfig.baseUrl
-                          ).toString()
-                        : targetConfig.baseUrl,
-                    selector: custom.selector,
-                    viewport: viewportConfig.viewport
-                });
-                selectedFeatures.push(custom.id);
-            }
-
-            const { more } = await prompts({
-                type: 'confirm',
-                name: 'more',
-                message: 'Add another custom feature?',
-                initial: false
-            });
-            addMore = more;
-        }
+    // Persist selected state
+    const selectedSet = new Set<string>(selectedPageIds);
+    for (const page of mappings.pages) {
+        page.selected = selectedSet.has(page.page_id);
     }
 
-    // Build final mappings
-    const finalMappings: URLMappings = {
-        version: '1.0',
-        source_base_url: sourceConfig.baseUrl,
-        target_base_url: targetConfig.baseUrl,
-        mappings: [
-            ...allFeatures
-                .filter((f) => selectedFeatures.includes(f.feature_id))
-                .map((f) => ({
-                    ...f,
-                    sfra_url: f.sfra_url || sourceConfig.baseUrl,
-                    target_url: f.target_url || targetConfig.baseUrl,
-                    source_config: sourceConfig.consentSelector
-                        ? {
-                              dismiss_consent: true,
-                              consent_button_selector:
-                                  sourceConfig.consentSelector
-                          }
-                        : undefined
-                })),
-            ...customFeatures
-        ]
-    };
+    // ── Write back ─────────────────────────────────────────────────────────
 
-    // Save configuration
-    fs.writeFileSync(URL_MAPPINGS_FILE, JSON.stringify(finalMappings, null, 2));
+    saveMappings(mappings);
 
-    success('\nConfiguration saved:');
-    console.log(`  - ${URL_MAPPINGS_FILE}`);
-    console.log(`\n  Features: ${selectedFeatures.length} selected`);
-    console.log(`  Source: ${sourceConfig.baseUrl}`);
-    console.log(`  Target: ${targetConfig.baseUrl}`);
+    success('\nConfiguration saved to url-mappings.json');
+    console.log(`  Source: ${mappings.source_base_url}`);
+    console.log(`  Target: ${mappings.target_base_url}`);
+    console.log(`  Pages: ${selectedPageIds.length} selected`);
 
-    console.log('\n\x1b[32mSetup complete!\x1b[0m Next steps:');
-    console.log('  1. Run: npx tsx scripts/analyze-features.ts');
-    console.log('  2. Run: npx tsx scripts/generate-plans.ts');
-    console.log('  3. Run: npx tsx scripts/init-migration-log.ts\n');
+    for (const page of mappings.pages) {
+        const marker = page.selected ? '\x1b[32m✓\x1b[0m' : '\x1b[2m○\x1b[0m';
+        console.log(`    ${marker} ${page.name} (${page.page_id})`);
+    }
+
+    console.log('');
 }
 
 main().catch((err) => {

@@ -1,39 +1,49 @@
 # Scripts Workflow & Architecture
 
-**Discovery drives Phase 2.** `discover-features-claude.ts` dynamically discovers features from ISML templates. `url-mappings.json` provides page-level config (URLs, ISML paths, viewport). Features flow from discovery output to downstream scripts.
+**Discovery drives Phase 2.** `discover-features-claude.ts` dynamically discovers features from ISML templates. `url-mappings.json` provides page-level config (URLs, ISML paths, viewport, selection state). Features flow from discovery output to downstream scripts.
 
 ---
 
-## Step 1: Feature Discovery (Primary Entry Point)
-
-```bash
-CLAUDECODE= npx tsx scripts/discover-features-claude.ts --page home
-```
-
-**What it does:**
-- Claude analyzes ISML template to discover migratable features
-- Reads page config from `url-mappings.json` (URLs, ISML paths, viewport)
-- **Writes:** `migration-plans/{page}-features.json` (discovery output)
-
-**When to use:**
-- Dynamic feature discovery from ISML (the standard path)
-- Discovering unknown page structure
-- Accurate selector/ISML line references
-
----
-
-## Optional: Interactive Setup (Override)
+## Step 0: Interactive Page Setup
 
 ```bash
 npx tsx scripts/setup-migration.ts
 ```
 
 **What it does:**
-- Interactive prompts for feature selection overrides
+- Reads `url-mappings.json` (the seed / single source of truth)
+- Prompts to confirm/edit global settings (SFRA base URL, target dev server)
+- Prompts to confirm/edit per-page config (SFRA URL, target URL, ISML template, consent selector)
+- Presents multiselect for route selection
+- Writes updated config back to `url-mappings.json` with `selected` flags
 
 **When to use:**
-- Manually overriding Claude-discovered features
-- Quick setup with known features when discovery isn't needed
+- Before first discovery run (sets which pages to process)
+- When adding new routes or changing SFRA instance URLs
+- `--reset` flag cleans downstream artifacts (screenshots, plans, log)
+
+---
+
+## Step 1: Feature Discovery (Primary Entry Point)
+
+```bash
+# Discover for a specific page
+CLAUDECODE= npx tsx scripts/discover-features-claude.ts --page home
+
+# Discover for all selected pages (reads `selected` field from url-mappings.json)
+CLAUDECODE= npx tsx scripts/discover-features-claude.ts
+```
+
+**What it does:**
+- Claude analyzes ISML template to discover migratable features
+- Reads page config from `url-mappings.json` (URLs, ISML paths, viewport)
+- When no `--page` flag: processes only pages with `selected: true` (or `selected` not set)
+- **Writes:** `migration-plans/{page}-features.json` (discovery output)
+
+**When to use:**
+- Dynamic feature discovery from ISML (the standard path)
+- Discovering unknown page structure
+- Accurate selector/ISML line references
 
 ---
 
@@ -76,8 +86,37 @@ npx tsx scripts/init-migration-log.ts
 
 | File | Role |
 | --- | --- |
-| `url-mappings.json` | **Page-level config** — URLs, ISML paths, viewport, consent settings. Read by discovery. |
+| `url-mappings.json` | **Page-level config** — URLs, ISML paths, viewport, consent settings, `selected` flag. Read by setup and discovery. |
 | `migration-plans/*.json` | **Discovery output** — discovered features with selectors, priorities, ISML references. Read by all downstream scripts. |
+
+---
+
+## `selected` Field
+
+Each page in `url-mappings.json` has an optional `selected: boolean` field:
+
+- `true` — page will be processed by discovery when no `--page` flag is given
+- `false` — page is skipped (still available via explicit `--page <id>`)
+- absent — treated as `true` (backwards-compatible)
+
+`setup-migration.ts` manages this field via multiselect prompt.
+
+---
+
+## Entrypoint Phase 4 Flow
+
+When `entrypoint.sh` runs Phase 4:
+
+```
+1. Interactive setup (setup-migration.ts) — skipped in non-interactive mode
+2. Read selected pages from url-mappings.json
+3. Feature discovery per selected page (separate Claude context each)
+4. Feature analysis (analyze-features.ts)
+5. Sub-plan generation (generate-plans.ts)
+6. Migration log initialization (init-migration-log.ts)
+```
+
+Each discovery invocation is a separate process, naturally clearing Claude CLI context between routes.
 
 ---
 
@@ -92,6 +131,7 @@ npx tsx scripts/init-migration-log.ts
 │    "pages": [                                                  │
 │      {                                                         │
 │        "page_id": "home",                                      │
+│        "selected": true,                                       │
 │        "sfra_url": "...",                                      │
 │        "isml_template": "home/homePage.isml",                  │
 │        "viewport": { ... },                                    │
@@ -99,53 +139,43 @@ npx tsx scripts/init-migration-log.ts
 │      }                                                         │
 │    ]                                                           │
 │  }                                                             │
-└────────────────────────────┬─────────────────────────────────┘
-                             │ READ (page config)
-                             ▼
-┌──────────────────────────────────────────────────────────────┐
-│  discover-features-claude.ts                                   │
-│                                                                │
-│  Reads: url-mappings.json (page config) + ISML templates      │
-│  Process: Claude CLI analyzes ISML + resolves slots            │
-│  Writes: migration-plans/{page}-features.json                  │
-└────────────────────────────┬─────────────────────────────────┘
-                             │
-                             ▼
+└────────────────────┬──────────────────┬──────────────────────┘
+                     │ READ             │ READ/WRITE
+                     │ (page config)    │ (selected flags)
+                     ▼                  ▼
+┌─────────────────────────┐  ┌──────────────────────────────────┐
+│  discover-features-     │  │  setup-migration.ts               │
+│  claude.ts              │  │                                    │
+│                         │  │  Confirms/edits page config        │
+│  Reads: url-mappings    │  │  Sets selected flags               │
+│  Process: Claude CLI    │  │  Writes: url-mappings.json         │
+│  Writes: migration-     │  └──────────────────────────────────┘
+│          plans/*.json   │
+└────────────────────┬────┘
+                     │
+                     ▼
 ┌──────────────────────────────────────────────────────────────┐
 │  migration-plans/{page}-features.json (DISCOVERY OUTPUT)       │
-│                                                                │
-│  {                                                             │
-│    "page_id": "home",                                          │
-│    "features": [                                               │
-│      {                                                         │
-│        "feature_id": "01-home-hero",                           │
-│        "name": "Hero Banner",                                  │
-│        "selector": ".hero",                                    │
-│        "isml_source": { ... },                                 │
-│        "migration_priority": 1                                 │
-│      }                                                         │
-│    ]                                                           │
-│  }                                                             │
-└────────────────────────────┬─────────────────────────────────┘
-                             │ READ (features)
-                             │
-           ┌─────────────────┼─────────────────┐
-           │                 │                 │
-           ▼                 ▼                 ▼
-    ┌────────────┐    ┌────────────┐    ┌────────────┐
-    │  analyze-  │    │ generate-  │    │   init-    │
-    │ features.ts│    │ subplan... │    │migration...│
-    └────────────┘    └────────────┘    └────────────┘
-           │                 │                 │
-           ▼                 ▼                 ▼
-      analysis/        sub-plans/       migration-log.md
+└────────────────────┬─────────────────────────────────────────┘
+                     │ READ (features)
+                     │
+           ┌─────────┼─────────────────┐
+           │         │                 │
+           ▼         ▼                 ▼
+    ┌────────────┐ ┌────────────┐ ┌────────────┐
+    │  analyze-  │ │ generate-  │ │   init-    │
+    │ features.ts│ │ subplan... │ │migration...│
+    └────────────┘ └────────────┘ └────────────┘
+           │             │               │
+           ▼             ▼               ▼
+      analysis/     sub-plans/     migration-log.md
 ```
 
 ---
 
 ## Summary
 
-- **`url-mappings.json`** — page-level config (URLs, ISML paths, viewport)
-- **`discover-features-claude.ts`** — the driver; dynamically discovers features from ISML
+- **`url-mappings.json`** — page-level config (URLs, ISML paths, viewport, `selected` flag)
+- **`setup-migration.ts`** — interactive config confirmation and route selection (Step 0)
+- **`discover-features-claude.ts`** — the driver; dynamically discovers features from ISML for selected pages
 - **`migration-plans/*.json`** — discovery output; consumed by all downstream scripts
-- **`setup-migration.ts`** — optional interactive override, not a co-equal input method

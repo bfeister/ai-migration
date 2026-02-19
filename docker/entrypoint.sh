@@ -989,25 +989,53 @@ else
         exit_or_keepalive 1 "url-mappings.json required"
     fi
 
-    # Step 1: Feature discovery via Claude
-    log_info "Step 1/4: Discovering features from ISML..."
-    if CLAUDECODE= npx tsx "$WORKSPACE_ROOT/scripts/discover-features-claude.ts" --page home; then
-        log_success "Feature discovery complete"
+    # Step 1: Interactive page config confirmation
+    # Skip when non-interactive (e.g. piped stdin in CI)
+    if [ -t 0 ]; then
+        log_info "Step 1/5: Interactive page configuration..."
+        if npx tsx "$WORKSPACE_ROOT/scripts/setup-migration.ts"; then
+            log_success "Page configuration complete"
+        else
+            log_error "Page configuration failed"
+            exit_or_keepalive 1 "Page configuration failed"
+        fi
     else
-        log_error "Feature discovery failed"
-        exit_or_keepalive 1 "Feature discovery failed"
+        log_info "Step 1/5: Non-interactive mode — using url-mappings.json as-is"
     fi
 
-    # Step 2: Run analysis on discovered features
-    log_info "Step 2/4: Analyzing features..."
+    # Step 2: Read selected page IDs from url-mappings.json
+    SELECTED_PAGES=$(jq -r '.pages[] | select(.selected == true) | .page_id' "$WORKSPACE_ROOT/url-mappings.json")
+
+    if [ -z "$SELECTED_PAGES" ]; then
+        log_error "No pages selected in url-mappings.json"
+        log_info "Run setup-migration.ts to select pages, or set \"selected\": true on desired pages."
+        exit_or_keepalive 1 "No selected pages"
+    fi
+
+    log_info "Selected pages: $SELECTED_PAGES"
+
+    # Step 3: Feature discovery per selected page (separate Claude context each)
+    log_info "Step 2/5: Discovering features from ISML..."
+    for PAGE_ID in $SELECTED_PAGES; do
+        log_info "  Discovering features for page: $PAGE_ID"
+        if CLAUDECODE= npx tsx "$WORKSPACE_ROOT/scripts/discover-features-claude.ts" --page "$PAGE_ID"; then
+            log_success "  Feature discovery complete for $PAGE_ID"
+        else
+            log_error "  Feature discovery failed for $PAGE_ID"
+            exit_or_keepalive 1 "Feature discovery failed for $PAGE_ID"
+        fi
+    done
+
+    # Step 4: Run analysis on discovered features
+    log_info "Step 3/5: Analyzing features..."
     if npx tsx "$WORKSPACE_ROOT/scripts/analyze-features.ts"; then
         log_success "Feature analysis complete"
     else
         log_warning "Feature analysis failed (continuing anyway)"
     fi
 
-    # Step 3: Generate sub-plans
-    log_info "Step 3/4: Generating sub-plans..."
+    # Step 4: Generate sub-plans
+    log_info "Step 4/5: Generating sub-plans..."
     if npx tsx "$WORKSPACE_ROOT/scripts/generate-plans.ts"; then
         log_success "Sub-plans generated"
     else
@@ -1015,8 +1043,8 @@ else
         exit_or_keepalive 1 "Sub-plan generation failed"
     fi
 
-    # Step 4: Initialize migration log
-    log_info "Step 4/4: Initializing migration log..."
+    # Step 5: Initialize migration log
+    log_info "Step 5/5: Initializing migration log..."
     if npx tsx "$WORKSPACE_ROOT/scripts/init-migration-log.ts"; then
         log_success "Migration log initialized"
     else
