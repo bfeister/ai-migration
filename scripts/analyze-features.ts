@@ -12,6 +12,7 @@
 import fs from 'fs';
 import path from 'path';
 import { extractDomStructure, ExtractionResult } from './extract-dom-structure.js';
+import { loadDiscoveryResults, loadURLMappings, findPage, type URLMappingsV2 } from './lib/discovery.js';
 
 // ============================================================================
 // Types
@@ -46,13 +47,6 @@ interface FeatureConfig {
   discovered?: DiscoveredData;
 }
 
-interface URLMappings {
-  version: string;
-  source_base_url: string;
-  target_base_url: string;
-  mappings: FeatureConfig[];
-}
-
 // ============================================================================
 // Constants
 // ============================================================================
@@ -78,19 +72,35 @@ function error(msg: string): void {
   console.error(`\x1b[31m[Analyze]\x1b[0m ${msg}`);
 }
 
-function loadMappings(): URLMappings {
-  if (!fs.existsSync(URL_MAPPINGS_FILE)) {
-    throw new Error(`url-mappings.json not found. Run setup first: npx tsx scripts/setup-migration.ts`);
-  }
-  return JSON.parse(fs.readFileSync(URL_MAPPINGS_FILE, 'utf-8'));
-}
+const MIGRATION_PLANS_DIR = path.join(WORKSPACE_ROOT, 'migration-plans');
 
-function saveMappings(mappings: URLMappings): void {
-  fs.writeFileSync(URL_MAPPINGS_FILE, JSON.stringify(mappings, null, 2));
+function loadFeatures(pageConfig: URLMappingsV2): FeatureConfig[] {
+  const results = loadDiscoveryResults(MIGRATION_PLANS_DIR);
+  const features: FeatureConfig[] = [];
+
+  for (const discovery of results) {
+    const page = findPage(pageConfig, discovery.page_id);
+
+    for (const feat of discovery.features) {
+      features.push({
+        feature_id: feat.feature_id,
+        name: feat.name,
+        sfra_url: page?.sfra_url || pageConfig.source_base_url,
+        target_url: page?.target_url || pageConfig.target_base_url,
+        selector: feat.selector,
+        viewport: page?.viewport,
+        source_config: page?.source_config ? {
+          dismiss_consent: page.source_config.dismiss_consent,
+        } : undefined,
+      });
+    }
+  }
+
+  return features;
 }
 
 /**
- * Extract discovered data from analysis result to feed back into url-mappings.json
+ * Extract discovered data from analysis result to persist into discovery files.
  */
 function buildDiscoveredData(result: ExtractionResult): DiscoveredData {
   return {
@@ -263,18 +273,24 @@ async function analyzeFeature(feature: FeatureConfig, screenshotPath: string): P
 
 async function main(): Promise<void> {
   const args = parseArgs(process.argv.slice(2));
-  const mappings = loadMappings();
+  const pageConfig = loadURLMappings(URL_MAPPINGS_FILE);
+  const allFeatures = loadFeatures(pageConfig);
+
+  if (allFeatures.length === 0) {
+    error('No discovered features found. Run discovery first: npx tsx scripts/discover-features-claude.ts');
+    process.exit(1);
+  }
 
   // Determine which features to analyze
   let featureIds = args.features;
   if (!featureIds) {
-    featureIds = mappings.mappings.map((m) => m.feature_id);
+    featureIds = allFeatures.map((m) => m.feature_id);
   }
 
-  const features = mappings.mappings.filter((m) => featureIds!.includes(m.feature_id));
+  const features = allFeatures.filter((m) => featureIds!.includes(m.feature_id));
 
   if (features.length === 0) {
-    error('No features to analyze. Check url-mappings.json or --features argument.');
+    error('No matching features found. Check --features argument.');
     process.exit(1);
   }
 
@@ -283,7 +299,8 @@ async function main(): Promise<void> {
   fs.mkdirSync(SCREENSHOTS_DIR, { recursive: true });
 
   const results: { feature: string; status: 'success' | 'error'; error?: string }[] = [];
-  let mappingsUpdated = false;
+  // Track which discovery files need updating with analysis data
+  const discoveryUpdates = new Map<string, { filePath: string; data: any }>();
 
   for (const feature of features) {
     const featureDir = path.join(ANALYSIS_DIR, feature.feature_id);
@@ -313,11 +330,28 @@ async function main(): Promise<void> {
         buildSummaryMarkdown(result, feature)
       );
 
-      // Feed discovered data back into url-mappings.json
-      const mappingIndex = mappings.mappings.findIndex((m) => m.feature_id === feature.feature_id);
-      if (mappingIndex !== -1) {
-        mappings.mappings[mappingIndex].discovered = buildDiscoveredData(result);
-        mappingsUpdated = true;
+      // Enrich discovery files with analysis data
+      if (fs.existsSync(MIGRATION_PLANS_DIR)) {
+        const discoveryFiles = fs.readdirSync(MIGRATION_PLANS_DIR)
+          .filter(f => f.endsWith('-features.json'));
+
+        for (const file of discoveryFiles) {
+          const filePath = path.join(MIGRATION_PLANS_DIR, file);
+          if (!discoveryUpdates.has(filePath)) {
+            discoveryUpdates.set(filePath, {
+              filePath,
+              data: JSON.parse(fs.readFileSync(filePath, 'utf-8')),
+            });
+          }
+
+          const entry = discoveryUpdates.get(filePath)!;
+          const feat = entry.data.features?.find(
+            (f: any) => f.feature_id === feature.feature_id
+          );
+          if (feat) {
+            feat.discovered = buildDiscoveredData(result);
+          }
+        }
       }
 
       success(`  Saved to: ${featureDir}/`);
@@ -328,10 +362,10 @@ async function main(): Promise<void> {
     }
   }
 
-  // Save updated mappings with discovered data
-  if (mappingsUpdated) {
-    saveMappings(mappings);
-    log(`Updated url-mappings.json with discovered data`);
+  // Persist analysis data back into discovery files
+  for (const [, entry] of discoveryUpdates) {
+    fs.writeFileSync(entry.filePath, JSON.stringify(entry.data, null, 2));
+    log(`Updated ${path.basename(entry.filePath)} with analysis data`);
   }
 
   // Summary

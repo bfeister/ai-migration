@@ -12,6 +12,7 @@
 import fs from 'fs';
 import path from 'path';
 import Handlebars from 'handlebars';
+import { loadDiscoveryResults, loadURLMappings, findPage } from './lib/discovery.js';
 
 // ============================================================================
 // Types
@@ -23,10 +24,6 @@ interface FeatureConfig {
   feature_name?: string;
   sfra_url: string;
   selector?: string;
-}
-
-interface URLMappings {
-  mappings: FeatureConfig[];
 }
 
 interface AnalysisSummary {
@@ -119,11 +116,27 @@ function error(msg: string): void {
   console.error(`\x1b[31m[Plans]\x1b[0m ${msg}`);
 }
 
-function loadMappings(): URLMappings {
-  if (!fs.existsSync(URL_MAPPINGS_FILE)) {
-    throw new Error(`url-mappings.json not found. Run setup first.`);
+const MIGRATION_PLANS_DIR = path.join(WORKSPACE_ROOT, 'migration-plans');
+
+function loadFeatures(): FeatureConfig[] {
+  const pageConfig = loadURLMappings(URL_MAPPINGS_FILE);
+  const results = loadDiscoveryResults(MIGRATION_PLANS_DIR);
+  const features: FeatureConfig[] = [];
+
+  for (const discovery of results) {
+    const page = findPage(pageConfig, discovery.page_id);
+
+    for (const feat of discovery.features) {
+      features.push({
+        feature_id: feat.feature_id,
+        name: feat.name,
+        sfra_url: page?.sfra_url || pageConfig.source_base_url,
+        selector: feat.selector,
+      });
+    }
   }
-  return JSON.parse(fs.readFileSync(URL_MAPPINGS_FILE, 'utf-8'));
+
+  return features;
 }
 
 function loadAnalysis(featureId: string): AnalysisSummary | null {
@@ -318,7 +331,12 @@ function generateSubPlansForFeature(
 
 async function main(): Promise<void> {
   const args = parseArgs(process.argv.slice(2));
-  const mappings = loadMappings();
+  const allFeatures = loadFeatures();
+
+  if (allFeatures.length === 0) {
+    error('No discovered features found. Run discovery first: npx tsx scripts/discover-features-claude.ts');
+    process.exit(1);
+  }
 
   // Compile template
   const template = Handlebars.compile(SUBPLAN_TEMPLATE);
@@ -326,10 +344,10 @@ async function main(): Promise<void> {
   // Determine which features to process
   let featureIds = args.features;
   if (!featureIds) {
-    featureIds = mappings.mappings.map((m) => m.feature_id);
+    featureIds = allFeatures.map((m) => m.feature_id);
   }
 
-  const features = mappings.mappings.filter((m) => featureIds!.includes(m.feature_id));
+  const features = allFeatures.filter((m) => featureIds!.includes(m.feature_id));
 
   if (features.length === 0) {
     error('No features found. Check url-mappings.json or --features argument.');
