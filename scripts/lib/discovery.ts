@@ -16,6 +16,12 @@ export interface DiscoveredFeature {
   feature_id: string;
   name: string;
   selector: string;
+  description?: string;
+  migration_priority?: number;
+  estimated_complexity?: 'low' | 'medium' | 'high';
+  dependencies?: string[];
+  notes?: string;
+  isml_source?: Record<string, unknown>;
   /** Populated later by analyze-features */
   discovered?: Record<string, unknown>;
 }
@@ -34,6 +40,9 @@ export interface PageConfig {
   name: string;
   sfra_url: string;
   target_url: string;
+  /** React Router route file name relative to src/routes/ (e.g., "_app._index.tsx") */
+  route_file?: string;
+  isml_template?: string;
   viewport?: { width: number; height: number };
   source_config?: {
     dismiss_consent?: boolean;

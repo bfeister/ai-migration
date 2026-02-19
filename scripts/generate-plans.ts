@@ -5,6 +5,10 @@
  * Generates migration sub-plans from analysis output using Handlebars templates.
  * Outputs dashboard-compatible files to sub-plans/{feature_id}/subplan-XX-YY.md.
  *
+ * Generates two bookend plans per route:
+ * - Plan Zero (XX-00): Archives the existing route file and creates a blank canvas
+ * - Final Plan (XX-NN): Wires up data-access patterns from the archived original
+ *
  * Usage:
  *   npx tsx scripts/generate-plans.ts [--features id1,id2]
  */
@@ -13,6 +17,7 @@ import fs from 'fs';
 import path from 'path';
 import Handlebars from 'handlebars';
 import { loadDiscoveryResults, loadURLMappings, findPage } from './lib/discovery.js';
+import type { PageConfig } from './lib/discovery.js';
 
 // ============================================================================
 // Types
@@ -24,6 +29,11 @@ interface FeatureConfig {
   feature_name?: string;
   sfra_url: string;
   selector?: string;
+  page_id: string;
+  route_file?: string;
+  isml_template?: string;
+  isFirstForRoute: boolean;
+  isLastForRoute: boolean;
 }
 
 interface AnalysisSummary {
@@ -56,6 +66,7 @@ const WORKSPACE_ROOT = process.env.WORKSPACE_ROOT || process.cwd();
 const URL_MAPPINGS_FILE = path.join(WORKSPACE_ROOT, 'url-mappings.json');
 const ANALYSIS_DIR = path.join(WORKSPACE_ROOT, 'analysis');
 const SUBPLANS_DIR = path.join(WORKSPACE_ROOT, 'sub-plans');
+const STANDALONE_PROJECT = process.env.STANDALONE_PROJECT || path.join(WORKSPACE_ROOT, 'storefront-next');
 
 // ============================================================================
 // Template
@@ -121,17 +132,34 @@ const MIGRATION_PLANS_DIR = path.join(WORKSPACE_ROOT, 'migration-plans');
 function loadFeatures(): FeatureConfig[] {
   const pageConfig = loadURLMappings(URL_MAPPINGS_FILE);
   const results = loadDiscoveryResults(MIGRATION_PLANS_DIR);
+
+  // Group features by page_id to determine first/last per route
+  const pageFeatures = new Map<string, { page: PageConfig | undefined; featureIds: string[] }>();
+
+  for (const discovery of results) {
+    const page = findPage(pageConfig, discovery.page_id);
+    const ids = discovery.features.map(f => f.feature_id);
+    pageFeatures.set(discovery.page_id, { page, featureIds: ids });
+  }
+
   const features: FeatureConfig[] = [];
 
   for (const discovery of results) {
     const page = findPage(pageConfig, discovery.page_id);
+    const group = pageFeatures.get(discovery.page_id)!;
 
-    for (const feat of discovery.features) {
+    for (let i = 0; i < discovery.features.length; i++) {
+      const feat = discovery.features[i];
       features.push({
         feature_id: feat.feature_id,
         name: feat.name,
         sfra_url: page?.sfra_url || pageConfig.source_base_url,
         selector: feat.selector,
+        page_id: discovery.page_id,
+        route_file: page?.route_file,
+        isml_template: page?.isml_template,
+        isFirstForRoute: feat.feature_id === group.featureIds[0],
+        isLastForRoute: feat.feature_id === group.featureIds[group.featureIds.length - 1],
       });
     }
   }
@@ -163,6 +191,247 @@ function parseArgs(args: string[]): { features?: string[] } {
 Handlebars.registerHelper('timestamp', () => new Date().toISOString());
 
 // ============================================================================
+// ISML Slot Extraction
+// ============================================================================
+
+interface ISMLSlot {
+  id: string;
+  description: string;
+  context: string;
+}
+
+function extractSlotsFromISML(ismlTemplate: string | undefined): ISMLSlot[] {
+  if (!ismlTemplate) return [];
+
+  const fullPath = path.join(WORKSPACE_ROOT, 'storefront-reference-architecture/cartridges/app_storefront_base/cartridge/templates/default', ismlTemplate);
+  if (!fs.existsSync(fullPath)) return [];
+
+  const content = fs.readFileSync(fullPath, 'utf-8');
+  const slots: ISMLSlot[] = [];
+  const regex = /<isslot\s+id="([^"]+)"\s+description="([^"]*)"(?:\s+context="([^"]*)")?/g;
+  let match;
+
+  while ((match = regex.exec(content)) !== null) {
+    slots.push({
+      id: match[1],
+      description: match[2],
+      context: match[3] || 'global',
+    });
+  }
+
+  return slots;
+}
+
+// ============================================================================
+// Plan Zero Generator (Route Preparation)
+// ============================================================================
+
+function generatePlanZeroContent(feature: FeatureConfig, slots: ISMLSlot[]): string {
+  const routeFile = feature.route_file || '_app._index.tsx';
+  const routePath = `src/routes/${routeFile}`;
+  const archivedPath = `src/routes/archived/${routeFile}`;
+  const ismlTemplate = feature.isml_template || 'unknown';
+  const featureNum = feature.feature_id.split('-')[0];
+  const timestamp = new Date().toISOString();
+
+  const slotRegions = slots.map(s =>
+    `      {/* ISML Slot: <isslot id="${s.id}"> — ${s.description} */}\n      {/* TODO: Implement ${s.id} region */}\n      <div data-region="${s.id}" />`
+  ).join('\n\n');
+
+  return `# Sub-Plan ${featureNum}-00: Archive Route and Create ISML Canvas
+
+---
+id: subplan-${featureNum}-00
+feature: ${feature.feature_id}
+status: pending
+dependencies: []
+---
+
+## Goal
+Archive the existing Storefront Next route file and create a blank canvas route that mirrors the ISML template structure from \`${ismlTemplate}\`. This establishes the skeleton that subsequent sub-plans will fill in region by region.
+
+## Implementation Steps
+
+### Step 0: Create the archive directory
+Create \`${STANDALONE_PROJECT}/${path.dirname(archivedPath)}/\` if it does not exist:
+\`\`\`bash
+mkdir -p ${STANDALONE_PROJECT}/${path.dirname(archivedPath)}
+\`\`\`
+
+### Step 1: Move the existing route to the archive
+Move the current route file so we have a reference for its data-access patterns later:
+\`\`\`bash
+mv ${STANDALONE_PROJECT}/${routePath} ${STANDALONE_PROJECT}/${archivedPath}
+\`\`\`
+> If the route file does not exist, skip this step.
+
+### Step 2: Read the ISML template
+Read the source ISML template to understand the page structure:
+- **Path:** \`storefront-reference-architecture/cartridges/app_storefront_base/cartridge/templates/default/${ismlTemplate}\`
+
+Identify every \`<isslot>\`, \`<isinclude>\`, and structural \`<div>\` in the template.
+
+### Step 3: Read slots.xml for slot configurations
+For each \`<isslot id="...">\` found, look up its configuration in \`slots/slots.xml\`:
+- Find the \`<slot-configuration>\` matching each slot-id
+- Note the \`<template>\` (ISML renderer) and \`<content>\` (data source type)
+
+**Slots in this ISML template:**
+${slots.length > 0 ? slots.map(s => `- \`${s.id}\` — ${s.description}`).join('\n') : '- *No slots detected (static template)*'}
+
+### Step 4: Create the blank canvas route
+Create a new \`${STANDALONE_PROJECT}/${routePath}\` with:
+1. A minimal React Router 7 route structure (\`loader\` + default export component)
+2. Commented regions matching each ISML slot / structural section
+3. Empty \`<div data-region="...">\` placeholders for each slot
+4. TypeScript types for the loader return shape
+
+**Canvas structure example:**
+\`\`\`tsx
+import { type LoaderFunctionArgs } from 'react-router';
+
+export function loader(args: LoaderFunctionArgs) {
+  return {};
+}
+
+export default function Page() {
+  return (
+    <div>
+${slotRegions || '      {/* Canvas: add ISML regions here */}'}
+    </div>
+  );
+}
+\`\`\`
+
+### Step 5: Verify the canvas route compiles
+Run \`pnpm typecheck\` from the storefront-next directory to ensure the canvas route has no TypeScript errors.
+
+## Verification Checklist
+- [ ] Original route is archived at \`${archivedPath}\`
+- [ ] New canvas route exists at \`${routePath}\`
+- [ ] Canvas route has commented regions for each ISML slot
+- [ ] Canvas route compiles without TypeScript errors
+- [ ] Dev server renders the canvas route without errors
+
+## Files to Create/Modify
+| File | Action | Description |
+|------|--------|-------------|
+| \`${archivedPath}\` | Create (move) | Archived original route for data-access reference |
+| \`${routePath}\` | Create | Blank canvas route with ISML region placeholders |
+
+---
+*Generated: ${timestamp}*
+`;
+}
+
+// ============================================================================
+// Final Plan Generator (Data Wiring)
+// ============================================================================
+
+function generateFinalPlanContent(feature: FeatureConfig, lastPlanNumber: string): string {
+  const routeFile = feature.route_file || '_app._index.tsx';
+  const routePath = `src/routes/${routeFile}`;
+  const archivedPath = `src/routes/archived/${routeFile}`;
+  const featureNum = feature.feature_id.split('-')[0];
+  const lastNumPart = lastPlanNumber.split('-')[1] || lastPlanNumber;
+  const finalNum = String(parseInt(lastNumPart, 10) + 1).padStart(2, '0');
+  const timestamp = new Date().toISOString();
+
+  return `# Sub-Plan ${featureNum}-${finalNum}: Wire Up Data Access from Archived Route
+
+---
+id: subplan-${featureNum}-${finalNum}
+feature: ${feature.feature_id}
+status: pending
+dependencies: ["subplan-${lastPlanNumber}"]
+---
+
+## Goal
+Complete the migration by integrating data-access patterns from the archived original Storefront Next route into the newly migrated SFRA-based React route. This final step ensures the migrated route has proper loader data fetching, API integration, and dynamic data wiring.
+
+## Implementation Steps
+
+### Step 0: Read the archived original route
+Read the archived route to understand its data-access patterns:
+- **Path:** \`${STANDALONE_PROJECT}/${archivedPath}\`
+
+Extract and catalog:
+1. **Loader function** — What APIs does it call? What data shape does it return?
+2. **Imports** — Which API utilities, types, and helpers does it use?
+3. **Context usage** — How does it access currency, locale, auth context?
+4. **Page Designer integration** — Does it use \`fetchPageFromLoader\`, \`collectComponentDataPromises\`, \`Region\`?
+5. **Component data flow** — How does loader data flow to components via props?
+
+### Step 1: Read the current migrated route
+Read the current migrated route:
+- **Path:** \`${STANDALONE_PROJECT}/${routePath}\`
+
+Identify what data is currently hardcoded or missing that the archived route fetches dynamically.
+
+### Step 2: Integrate loader data fetching
+Update the migrated route's \`loader\` function to:
+1. Import the same API utilities as the archived route (\`fetchSearchProducts\`, \`fetchCategories\`, etc.)
+2. Add the same data fetching calls (returning promises for streaming SSR)
+3. Match the return type shape so components receive the data they need
+4. Preserve any currency/locale context access patterns
+
+### Step 3: Wire dynamic data to components
+Replace hardcoded data in components with loader data:
+1. Update the component's \`loaderData\` type to match the new loader return
+2. Replace static content with dynamic data from the loader (product data, category data, CMS content)
+3. Add \`<Suspense>\` + \`<Await>\` boundaries for streamed promises where the archived route used them
+4. Ensure progressive loading works correctly
+
+### Step 4: Restore Page Designer integration (if applicable)
+If the archived route used Page Designer (\`Region\` component, \`@PageType\`, \`@RegionDefinition\`):
+1. Import the Page Designer decorators and \`Region\` component
+2. Add the page metadata class with region definitions
+3. Wire \`fetchPageFromLoader\` into the loader
+4. Place \`<Region>\` components at appropriate positions in the JSX
+
+### Step 5: Restore i18n integration
+If the archived route used \`useTranslation\`:
+1. Import \`useTranslation\` from \`react-i18next\`
+2. Replace any hardcoded strings with translation keys
+3. Verify translation keys exist in locale files
+
+### Step 6: Verify full integration
+1. Run \`pnpm typecheck\` — no TypeScript errors
+2. Run \`pnpm dev\` — page renders without console errors
+3. Verify dynamic data loads (products, categories, CMS content)
+4. Compare with SFRA source — visual layout should match
+5. Compare with archived original — data richness should be equivalent or better
+
+## Verification Checklist
+- [ ] Loader fetches all required data (matches archived route's API calls)
+- [ ] Components receive dynamic data instead of hardcoded values
+- [ ] \`<Suspense>\` boundaries provide progressive loading
+- [ ] Page Designer \`Region\` components work (if applicable)
+- [ ] i18n strings are translated (if applicable)
+- [ ] TypeScript compiles without errors
+- [ ] No console errors during page render
+- [ ] Visual layout matches SFRA source
+- [ ] Data richness matches or exceeds the archived original
+
+## Files to Create/Modify
+| File | Action | Description |
+|------|--------|-------------|
+| \`${routePath}\` | Modify | Add loader data fetching and dynamic data wiring |
+| \`${archivedPath}\` | Read-only | Reference for data-access patterns |
+
+## Reference
+The archived original route at \`${archivedPath}\` serves as the authoritative reference for:
+- API endpoints and data shapes
+- Authentication and context patterns
+- Page Designer configuration
+- Component data flow architecture
+
+---
+*Generated: ${timestamp}*
+`;
+}
+
+// ============================================================================
 // Sub-Plan Generation Logic
 // ============================================================================
 
@@ -188,7 +457,7 @@ function generateSubPlansForFeature(
     number: `${featureNum}-01`,
     title: `Setup ${featureName} Component Structure`,
     goal: `Create the base component structure and TypeScript types for ${featureName}.`,
-    dependencies: [],
+    dependencies: feature.isFirstForRoute ? [`subplan-${featureNum}-00`] : [],
     steps: [
       `Create directory structure at src/components/${feature.feature_id}/`,
       'Define TypeScript interfaces for props and data',
@@ -359,19 +628,38 @@ async function main(): Promise<void> {
 
   let totalPlans = 0;
 
+  // Extract ISML slots once per unique route (for Plan Zero)
+  const slotsCache = new Map<string, ISMLSlot[]>();
+
   for (const feature of features) {
     log(`Processing: ${feature.feature_id}`);
 
     const featureDir = path.join(SUBPLANS_DIR, feature.feature_id);
     fs.mkdirSync(featureDir, { recursive: true });
 
-    // Load analysis if available
+    const featureNum = feature.feature_id.split('-')[0];
+
+    // --- Plan Zero: generate for the FIRST feature of each route ---
+    if (feature.isFirstForRoute && feature.route_file) {
+      const cacheKey = feature.isml_template || feature.route_file;
+      if (!slotsCache.has(cacheKey)) {
+        slotsCache.set(cacheKey, extractSlotsFromISML(feature.isml_template));
+      }
+      const slots = slotsCache.get(cacheKey)!;
+
+      const planZeroContent = generatePlanZeroContent(feature, slots);
+      const planZeroFile = `subplan-${featureNum}-00.md`;
+      fs.writeFileSync(path.join(featureDir, planZeroFile), planZeroContent);
+      totalPlans++;
+      log(`  Generated Plan Zero: ${planZeroFile} (archives route, creates canvas)`);
+    }
+
+    // --- Core sub-plans ---
     const analysis = loadAnalysis(feature.feature_id);
     if (!analysis) {
       log(`  Warning: No analysis found for ${feature.feature_id}, using defaults`);
     }
 
-    // Generate sub-plans
     const subplans = generateSubPlansForFeature(feature, analysis);
 
     for (const plan of subplans) {
@@ -393,7 +681,19 @@ async function main(): Promise<void> {
       totalPlans++;
     }
 
-    success(`  Created ${subplans.length} sub-plans in ${featureDir}/`);
+    // --- Final Plan: generate for the LAST feature of each route ---
+    if (feature.isLastForRoute && feature.route_file) {
+      const lastPlanNumber = subplans[subplans.length - 1].number;
+      const finalPlanContent = generateFinalPlanContent(feature, lastPlanNumber);
+      const finalNum = String(parseInt(lastPlanNumber.split('-')[1], 10) + 1).padStart(2, '0');
+      const finalPlanFile = `subplan-${featureNum}-${finalNum}.md`;
+      fs.writeFileSync(path.join(featureDir, finalPlanFile), finalPlanContent);
+      totalPlans++;
+      log(`  Generated Final Plan: ${finalPlanFile} (data-access wiring from archived route)`);
+    }
+
+    const planCount = fs.readdirSync(featureDir).filter(f => f.endsWith('.md')).length;
+    success(`  Created ${planCount} sub-plans in ${featureDir}/`);
   }
 
   console.error('');
