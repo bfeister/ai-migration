@@ -5,9 +5,10 @@
  * Generates migration sub-plans from analysis output using Handlebars templates.
  * Outputs dashboard-compatible files to sub-plans/{feature_id}/subplan-XX-YY.md.
  *
- * Generates two bookend plans per route:
- * - Plan Zero (XX-00): Archives the existing route file and creates a blank canvas
- * - Final Plan (XX-NN): Wires up data-access patterns from the archived original
+ * Generates two bookend plans per route, each in its own dedicated directory
+ * so they execute as independent Claude sessions:
+ * - Plan Zero (00-{page}-route-setup): Archives the existing route and creates a blank canvas
+ * - Final Plan (99-{page}-data-wiring): Wires up data-access patterns from the archived original
  *
  * Usage:
  *   npx tsx scripts/generate-plans.ts [--features id1,id2]
@@ -457,7 +458,7 @@ function generateSubPlansForFeature(
     number: `${featureNum}-01`,
     title: `Setup ${featureName} Component Structure`,
     goal: `Create the base component structure and TypeScript types for ${featureName}.`,
-    dependencies: feature.isFirstForRoute ? [`subplan-${featureNum}-00`] : [],
+    dependencies: feature.isFirstForRoute ? [`subplan-00-00`] : [],
     steps: [
       `Create directory structure at src/components/${feature.feature_id}/`,
       'Define TypeScript interfaces for props and data',
@@ -631,15 +632,22 @@ async function main(): Promise<void> {
   // Extract ISML slots once per unique route (for Plan Zero)
   const slotsCache = new Map<string, ISMLSlot[]>();
 
+  // Track bookend features to inject into discovery files
+  interface BookendEntry {
+    feature_id: string;
+    name: string;
+    description: string;
+    priority: number;
+  }
+  const bookendFeatures = new Map<string, { planZero?: BookendEntry; finalPlan?: BookendEntry }>();
+
   for (const feature of features) {
     log(`Processing: ${feature.feature_id}`);
 
     const featureDir = path.join(SUBPLANS_DIR, feature.feature_id);
     fs.mkdirSync(featureDir, { recursive: true });
 
-    const featureNum = feature.feature_id.split('-')[0];
-
-    // --- Plan Zero: generate for the FIRST feature of each route ---
+    // --- Plan Zero: generate in its own dedicated directory ---
     if (feature.isFirstForRoute && feature.route_file) {
       const cacheKey = feature.isml_template || feature.route_file;
       if (!slotsCache.has(cacheKey)) {
@@ -647,11 +655,23 @@ async function main(): Promise<void> {
       }
       const slots = slotsCache.get(cacheKey)!;
 
+      const planZeroId = `00-${feature.page_id}-route-setup`;
+      const planZeroDir = path.join(SUBPLANS_DIR, planZeroId);
+      fs.mkdirSync(planZeroDir, { recursive: true });
+
       const planZeroContent = generatePlanZeroContent(feature, slots);
-      const planZeroFile = `subplan-${featureNum}-00.md`;
-      fs.writeFileSync(path.join(featureDir, planZeroFile), planZeroContent);
+      const planZeroFile = 'subplan-00-00.md';
+      fs.writeFileSync(path.join(planZeroDir, planZeroFile), planZeroContent);
       totalPlans++;
-      log(`  Generated Plan Zero: ${planZeroFile} (archives route, creates canvas)`);
+      log(`  Generated Plan Zero: ${planZeroId}/${planZeroFile} (archives route, creates canvas)`);
+
+      if (!bookendFeatures.has(feature.page_id)) bookendFeatures.set(feature.page_id, {});
+      bookendFeatures.get(feature.page_id)!.planZero = {
+        feature_id: planZeroId,
+        name: 'Route Setup (Archive & Canvas)',
+        description: `Archive the existing ${feature.route_file} route and create an ISML-based canvas with slot placeholders.`,
+        priority: 0,
+      };
     }
 
     // --- Core sub-plans ---
@@ -681,19 +701,79 @@ async function main(): Promise<void> {
       totalPlans++;
     }
 
-    // --- Final Plan: generate for the LAST feature of each route ---
+    // --- Final Plan: generate in its own dedicated directory ---
     if (feature.isLastForRoute && feature.route_file) {
+      const finalPlanId = `99-${feature.page_id}-data-wiring`;
+      const finalPlanDir = path.join(SUBPLANS_DIR, finalPlanId);
+      fs.mkdirSync(finalPlanDir, { recursive: true });
+
       const lastPlanNumber = subplans[subplans.length - 1].number;
       const finalPlanContent = generateFinalPlanContent(feature, lastPlanNumber);
-      const finalNum = String(parseInt(lastPlanNumber.split('-')[1], 10) + 1).padStart(2, '0');
-      const finalPlanFile = `subplan-${featureNum}-${finalNum}.md`;
-      fs.writeFileSync(path.join(featureDir, finalPlanFile), finalPlanContent);
+      const finalPlanFile = 'subplan-99-00.md';
+      fs.writeFileSync(path.join(finalPlanDir, finalPlanFile), finalPlanContent);
       totalPlans++;
-      log(`  Generated Final Plan: ${finalPlanFile} (data-access wiring from archived route)`);
+      log(`  Generated Final Plan: ${finalPlanId}/${finalPlanFile} (data-access wiring from archived route)`);
+
+      if (!bookendFeatures.has(feature.page_id)) bookendFeatures.set(feature.page_id, {});
+      bookendFeatures.get(feature.page_id)!.finalPlan = {
+        feature_id: finalPlanId,
+        name: 'Data Wiring (Loader & API Integration)',
+        description: `Wire up data-access patterns from the archived route into the migrated route. Restore loader, API calls, Suspense boundaries, and dynamic data flow.`,
+        priority: 99,
+      };
     }
 
     const planCount = fs.readdirSync(featureDir).filter(f => f.endsWith('.md')).length;
     success(`  Created ${planCount} sub-plans in ${featureDir}/`);
+  }
+
+  // --- Inject bookend features into discovery files ---
+  for (const [pageId, bookends] of bookendFeatures) {
+    const discoveryFiles = fs.readdirSync(MIGRATION_PLANS_DIR)
+      .filter(f => f.endsWith('-features.json'));
+
+    for (const file of discoveryFiles) {
+      const filePath = path.join(MIGRATION_PLANS_DIR, file);
+      const discovery = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+
+      if (discovery.page_id !== pageId) continue;
+
+      // Remove any previously injected bookend entries
+      discovery.features = discovery.features.filter(
+        (f: any) => !f.feature_id.startsWith('00-') && !f.feature_id.startsWith('99-')
+      );
+
+      if (bookends.planZero) {
+        discovery.features.unshift({
+          feature_id: bookends.planZero.feature_id,
+          name: bookends.planZero.name,
+          description: bookends.planZero.description,
+          selector: '',
+          migration_priority: bookends.planZero.priority,
+          estimated_complexity: 'low',
+          dependencies: [],
+        });
+      }
+
+      if (bookends.finalPlan) {
+        discovery.features.push({
+          feature_id: bookends.finalPlan.feature_id,
+          name: bookends.finalPlan.name,
+          description: bookends.finalPlan.description,
+          selector: '',
+          migration_priority: bookends.finalPlan.priority,
+          estimated_complexity: 'medium',
+          dependencies: [],
+        });
+      }
+
+      // Update migration_order
+      discovery.migration_order = discovery.features.map((f: any) => f.feature_id);
+      discovery.total_features = discovery.features.length;
+
+      fs.writeFileSync(filePath, JSON.stringify(discovery, null, 2) + '\n');
+      log(`  Updated ${file} with bookend features for page "${pageId}"`);
+    }
   }
 
   console.error('');
