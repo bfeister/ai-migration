@@ -59,59 +59,21 @@ function getSystemChromePath(): string | undefined {
 }
 
 /**
- * Attempt to dismiss consent/cookie modals using common selectors
+ * Attempt to dismiss consent/cookie modal using the selector from url-mappings.json
  */
-async function dismissConsentModals(page: Page, customSelector?: string): Promise<void> {
-  // Common consent button selectors (try custom first if provided)
-  const consentSelectors = [
-    // Custom selector takes priority
-    ...(customSelector ? [customSelector] : []),
-    // SFCC/Demandware tracking consent
-    '.tracking-consent button.affirm',
-    '.tracking-consent .affirm',
-    'button.affirm.btn',
-    // Generic patterns
-    'button[class*="consent"]',
-    'button[class*="cookie"]',
-    'button[class*="accept"]',
-    'button[id*="consent"]',
-    'button[id*="cookie"]',
-    'button[id*="accept"]',
-    '[class*="consent"] button',
-    '[class*="cookie"] button',
-    // Specific services
-    '#onetrust-accept-btn-handler',
-    '.cc-accept',
-    '.cc-btn.cc-dismiss',
-    '[data-testid="cookie-accept"]',
-    '#CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll',
-    '.evidon-banner-acceptbutton',
-    '#didomi-notice-agree-button',
-    '.qc-cmp2-summary-buttons button:first-child',
-    // Text-based (Playwright locators)
-    'button:has-text("Accept")',
-    'button:has-text("Accept all")',
-    'button:has-text("I agree")',
-    'button:has-text("Got it")',
-    'button:has-text("Yes")',
-    'button:has-text("OK")',
-  ];
-
-  for (const selector of consentSelectors) {
-    try {
-      const button = await page.locator(selector).first();
-      if (await button.isVisible({ timeout: 500 })) {
-        await button.click();
-        console.log(`[Screenshot] ✅ Dismissed consent modal with selector: ${selector}`);
-        await page.waitForTimeout(500);
-        return;
-      }
-    } catch {
-      // Selector not found, continue
+async function dismissConsentModals(page: Page, selector: string): Promise<void> {
+  try {
+    const button = await page.locator(selector).first();
+    if (await button.isVisible({ timeout: 2000 })) {
+      await button.click();
+      console.log(`[Screenshot] Dismissed consent modal with selector: ${selector}`);
+      await page.waitForTimeout(500);
+    } else {
+      console.log(`[Screenshot] Consent selector not visible: ${selector}`);
     }
+  } catch (err: any) {
+    console.log(`[Screenshot] Failed to dismiss consent modal with selector "${selector}": ${err.message}`);
   }
-
-  console.log(`[Screenshot] No consent modal found (tried ${consentSelectors.length} selectors)`);
 }
 
 interface ScreenshotMapping {
@@ -166,8 +128,12 @@ async function captureScreenshot(options: CaptureOptions): Promise<void> {
 
     // Dismiss consent modal if requested
     if (mapping?.dismiss_consent) {
-      console.log(`[Screenshot] Attempting to dismiss consent modals...`);
-      await dismissConsentModals(page, mapping?.consent_button_selector);
+      if (mapping.consent_button_selector) {
+        console.log(`[Screenshot] Attempting to dismiss consent modal...`);
+        await dismissConsentModals(page, mapping.consent_button_selector);
+      } else {
+        console.log(`[Screenshot] dismiss_consent is true but no consent_button_selector provided — skipping`);
+      }
     }
 
     // Wait for specific selector if provided

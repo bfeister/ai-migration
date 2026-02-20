@@ -21,7 +21,7 @@
       },
       "source_config": {
         "dismiss_consent": true,
-        "consent_button_selector": ".tracking-consent button.affirm"
+        "consent_button_selector": "#consent-tracking button.affirm"
       }
     },
     {
@@ -39,7 +39,7 @@
       },
       "source_config": {
         "dismiss_consent": true,
-        "consent_button_selector": ".tracking-consent button.affirm"
+        "consent_button_selector": "#consent-tracking button.affirm"
       }
     },
     {
@@ -57,7 +57,7 @@
       },
       "source_config": {
         "dismiss_consent": true,
-        "consent_button_selector": ".tracking-consent button.affirm"
+        "consent_button_selector": "#consent-tracking button.affirm"
       }
     }
   ]

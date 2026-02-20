@@ -7,7 +7,8 @@
 		"map-isml": "tsx scripts/map-isml-templates.ts",
 		"generate-plans": "tsx scripts/generate-plans.ts",
 		"generate-plans:claude": "tsx scripts/generate-subplan-claude.ts",
-		"init-log": "tsx scripts/init-migration-log.ts"
+		"init-log": "tsx scripts/init-migration-log.ts",
+		"execute": "tsx scripts/execute-migration.ts"
 	},
 	"dependencies": {
 		"prompts": "^2.4.2",
