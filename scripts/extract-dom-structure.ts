@@ -347,11 +347,31 @@ async function extractDomStructure(options: ExtractionOptions): Promise<Extracti
   const browser: Browser = await chromium.launch({
     headless: true,
     executablePath,
-    args: ['--no-sandbox', '--disable-dev-shm-usage', '--disable-setuid-sandbox'],
+    args: [
+      '--no-sandbox',
+      '--disable-dev-shm-usage',
+      '--disable-blink-features=AutomationControlled',
+    ],
   });
 
   try {
-    const page: Page = await browser.newPage({ viewport });
+    const context = await browser.newContext({
+      viewport,
+      userAgent:
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+      locale: 'en-US',
+      timezoneId: 'America/New_York',
+      extraHTTPHeaders: {
+        'Accept-Language': 'en-US,en;q=0.9',
+      },
+    });
+
+    const page: Page = await context.newPage();
+
+    await page.addInitScript(() => {
+      Object.defineProperty(navigator, 'webdriver', { get: () => false });
+    });
+
     page.setDefaultTimeout(30000);
 
     console.error(`[Extract] Navigating...`);
