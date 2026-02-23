@@ -211,7 +211,6 @@ function loadURLMappings(): URLMappingsV2 | null {
 function extractSlotIdsFromISML(mappings: URLMappingsV2, page: PageConfig): string[] {
     const templatePath = path.join(
         WORKSPACE_ROOT,
-        mappings.sfra_templates_base,
         page.isml_template
     );
 
@@ -490,7 +489,6 @@ async function discoverFeaturesForPage(
     // Build full ISML path (absolute for Claude to read)
     const fullIsmlPath = path.join(
         WORKSPACE_ROOT,
-        mappings.sfra_templates_base,
         page.isml_template
     );
     log(`  ISML template path: ${fullIsmlPath}`);

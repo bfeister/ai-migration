@@ -299,7 +299,6 @@ function loadDiscoveredFeatures(): { features: FeatureConfig[]; pageConfig: Page
             // Build full ISML path
             const ismlTemplatePath = path.join(
                 WORKSPACE_ROOT,
-                mappingsV2.sfra_templates_base,
                 pageConfig.isml_template
             );
 
