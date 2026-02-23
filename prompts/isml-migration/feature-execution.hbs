@@ -1,0 +1,82 @@
+# Feature Migration Execution: {{feature.name}}
+
+You are executing the migration sub-plans for the **{{feature.name}}** feature (`{{feature.feature_id}}`), migrating from SFRA (ISML + Bootstrap + jQuery) to React 19 + React Router 7 (Storefront Next).
+
+---
+
+## Feature Context
+
+| Field | Value |
+|-------|-------|
+| **Feature ID** | `{{feature.feature_id}}` |
+| **Name** | {{feature.name}} |
+{{#if feature.sfra_url}}| **SFRA URL** | {{feature.sfra_url}} |
+{{/if}}{{#if feature.target_url}}| **Target URL** | {{feature.target_url}} |
+{{/if}}{{#if feature.selector}}| **DOM Selector** | `{{feature.selector}}` |
+{{/if}}{{#if feature.estimated_complexity}}| **Complexity** | {{feature.estimated_complexity}} |
+{{/if}}
+
+---
+
+## Sub-Plans to Execute (in order)
+
+Read each sub-plan file, implement the changes described, verify, then move to the next.
+
+{{#each subPlanFiles}}
+{{add @index 1}}. `{{this}}`
+{{/each}}
+
+---
+
+## Workflow Reference
+
+Read the full micro-iteration workflow from:
+**`{{migrationMainPlanPath}}`**
+
+For each sub-plan, follow this cycle:
+
+1. **Read** the sub-plan file to understand the goal, implementation steps, and acceptance criteria
+2. **Implement** the code changes described in the sub-plan
+3. **Verify** - ensure TypeScript compiles, no console errors, visual output matches expectations
+4. **Screenshot** - capture dual screenshots (source SFRA + target Storefront Next) using the `CaptureDualScreenshots` MCP tool
+5. **Commit** - create a git commit using the `CommitMigrationProgress` MCP tool
+6. **Log** - record progress using the `LogMigrationProgress` MCP tool
+7. **Proceed** to the next sub-plan
+
+---
+
+## Available MCP Tools
+
+Use these tools during execution:
+
+| Tool | Purpose |
+|------|---------|
+| `LogMigrationProgress` | Log completion of each sub-plan to migration-log.md |
+| `CaptureDualScreenshots` | Capture SFRA source + Storefront Next target screenshots |
+| `CommitMigrationProgress` | Create standardized git commits per sub-plan |
+| `CheckServerHealth` | Verify the dev server is running before screenshots |
+| `GetVisualFeedback` | Compare source/target screenshots for visual differences |
+| `ExecuteSubPlan` | Orchestrate sub-plan execution with verification and logging |
+
+---
+
+## Important Rules
+
+- **One sub-plan at a time** - complete each fully before moving to the next
+- **No partial implementations** - each sub-plan must result in working, compilable code
+- **TypeScript strict mode** - no `any` types without justification
+- **Tailwind CSS only** - no Bootstrap, no CSS modules, no styled-components
+- **React Server Rendering by default** - use `'use client'` only when interactivity requires it
+- **Commit after each sub-plan** - atomic commits with the sub-plan ID in the message
+
+---
+
+## Completion
+
+When all sub-plans listed above have been executed successfully, output:
+
+```
+FEATURE COMPLETE: {{feature.feature_id}}
+```
+
+Then exit cleanly. Do not start work on any other feature.
