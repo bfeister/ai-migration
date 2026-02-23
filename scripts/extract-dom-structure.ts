@@ -280,6 +280,7 @@ interface ExtractionResult {
   selector: string;
   extractedAt: string;
   viewport: { width: number; height: number };
+  wafBlocked?: { detected: true; signals: string[]; pageTitle: string };
   summary: {
     totalElements: number;
     links: { href: string; text?: string }[];
@@ -291,7 +292,7 @@ interface ExtractionResult {
     fonts: string[];
   };
   rootNode: ExtractedNode;
-  screenshotPath?: string; // Path to element screenshot if captured
+  screenshotPath?: string;
 }
 
 function getSystemChromePath(): string | undefined {
@@ -375,7 +376,8 @@ async function extractDomStructure(options: ExtractionOptions): Promise<Extracti
     page.setDefaultTimeout(30000);
 
     console.error(`[Extract] Navigating...`);
-    await page.goto(url, { waitUntil: 'networkidle' });
+    await page.goto(url, { waitUntil: 'domcontentloaded' });
+    await page.waitForTimeout(3000);
     console.error(`[Extract] Page loaded`);
 
     // Dismiss consent modals if requested
@@ -390,6 +392,48 @@ async function extractDomStructure(options: ExtractionOptions): Promise<Extracti
 
     // Wait a bit for any animations/transitions
     await page.waitForTimeout(500);
+
+    // Detect WAF / CDN error pages before attempting extraction
+    const pageHealth = await page.evaluate(`
+      (function() {
+        var title = document.title || '';
+        var bodyText = (document.body && document.body.innerText || '').substring(0, 500);
+        var h1 = document.querySelector('h1');
+        var h1Text = h1 ? (h1.textContent || '').trim() : '';
+        var elementCount = document.body ? document.body.querySelectorAll('*').length : 0;
+        return { title: title, bodyText: bodyText, h1Text: h1Text, elementCount: elementCount };
+      })()
+    `) as { title: string; bodyText: string; h1Text: string; elementCount: number };
+
+    const wafSignals: string[] = [];
+    const lowerTitle = pageHealth.title.toLowerCase();
+    const lowerH1 = pageHealth.h1Text.toLowerCase();
+    const lowerBody = pageHealth.bodyText.toLowerCase();
+
+    if (lowerTitle.includes('access denied') || lowerH1.includes('access denied'))
+      wafSignals.push(`page title/heading: "${pageHealth.h1Text}"`);
+    if (lowerTitle === '403 forbidden' || lowerH1.includes('403') || lowerTitle.includes('forbidden'))
+      wafSignals.push('403 Forbidden response');
+    if (lowerBody.includes('you don\'t have permission'))
+      wafSignals.push('permission denied message in body');
+    if (lowerBody.includes('edgesuite.net') || lowerBody.includes('akamai'))
+      wafSignals.push('Akamai/EdgeSuite CDN error reference');
+    if (lowerBody.includes('cloudflare') && (lowerBody.includes('error') || lowerBody.includes('block')))
+      wafSignals.push('Cloudflare error/block page');
+    if (pageHealth.elementCount <= 10 && (lowerTitle.includes('error') || lowerTitle.includes('denied')))
+      wafSignals.push(`very sparse page (${pageHealth.elementCount} elements) with error title`);
+
+    if (wafSignals.length > 0) {
+      console.error(`[Extract] ⚠️  WAF/CDN BLOCK DETECTED on ${url}`);
+      for (const sig of wafSignals) {
+        console.error(`[Extract]    → ${sig}`);
+      }
+      console.error(`[Extract]    Page title: "${pageHealth.title}"`);
+      console.error(`[Extract]    H1: "${pageHealth.h1Text}"`);
+      console.error(`[Extract]    Body elements: ${pageHealth.elementCount}`);
+      console.error(`[Extract]    Body preview: ${pageHealth.bodyText.substring(0, 200)}`);
+      console.error(`[Extract]    Extraction will continue but results are NOT from the target site.`);
+    }
 
     // Extract DOM structure
     console.error(`[Extract] Extracting DOM structure...`);
@@ -605,7 +649,7 @@ async function extractDomStructure(options: ExtractionOptions): Promise<Extracti
       }
     }
 
-    return {
+    const result: ExtractionResult = {
       url,
       selector,
       extractedAt: new Date().toISOString(),
@@ -614,6 +658,16 @@ async function extractDomStructure(options: ExtractionOptions): Promise<Extracti
       rootNode,
       screenshotPath,
     };
+
+    if (wafSignals.length > 0) {
+      result.wafBlocked = {
+        detected: true,
+        signals: wafSignals,
+        pageTitle: pageHealth.title,
+      };
+    }
+
+    return result;
   } finally {
     await browser.close();
   }

@@ -339,7 +339,8 @@ async function main(): Promise<void> {
   fs.mkdirSync(ANALYSIS_DIR, { recursive: true });
   fs.mkdirSync(SCREENSHOTS_DIR, { recursive: true });
 
-  const results: { feature: string; status: 'success' | 'error'; error?: string }[] = [];
+  const results: { feature: string; status: 'success' | 'error' | 'waf_blocked'; error?: string }[] = [];
+  let wafBlockDetected = false;
   // Track which discovery files need updating with analysis data
   const discoveryUpdates = new Map<string, { filePath: string; data: any }>();
 
@@ -352,6 +353,26 @@ async function main(): Promise<void> {
 
     try {
       const result = await analyzeFeature(feature, screenshotPath);
+
+      if (result.wafBlocked) {
+        if (!wafBlockDetected) {
+          wafBlockDetected = true;
+          error('');
+          error('╔══════════════════════════════════════════════════════════════╗');
+          error('║  WAF / CDN BLOCK DETECTED — extraction hit an error page   ║');
+          error('║  The target site is blocking headless browser requests.     ║');
+          error('║  All analysis results from this URL are INVALID.           ║');
+          error('╚══════════════════════════════════════════════════════════════╝');
+          error(`  URL: ${feature.sfra_url}`);
+          error(`  Page title: "${result.wafBlocked.pageTitle}"`);
+          for (const sig of result.wafBlocked.signals) {
+            error(`  → ${sig}`);
+          }
+          error('');
+        }
+        results.push({ feature: feature.feature_id, status: 'waf_blocked', error: `WAF blocked: ${result.wafBlocked.pageTitle}` });
+        continue;
+      }
 
       // Save full extraction
       fs.writeFileSync(
@@ -413,8 +434,17 @@ async function main(): Promise<void> {
   console.error('');
   const successCount = results.filter((r) => r.status === 'success').length;
   const errorCount = results.filter((r) => r.status === 'error').length;
+  const wafCount = results.filter((r) => r.status === 'waf_blocked').length;
 
-  if (errorCount > 0) {
+  if (wafCount > 0) {
+    error(`Completed: ${wafCount} blocked by WAF/CDN, ${errorCount} failed, ${successCount} succeeded`);
+    error('The target site is blocking automated requests. Possible remedies:');
+    error('  • Use a staging/sandbox URL instead of production');
+    error('  • Set a custom User-Agent via PLAYWRIGHT_USER_AGENT env var');
+    error('  • Run from an allowlisted network/VPN');
+    error('  • Add the site to a CDN bypass list');
+    process.exit(1);
+  } else if (errorCount > 0) {
     error(`Completed: ${successCount} succeeded, ${errorCount} failed`);
     process.exit(1);
   } else {

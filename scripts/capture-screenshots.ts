@@ -138,9 +138,11 @@ async function captureScreenshot(options: CaptureOptions): Promise<void> {
 
     page.setDefaultTimeout(30000);
 
-    // Navigate to URL
+    // Navigate to URL — use domcontentloaded instead of networkidle to avoid
+    // timeouts on sites with long-running analytics/tracking connections
     console.log(`[Screenshot] Navigating to URL...`);
-    await page.goto(url, { waitUntil: 'networkidle' });
+    await page.goto(url, { waitUntil: 'domcontentloaded' });
+    await page.waitForTimeout(3000);
     console.log(`[Screenshot] Page loaded`);
 
     // Dismiss consent modal if requested
