@@ -1,8 +1,8 @@
 {
-    "name": "About Us Page",
-    "description": "About Us page containing company information and a contact form.",
-    "arch_type": "headless",
-    "region_definitions": [],
-    "supported_aspect_types": [],
-    "route": "/about-us"
+  "name": "About Us Page",
+  "description": "About Us page containing company information and a contact form.",
+  "arch_type": "headless",
+  "region_definitions": [],
+  "supported_aspect_types": [],
+  "route": "/about-us"
 }

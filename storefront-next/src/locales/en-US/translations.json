@@ -913,6 +913,7 @@
         }
     },
     "home": {
+        "siteTitle": "Links & Kings",
         "hero": {
             "slide1": {
                 "title": "The React Starter Store for High Performers",
