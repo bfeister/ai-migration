@@ -142,28 +142,31 @@ export default function CategoryFilters({
     }
 
     return (
-        <div className="mb-4 border-b">
-            <p className="mb-2 font-medium">Active filters:</p>
-            <div className="mb-2 flex flex-wrap items-center gap-2">
+        <div className="mb-4 pb-4 border-b border-border">
+            <div className="flex items-center justify-between mb-2">
+                <p className="text-xs font-semibold uppercase tracking-wider text-foreground">
+                    Active Filters
+                </p>
+                <Button
+                    variant="link"
+                    size="sm"
+                    className="h-auto p-0 cursor-pointer underline text-xs text-muted-foreground hover:text-foreground"
+                    onClick={clearAllFilters}>
+                    Clear all
+                </Button>
+            </div>
+            <div className="flex flex-wrap items-center gap-1.5">
                 {activeFilters.map(({ attributeId, value, valueLabel }) => (
                     <Button
                         key={`${attributeId}:${value}`}
                         variant="outline"
-                        className="cursor-pointer"
+                        size="sm"
+                        className="h-7 cursor-pointer gap-1 rounded-full px-2.5 text-xs"
                         onClick={() => void removeFilter(attributeId, value)}>
+                        <span>{valueLabel}</span>
                         <Close className="size-3" />
-                        <span className="ml-1">{valueLabel}</span>
                     </Button>
                 ))}
-            </div>
-
-            <div className="mb-4">
-                <Button
-                    variant="link"
-                    className="m-0 p-0 cursor-pointer underline text-sm text-destructive hover:text-destructive/75 font-bold"
-                    onClick={clearAllFilters}>
-                    Clear all
-                </Button>
             </div>
         </div>
     );

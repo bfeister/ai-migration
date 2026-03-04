@@ -18,23 +18,16 @@
 import type { ReactElement } from 'react';
 import type { ShopperSearch } from '@salesforce/storefront-next-runtime/scapi';
 import { Checkbox } from '@/components/ui/checkbox';
-import type { FilterValue } from './types';
+import type { RefinementProps } from './types';
 
 export default function DefaultRefinement({
     values,
     attributeId,
     isFilterSelected,
     toggleFilter,
-}: {
-    values: FilterValue[];
-    attributeId: string;
-
-    isFilterSelected: (attributeId: string, value: string) => boolean;
-
-    toggleFilter: (attributeId: string, value: string) => void;
-}): ReactElement {
+}: RefinementProps): ReactElement {
     return (
-        <div className="space-y-1 mt-2">
+        <div className="space-y-0.5 mt-1">
             {values.map((value: ShopperSearch.schemas['ProductSearchRefinementValue'], idx) => {
                 const id = `refine-${attributeId}-${idx}`;
                 const isSelected = isFilterSelected(attributeId, value.value);
@@ -43,16 +36,18 @@ export default function DefaultRefinement({
                     <label
                         key={`${attributeId}:${value.value}`}
                         htmlFor={id}
-                        className="flex items-center p-2 rounded-md hover:bg-muted/30 cursor-pointer">
+                        className={`flex items-center py-1.5 px-2 rounded hover:bg-muted/30 cursor-pointer transition-colors ${
+                            isSelected ? 'bg-muted/20' : ''
+                        }`}>
                         <Checkbox
                             id={id}
                             checked={isSelected}
                             onCheckedChange={() => toggleFilter(attributeId, value.value)}
-                            className="size-4"
+                            className="size-3.5"
                         />
-                        <span className="ml-3 text-sm font-medium">{value.label || value.value}</span>
+                        <span className="ml-2.5 text-sm">{value.label || value.value}</span>
                         {value.hitCount !== undefined && (
-                            <span className="ml-auto text-xs bg-muted/50 px-2 py-1 rounded-full">{value.hitCount}</span>
+                            <span className="ml-auto text-xs text-muted-foreground">{value.hitCount}</span>
                         )}
                     </label>
                 );

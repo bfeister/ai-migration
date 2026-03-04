@@ -1,0 +1,613 @@
+{
+  "page_id": "plp",
+  "page_name": "Product List Page",
+  "discovered_at": "2026-03-03T12:00:00Z",
+  "isml_template": "/Users/bfeister/dev/test-storefront/storefront-reference-architecture/cartridge/templates/default/search/pt_productsearchresult.isml",
+  "total_features": 9,
+  "features": [
+    {
+      "feature_id": "00-plp-route-setup",
+      "name": "Route Setup (Archive & Canvas)",
+      "description": "Archive the existing _app.category.$categoryId.tsx route and create an ISML-based canvas with slot placeholders.",
+      "selector": "",
+      "migration_priority": 0,
+      "estimated_complexity": "low",
+      "dependencies": []
+    },
+    {
+      "feature_id": "01-plp-category-banner",
+      "name": "Category Banner",
+      "description": "Full-width promotional banner at the top of the product listing. When viewing a category, renders the 'cat-banner' content slot (content asset). When viewing search results, falls back to a search promo body or the 'search-result-banner' global slot. Each category has its own configured banner asset.",
+      "selector": ".content-slot.slot-grid-header",
+      "isml_source": {
+        "file": "search/pt_productsearchresult_content.isml",
+        "lines": "12-26",
+        "slot_ids": [
+          "cat-banner",
+          "search-result-banner"
+        ],
+        "slot_template": "slots/content/contentassetbody.isml",
+        "content_type": "content-asset",
+        "content_assets": [
+          "lk-plp-banner-linksstandbag (golf-bags)",
+          "lk-bags-banner (bags)",
+          "lk-plp-banner-waxed (waxed canvas-collection)",
+          "lk-plp-banner-golfleather (glove-keepers)",
+          "lk-plp-banner-gifts (gifts-her)"
+        ],
+        "notes": "cat-banner is context='category', search-result-banner is context='global'. Conditional logic: category → cat-banner slot, search with promo → inline body, search fallback → search-result-banner slot."
+      },
+      "migration_priority": 2,
+      "estimated_complexity": "medium",
+      "dependencies": [],
+      "notes": "The React target has a 'plpTopFullWidth' Region that could serve this purpose via Page Designer. Alternatively, implement as a dedicated CategoryBanner component that fetches the content asset for the current category. Multiple category-specific slot configurations exist in slots.xml.",
+      "discovered": {
+        "analyzed_at": "2026-03-03T21:04:02.080Z",
+        "matched_selector": ".content-slot.slot-grid-header, .home-main-categories, .featured-products, .product-listing, main, body",
+        "element_count": 200,
+        "headings": [
+          "COLLECTIONS",
+          "LINKS COLLECTION",
+          "Shop",
+          "More",
+          "Sign Up for Links & Kings news"
+        ],
+        "image_count": 9,
+        "link_count": 35,
+        "fonts": [
+          "proxima-nova",
+          "ltc-bodoni-175",
+          "Paperback9-Roman",
+          "Titillium Web",
+          "DINCond",
+          "Oswald",
+          "Font Awesome 5 Brands"
+        ],
+        "colors": {
+          "text": [
+            "rgb(255, 255, 255)",
+            "rgb(152, 152, 154)",
+            "rgb(153, 153, 153)",
+            "rgb(153, 76, 76)",
+            "rgb(0, 13, 38)",
+            "rgb(0, 12, 37)",
+            "rgb(235, 235, 235)",
+            "rgba(255, 255, 255, 0.25)"
+          ],
+          "background": [
+            "rgb(255, 255, 255)",
+            "rgb(243, 243, 245)",
+            "rgb(8, 20, 30)",
+            "rgb(24, 49, 73)",
+            "rgba(255, 255, 255, 0.25)"
+          ]
+        }
+      }
+    },
+    {
+      "feature_id": "02-plp-filter-actions-bar",
+      "name": "Filter Actions & Sort Bar",
+      "description": "Horizontal action bar below the banner containing: (1) Filter toggle button with results count, (2) Selected refinement chips with remove links and 'Clear All', (3) Sort-by dropdown. Also includes a mobile-only CTA row with 'Apply Filters' and 'Clear Filters' buttons.",
+      "selector": ".plp-actions",
+      "isml_source": {
+        "file": "search/components/productsearchrefineactions.isml",
+        "lines": "1-173",
+        "slot_id": null,
+        "content_type": "dynamic",
+        "includes": [
+          "isproductsortingoptions (custom tag)"
+        ],
+        "notes": "Uses Resource.msg() for i18n strings (global.refinements.filters, global.refinements.results, productcomparewidget.clearall, etc.). Selected refinements are rendered as <span class='selected-refinement'> chips with relax URLs. Mobile CTA is in .plp-refinement-mobile-cta."
+      },
+      "migration_priority": 3,
+      "estimated_complexity": "high",
+      "dependencies": [
+        "03-plp-refinement-sidebar"
+      ],
+      "notes": "React target already has CategorySorting component. Missing: filter toggle button, selected refinement chips with removal, results count display, mobile filter apply/clear CTA. The SFRA version tightly couples filter display with refinement state (isRefinedByAttribute, isRefinedByPrice). Consider building a FilterBar component that wraps CategorySorting + adds chip display.",
+      "discovered": {
+        "analyzed_at": "2026-03-03T21:04:10.879Z",
+        "matched_selector": ".plp-actions, main, body",
+        "element_count": 200,
+        "headings": [
+          "COLLECTIONS",
+          "LINKS COLLECTION",
+          "Shop",
+          "More",
+          "Sign Up for Links & Kings news"
+        ],
+        "image_count": 9,
+        "link_count": 35,
+        "fonts": [
+          "proxima-nova",
+          "ltc-bodoni-175",
+          "Paperback9-Roman",
+          "Titillium Web",
+          "DINCond",
+          "Oswald",
+          "Font Awesome 5 Brands"
+        ],
+        "colors": {
+          "text": [
+            "rgb(255, 255, 255)",
+            "rgb(152, 152, 154)",
+            "rgb(153, 153, 153)",
+            "rgb(153, 76, 76)",
+            "rgb(0, 13, 38)",
+            "rgb(0, 12, 37)",
+            "rgb(235, 235, 235)",
+            "rgba(255, 255, 255, 0.25)"
+          ],
+          "background": [
+            "rgb(255, 255, 255)",
+            "rgb(243, 243, 245)",
+            "rgb(8, 20, 30)",
+            "rgb(24, 49, 73)",
+            "rgba(255, 255, 255, 0.25)"
+          ]
+        }
+      }
+    },
+    {
+      "feature_id": "03-plp-refinement-sidebar",
+      "name": "Refinement Sidebar",
+      "description": "Left-side panel containing expandable refinement sections: (1) Category refinements with hierarchical navigation, (2) Attribute refinements with special color swatch and size swatch rendering, (3) Price range refinements, (4) 'Features' attribute grouping. Each section is collapsible via toggle headers. Includes 'Clear Selection' per refinement type.",
+      "selector": "#secondary.refinements",
+      "isml_source": {
+        "file": "search/components/productsearchrefinebar.isml",
+        "lines": "1-198",
+        "slot_id": null,
+        "content_type": "dynamic",
+        "custom_tags": [
+          "iscategoryrefinementvalues",
+          "isproductsortingoptions"
+        ],
+        "notes": "Color and size refinements get special swatch rendering (ul.swatches). Other attribute refinements render as checkboxed lists with fa-check-square-o/fa-square-o icons. Uses Font Awesome icons. Category refinement builds a hierarchical path from root. A 'Features' display name groups multiple refinement definitions under one heading."
+      },
+      "migration_priority": 4,
+      "estimated_complexity": "high",
+      "dependencies": [],
+      "notes": "React target already has CategoryRefinements component (desktop only, hidden lg:block). Key differences to verify: (1) color swatch visual rendering, (2) size swatch rendering, (3) Features grouping logic, (4) expandable/collapsible toggle behavior, (5) mobile refinement sheet/drawer. The SFRA implementation has sophisticated logic for unselectable swatches (hitCount == 0) and selected state styling.",
+      "discovered": {
+        "analyzed_at": "2026-03-03T21:04:19.405Z",
+        "matched_selector": "#secondary.refinements, #secondary, .refinements, main, body",
+        "element_count": 200,
+        "headings": [
+          "COLLECTIONS",
+          "LINKS COLLECTION",
+          "Shop",
+          "More",
+          "Sign Up for Links & Kings news"
+        ],
+        "image_count": 9,
+        "link_count": 35,
+        "fonts": [
+          "proxima-nova",
+          "ltc-bodoni-175",
+          "Paperback9-Roman",
+          "Titillium Web",
+          "DINCond",
+          "Oswald",
+          "Font Awesome 5 Brands"
+        ],
+        "colors": {
+          "text": [
+            "rgb(255, 255, 255)",
+            "rgb(152, 152, 154)",
+            "rgb(153, 153, 153)",
+            "rgb(153, 76, 76)",
+            "rgb(0, 13, 38)",
+            "rgb(0, 12, 37)",
+            "rgb(235, 235, 235)",
+            "rgba(255, 255, 255, 0.25)"
+          ],
+          "background": [
+            "rgb(255, 255, 255)",
+            "rgb(243, 243, 245)",
+            "rgb(8, 20, 30)",
+            "rgb(24, 49, 73)",
+            "rgba(255, 255, 255, 0.25)"
+          ]
+        }
+      }
+    },
+    {
+      "feature_id": "04-plp-product-grid",
+      "name": "Product Grid",
+      "description": "Main product listing grid rendered as a <ul> of product tiles. Each tile is loaded via remote include (ISInclude URL) with variation data attributes (colors, sizes, widths, waist, length). Tiles support curated positioning and display per-product variation swatches. The grid class supports a compare mode.",
+      "selector": "#search-result-items.search-result-items",
+      "isml_source": {
+        "file": "search/productgrid.isml",
+        "lines": "37-133",
+        "slot_id": null,
+        "content_type": "products",
+        "scripts": [
+          "app_storefront_core:search/ProductGridUtils.ds",
+          "*/cartridge/scripts/product/ProductUtils"
+        ],
+        "notes": "Each tile is loaded via <isinclude url='${dataHitURL}'/> (remote include for caching). Tile data attributes include data-colors-to-show, data-sizes-to-show, etc. Grid uses ProductGridUtils for compare class and building hit URLs. Products are filtered by isProductOnlineByLocale."
+      },
+      "migration_priority": 1,
+      "estimated_complexity": "medium",
+      "dependencies": [],
+      "notes": "React target already has ProductGrid component accepting 'products' (search hits) and 'handleProductClick'. The SFRA grid has additional complexity: (1) per-tile variation filtering via data attributes, (2) compare mode class, (3) remote include pattern for tile caching. The core grid functionality likely already works; focus migration on ensuring visual parity with SFRA tile layout (3-column, tile styling).",
+      "discovered": {
+        "analyzed_at": "2026-03-03T21:04:27.637Z",
+        "matched_selector": "#search-result-items.search-result-items, #search-result-items, .search-result-items, .product-tile, .product-grid, .search-results, main, body",
+        "element_count": 197,
+        "headings": [
+          "COLLECTIONS",
+          "LINKS COLLECTION",
+          "Shop",
+          "More",
+          "Sign Up for Links & Kings news"
+        ],
+        "image_count": 9,
+        "link_count": 35,
+        "fonts": [
+          "proxima-nova",
+          "ltc-bodoni-175",
+          "Paperback9-Roman",
+          "Titillium Web",
+          "DINCond",
+          "Oswald",
+          "Font Awesome 5 Brands"
+        ],
+        "colors": {
+          "text": [
+            "rgb(255, 255, 255)",
+            "rgb(152, 152, 154)",
+            "rgb(153, 153, 153)",
+            "rgb(153, 76, 76)",
+            "rgb(0, 13, 38)",
+            "rgb(0, 12, 37)",
+            "rgb(235, 235, 235)",
+            "rgba(255, 255, 255, 0.25)"
+          ],
+          "background": [
+            "rgb(255, 255, 255)",
+            "rgb(243, 243, 245)",
+            "rgb(8, 20, 30)",
+            "rgb(24, 49, 73)",
+            "rgba(255, 255, 255, 0.25)"
+          ]
+        }
+      }
+    },
+    {
+      "feature_id": "05-plp-ingrid-banners",
+      "name": "In-Grid Promotional Banners",
+      "description": "Up to 3 promotional banner slots injected at configurable positions within the product grid: catGridBanner1 (1x1 tile size), catGridBanner2 (2x1 wide), catGridBanner3 (2x2 large, with optional right alignment). Positions are set per-category via custom attributes (gridBanner1Position, gridBanner2Position, gridBanner3Position). Complex insertion logic handles ordering when multiple banners are near each other.",
+      "selector": ".banner-grid.grid-tile",
+      "isml_source": {
+        "file": "search/productgrid.isml",
+        "lines": "52-107",
+        "slot_ids": [
+          "catGridBanner1",
+          "catGridBanner2",
+          "catGridBanner3"
+        ],
+        "slot_template": "slots/content/ingrid-banner.isml",
+        "content_type": "content-asset",
+        "content_assets": [
+          "lk-2x2-ingrid-links-collection",
+          "lk-2x2-ingrid-ladies-collection",
+          "lk-2x2-ingrid-waxed-collection",
+          "lk-2x2-ingrid-belts",
+          "lk-2x2-ingrid-golf-leather-goods",
+          "lk-2x2-ingrid-sundance-collection",
+          "lk-2x2-ingrid-blue-collection",
+          "lk-2x2-ingrid-lifestyle-goods",
+          "lk-2x2-ingrid-crown-collection",
+          "lk-plp-banner-headcovers-marketing-1x1",
+          "lk-2x2-ingrid-shoes"
+        ],
+        "notes": "Three slot sizes: grid-tile1x1, grid-tile2x1, grid-tile2x2. Positions are configurable per category via custom attributes. Slot 2 adjusts position if it falls on a 3rd column. Slot 3 gets 'right-aligned' class if position is even. Complex nested conditionals handle all permutations of banner ordering. Only shown on first page (page 0) with no refinements."
+      },
+      "migration_priority": 5,
+      "estimated_complexity": "high",
+      "dependencies": [
+        "04-plp-product-grid"
+      ],
+      "notes": "No equivalent in the React target currently. This requires: (1) fetching banner content assets for the category, (2) inserting promotional tiles at configurable positions within the ProductGrid, (3) supporting three tile sizes (1x1, 2x1 spanning 2 cols, 2x2 spanning 2 cols + 2 rows). Could implement as a grid enhancement component or via the Page Designer 'plpTopContent' region. The curated positioning logic (lines 11-12) also controls this feature based on custom category attributes.",
+      "discovered": {
+        "analyzed_at": "2026-03-03T21:04:36.235Z",
+        "matched_selector": ".banner-grid.grid-tile, main, body",
+        "element_count": 200,
+        "headings": [
+          "COLLECTIONS",
+          "LINKS COLLECTION",
+          "Shop",
+          "More",
+          "Sign Up for Links & Kings news"
+        ],
+        "image_count": 9,
+        "link_count": 35,
+        "fonts": [
+          "proxima-nova",
+          "ltc-bodoni-175",
+          "Paperback9-Roman",
+          "Titillium Web",
+          "DINCond",
+          "Oswald",
+          "Font Awesome 5 Brands"
+        ],
+        "colors": {
+          "text": [
+            "rgb(255, 255, 255)",
+            "rgb(152, 152, 154)",
+            "rgb(153, 153, 153)",
+            "rgb(153, 76, 76)",
+            "rgb(0, 13, 38)",
+            "rgb(0, 12, 37)",
+            "rgb(235, 235, 235)",
+            "rgba(255, 255, 255, 0.25)"
+          ],
+          "background": [
+            "rgb(255, 255, 255)",
+            "rgb(243, 243, 245)",
+            "rgb(8, 20, 30)",
+            "rgb(24, 49, 73)",
+            "rgba(255, 255, 255, 0.25)"
+          ]
+        }
+      }
+    },
+    {
+      "feature_id": "06-plp-infinite-scroll",
+      "name": "Infinite Scroll / Pagination",
+      "description": "Conditional infinite scroll that loads the next page of products when the user scrolls to the bottom. Controlled by site preference 'enableInfiniteScroll'. Renders a placeholder div with data-grid-url pointing to the next page in 'page-element' format. When disabled, standard pagination is used.",
+      "selector": ".infinite-scroll-placeholder",
+      "isml_source": {
+        "file": "search/productgrid.isml",
+        "lines": "135-139",
+        "slot_id": null,
+        "content_type": "dynamic",
+        "notes": "Uses pdict.pagingmodel to calculate next page URL. Placeholder has data-loading-state='unloaded' and data-grid-url with format=page-element for AJAX loading. JavaScript (not in ISML) observes scroll position and fetches next page."
+      },
+      "migration_priority": 6,
+      "estimated_complexity": "medium",
+      "dependencies": [
+        "04-plp-product-grid"
+      ],
+      "notes": "React target currently uses CategoryPagination component (page-based navigation). SFRA uses intersection observer or scroll-based lazy loading. To match SFRA, implement an InfiniteScroll wrapper around ProductGrid that fetches next pages via the search API and appends results. Could use React 19 'use' + fetcher pattern or react-intersection-observer.",
+      "discovered": {
+        "analyzed_at": "2026-03-03T21:04:44.474Z",
+        "matched_selector": ".infinite-scroll-placeholder, main, body",
+        "element_count": 200,
+        "headings": [
+          "COLLECTIONS",
+          "LINKS COLLECTION",
+          "Shop",
+          "More",
+          "Sign Up for Links & Kings news"
+        ],
+        "image_count": 9,
+        "link_count": 35,
+        "fonts": [
+          "proxima-nova",
+          "ltc-bodoni-175",
+          "Paperback9-Roman",
+          "Titillium Web",
+          "DINCond",
+          "Oswald",
+          "Font Awesome 5 Brands"
+        ],
+        "colors": {
+          "text": [
+            "rgb(255, 255, 255)",
+            "rgb(152, 152, 154)",
+            "rgb(153, 153, 153)",
+            "rgb(153, 76, 76)",
+            "rgb(0, 13, 38)",
+            "rgb(0, 12, 37)",
+            "rgb(235, 235, 235)",
+            "rgba(255, 255, 255, 0.25)"
+          ],
+          "background": [
+            "rgb(255, 255, 255)",
+            "rgb(243, 243, 245)",
+            "rgb(8, 20, 30)",
+            "rgb(24, 49, 73)",
+            "rgba(255, 255, 255, 0.25)"
+          ]
+        }
+      }
+    },
+    {
+      "feature_id": "07-plp-breadcrumbs-header",
+      "name": "Category Breadcrumbs & Page Header",
+      "description": "Category breadcrumb navigation and page title with product count. The SFRA version builds breadcrumbs from the category path hierarchy. The React target already has CategoryBreadcrumbs and a heading with category name + total count.",
+      "selector": ".breadcrumb, h1",
+      "isml_source": {
+        "file": "search/components/productsearchrefinebar.isml (category path logic)",
+        "lines": "18-29, 61-75",
+        "slot_id": null,
+        "content_type": "dynamic",
+        "notes": "Breadcrumb/category path is built in the refinement bar template via while-loop up parent chain. The page title comes from the search page context ('Product Search Results'). In SFRA, breadcrumbs are part of the refinement sidebar, not a separate component."
+      },
+      "migration_priority": 1,
+      "estimated_complexity": "low",
+      "dependencies": [],
+      "notes": "React target already has CategoryBreadcrumbs component and the heading in CategoryPage. This feature likely needs minimal work — verify visual parity with SFRA breadcrumb styling and ensure the category hierarchy renders correctly.",
+      "discovered": {
+        "analyzed_at": "2026-03-03T21:04:52.550Z",
+        "matched_selector": ".breadcrumb, h1, header, nav, body",
+        "element_count": 200,
+        "headings": [
+          "COLLECTIONS",
+          "LINKS COLLECTION",
+          "Shop",
+          "More",
+          "Sign Up for Links & Kings news"
+        ],
+        "image_count": 9,
+        "link_count": 35,
+        "fonts": [
+          "proxima-nova",
+          "ltc-bodoni-175",
+          "Paperback9-Roman",
+          "Titillium Web",
+          "DINCond",
+          "Oswald",
+          "Font Awesome 5 Brands"
+        ],
+        "colors": {
+          "text": [
+            "rgb(255, 255, 255)",
+            "rgb(152, 152, 154)",
+            "rgb(153, 153, 153)",
+            "rgb(153, 76, 76)",
+            "rgb(0, 13, 38)",
+            "rgb(0, 12, 37)",
+            "rgb(235, 235, 235)",
+            "rgba(255, 255, 255, 0.25)"
+          ],
+          "background": [
+            "rgb(255, 255, 255)",
+            "rgb(243, 243, 245)",
+            "rgb(8, 20, 30)",
+            "rgb(24, 49, 73)",
+            "rgba(255, 255, 255, 0.25)"
+          ]
+        }
+      }
+    },
+    {
+      "feature_id": "99-plp-data-wiring",
+      "name": "Data Wiring (Loader & API Integration)",
+      "description": "Wire up data-access patterns from the archived route into the migrated route. Restore loader, API calls, Suspense boundaries, and dynamic data flow.",
+      "selector": "",
+      "migration_priority": 99,
+      "estimated_complexity": "medium",
+      "dependencies": []
+    }
+  ],
+  "migration_order": [
+    "00-plp-route-setup",
+    "01-plp-category-banner",
+    "02-plp-filter-actions-bar",
+    "03-plp-refinement-sidebar",
+    "04-plp-product-grid",
+    "05-plp-ingrid-banners",
+    "06-plp-infinite-scroll",
+    "07-plp-breadcrumbs-header",
+    "99-plp-data-wiring"
+  ],
+  "shared_components": [
+    {
+      "name": "ProductTile",
+      "used_by": [
+        "04-plp-product-grid"
+      ],
+      "description": "Individual product card with image, name, price, variation swatches. In SFRA loaded via remote include for per-tile caching. React target uses ProductGrid which renders individual product cards."
+    },
+    {
+      "name": "CategoryRefinements",
+      "used_by": [
+        "02-plp-filter-actions-bar",
+        "03-plp-refinement-sidebar"
+      ],
+      "description": "Existing React component for rendering refinement filters. SFRA has color/size swatch rendering and expandable sections that may need enhancement."
+    },
+    {
+      "name": "CategorySorting",
+      "used_by": [
+        "02-plp-filter-actions-bar"
+      ],
+      "description": "Existing React component for sort-by dropdown. Already implemented in the target."
+    },
+    {
+      "name": "CategoryPagination",
+      "used_by": [
+        "06-plp-infinite-scroll"
+      ],
+      "description": "Existing React component for page-based navigation. May need an InfiniteScroll alternative or wrapper."
+    },
+    {
+      "name": "ContentAssetRenderer",
+      "used_by": [
+        "01-plp-category-banner",
+        "05-plp-ingrid-banners"
+      ],
+      "description": "Renders SFCC content asset HTML body. Needed for both the top banner and in-grid promotional banners. Equivalent to ISML slots/content/contentassetbody.isml."
+    },
+    {
+      "name": "Region (Page Designer)",
+      "used_by": [
+        "01-plp-category-banner"
+      ],
+      "description": "React target already has Region component with plpTopFullWidth, plpTopContent, plpBottom regions. The category banner could potentially be served through Page Designer instead of the legacy slot system."
+    }
+  ],
+  "template_hierarchy": {
+    "decorator": "search/pt_productsearchresult.isml",
+    "content": "search/pt_productsearchresult_content.isml",
+    "includes": {
+      "header": "components/header/header",
+      "footer": "components/footer/footer",
+      "htmlhead": "components/header/htmlhead",
+      "refine_actions": "search/components/productsearchrefineactions.isml",
+      "refine_bar": "search/components/productsearchrefinebar.isml",
+      "product_grid": "search/productgrid.isml",
+      "gtm": "components/googletagmanager"
+    }
+  },
+  "slot_summary": {
+    "cat-banner": {
+      "context": "category",
+      "template": "slots/content/contentassetbody.isml",
+      "configurations_count": "5+ (per-category)"
+    },
+    "search-result-banner": {
+      "context": "global",
+      "template": "unknown (no config found in slots.xml for this ID)",
+      "notes": "Fallback for non-category search results"
+    },
+    "catGridBanner1": {
+      "context": "category",
+      "template": "slots/content/ingrid-banner.isml",
+      "size": "1x1",
+      "configurations_count": "2+ (bags, headcovers)"
+    },
+    "catGridBanner2": {
+      "context": "category",
+      "template": "slots/content/ingrid-banner.isml",
+      "size": "2x1",
+      "configurations_count": "0 found in slots.xml"
+    },
+    "catGridBanner3": {
+      "context": "category",
+      "template": "slots/content/ingrid-banner.isml",
+      "size": "2x2",
+      "configurations_count": "9+ (links-collection, ladies-collection, waxed canvas, belts, golf-leather-goods, sundance, blue, lifestyle-goods, crown, bags)"
+    }
+  },
+  "react_target_status": {
+    "route_file": "_app.category.$categoryId.tsx",
+    "existing_components": [
+      "CategoryBreadcrumbs",
+      "CategoryPagination",
+      "CategoryRefinements",
+      "CategorySorting",
+      "ProductGrid",
+      "CategorySkeleton (+ sub-skeletons)",
+      "Region (Page Designer)",
+      "JsonLd (SEO schema)"
+    ],
+    "existing_regions": [
+      "plpTopFullWidth",
+      "plpTopContent",
+      "plpBottom"
+    ],
+    "loader_data": [
+      "category",
+      "refinements",
+      "searchResult",
+      "page",
+      "componentData",
+      "categorySchema"
+    ],
+    "notes": "The React target has a solid foundation with all core PLP components. Key gaps vs SFRA: (1) no category banner from content slots, (2) no filter toggle + selected refinement chips bar, (3) no in-grid promotional banners, (4) pagination instead of infinite scroll, (5) no mobile filter sheet with apply/clear CTA."
+  }
+}

@@ -17,7 +17,7 @@
 
 import type { ReactElement } from 'react';
 import { Button } from '@/components/ui/button';
-import type { FilterValue } from './types';
+import type { RefinementProps } from './types';
 
 const mapColorNameToHex = (colorName: string): string | null => {
     const colorMap: Record<string, string> = {
@@ -49,14 +49,9 @@ export default function RefineColor({
     attributeId,
     isFilterSelected,
     toggleFilter,
-}: {
-    values: FilterValue[];
-    attributeId: string;
-    isFilterSelected: (attributeId: string, value: string) => boolean;
-    toggleFilter: (attributeId: string, value: string) => void;
-}): ReactElement {
+}: RefinementProps): ReactElement {
     return (
-        <div className="grid grid-cols-2 gap-2 mt-2">
+        <div className="grid grid-cols-2 gap-1.5 mt-1">
             {values.map((value) => {
                 const color = mapColorNameToHex(value.value) || mapColorNameToHex(value.label || '');
                 const isSelected = isFilterSelected(attributeId, value.value);
@@ -65,18 +60,21 @@ export default function RefineColor({
                     <Button
                         key={`${attributeId}:${value.value}`}
                         variant="outline"
+                        size="sm"
                         onClick={() => toggleFilter(attributeId, value.value)}
-                        className={`${isSelected ? 'border-foreground/80' : ''}`}>
+                        aria-label={`${value.label || value.value}${isSelected ? ' (selected)' : ''}${value.hitCount !== undefined ? `, ${value.hitCount} items` : ''}`}
+                        aria-pressed={isSelected}
+                        className={`h-8 justify-start gap-2 ${isSelected ? 'border-foreground bg-foreground/5' : ''}`}>
                         {/* Color Circle */}
                         <div
-                            className={`relative size-4 rounded-full border-1 flex-shrink-0 ${
+                            className={`relative size-3.5 rounded-full border flex-shrink-0 ${
                                 isSelected ? 'border-foreground/80' : 'border-border'
                             }`}
                             style={{ backgroundColor: color || '#e5e7eb' }}>
                             {isSelected && (
                                 <div className="absolute inset-0 flex items-center justify-center">
                                     <div
-                                        className={`w-1.5 h-1.5 rounded-full ${
+                                        className={`size-1.5 rounded-full ${
                                             color === '#ffffff' || !color ? 'bg-foreground/20' : 'bg-background'
                                         }`}
                                     />
@@ -85,14 +83,12 @@ export default function RefineColor({
                         </div>
 
                         {/* Color Name and Hit Count */}
-                        <div className="flex items-center justify-between flex-1 min-w-0">
-                            <span className="text-sm font-medium truncate">{value.label || value.value}</span>
-                            {value.hitCount !== undefined && (
-                                <span className="ml-auto text-xs bg-muted/50 px-2 py-1 rounded-full">
-                                    {value.hitCount}
-                                </span>
-                            )}
-                        </div>
+                        <span className="text-xs truncate">{value.label || value.value}</span>
+                        {value.hitCount !== undefined && (
+                            <span className="ml-auto text-xs text-muted-foreground">
+                                {value.hitCount}
+                            </span>
+                        )}
                     </Button>
                 );
             })}

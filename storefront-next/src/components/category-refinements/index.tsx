@@ -19,7 +19,7 @@ import { type ReactElement, useCallback, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router';
 import type { ShopperSearch } from '@salesforce/storefront-next-runtime/scapi';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import type { FilterValue } from './types';
+import type { FilterValue, RefinementProps } from './types';
 import ActiveFilters from './active-filters';
 import RefineDefault from './refine-default';
 import RefineColor from './refine-color';
@@ -91,7 +91,7 @@ export default function CategoryRefinements({
         refinement: ShopperSearch.schemas['ProductSearchRefinement'] & { values: FilterValue[] }
     ) => {
         const { attributeId, values } = refinement;
-        const refinementProps = {
+        const refinementProps: RefinementProps = {
             values,
             attributeId,
             isFilterSelected,
@@ -137,7 +137,14 @@ export default function CategoryRefinements({
 
                     return (
                         <AccordionItem key={attributeId} value={attributeId}>
-                            <AccordionTrigger>{label}</AccordionTrigger>
+                            <AccordionTrigger className="uppercase tracking-wider text-xs">
+                                <span className="flex items-center gap-2">
+                                    {label}
+                                    <span className="text-muted-foreground font-normal normal-case tracking-normal">
+                                        ({values.length})
+                                    </span>
+                                </span>
+                            </AccordionTrigger>
                             <AccordionContent>
                                 {renderFilterValues(
                                     refinement as ShopperSearch.schemas['ProductSearchRefinement'] & {

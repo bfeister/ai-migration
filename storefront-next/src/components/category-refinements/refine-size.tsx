@@ -17,23 +17,16 @@
 
 import type { ReactElement } from 'react';
 import { Button } from '@/components/ui/button';
-import type { FilterValue } from './types';
+import type { RefinementProps } from './types';
 
 export default function RefineSize({
     values,
     attributeId,
     isFilterSelected,
     toggleFilter,
-}: {
-    values: FilterValue[];
-    attributeId: string;
-
-    isFilterSelected: (attributeId: string, value: string) => boolean;
-
-    toggleFilter: (attributeId: string, value: string) => void;
-}): ReactElement {
+}: RefinementProps): ReactElement {
     return (
-        <div className="flex flex-wrap gap-2 mt-2">
+        <div className="flex flex-wrap gap-1.5 mt-1">
             {values.map((value) => {
                 const isSelected = isFilterSelected(attributeId, value.value);
 
@@ -41,11 +34,13 @@ export default function RefineSize({
                     <Button
                         key={`${attributeId}:${value.value}`}
                         variant="outline"
+                        size="sm"
                         onClick={() => toggleFilter(attributeId, value.value)}
-                        className={`${isSelected ? 'border-foreground/80' : ''}`}>
+                        aria-pressed={isSelected}
+                        className={`h-8 text-xs ${isSelected ? 'border-foreground bg-foreground/5' : ''}`}>
                         {value.label || value.value}
                         {value.hitCount !== undefined && (
-                            <span className="ml-auto text-xs bg-muted/50 px-2 py-1 rounded-full">{value.hitCount}</span>
+                            <span className="ml-1 text-muted-foreground">{value.hitCount}</span>
                         )}
                     </Button>
                 );

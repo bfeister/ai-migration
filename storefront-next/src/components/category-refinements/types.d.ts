@@ -16,3 +16,11 @@
 import type { ShopperSearch } from '@salesforce/storefront-next-runtime/scapi';
 
 export type FilterValue = NonNullable<ShopperSearch.schemas['ProductSearchRefinement']['values']>[0];
+
+/** Shared props for all refinement sub-components (color, size, price, default). */
+export type RefinementProps = {
+    values: FilterValue[];
+    attributeId: string;
+    isFilterSelected: (attributeId: string, value: string) => boolean;
+    toggleFilter: (attributeId: string, value: string) => void;
+};
