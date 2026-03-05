@@ -315,8 +315,8 @@ function executeFeature(config: FeatureConfig, prompt: string): Promise<number> 
     log(`Starting Claude session ${sessionId} for ${config.feature_id}`);
 
     const claudeArgs = IN_CONTAINER
-      ? ['-p', '--session-id', sessionId, '--dangerously-skip-permissions', '--output-format', 'stream-json']
-      : ['-p', '--session-id', sessionId, '--permission-mode', 'acceptEdits', '--output-format', 'stream-json'];
+      ? ['-p', '--verbose', '--session-id', sessionId, '--dangerously-skip-permissions', '--output-format', 'stream-json']
+      : ['-p', '--verbose', '--session-id', sessionId, '--permission-mode', 'acceptEdits', '--add-dir', WORKSPACE_ROOT, '--output-format', 'stream-json'];
 
     // Append allowed tools from entrypoint.sh (defined once, shared via env).
     // The env var is newline-delimited to preserve tools containing spaces
