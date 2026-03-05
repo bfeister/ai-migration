@@ -264,12 +264,16 @@ function compileFeaturePrompt(config: FeatureConfig): string {
     viewport: config.viewport,
   };
 
+  // 00-* features are scaffolding (route setup) — no visual UI to screenshot.
+  const isScaffoldingFeature = config.feature_id.startsWith('00-');
+
   return template({
     feature: config,
     subPlanFiles: config.subPlanFiles,
     migrationMainPlanPath: MIGRATION_MAIN_PLAN,
     sourceMapping: JSON.stringify(sourceMapping),
     targetMapping: JSON.stringify(targetMapping),
+    skipScreenshots: isScaffoldingFeature,
   });
 }
 

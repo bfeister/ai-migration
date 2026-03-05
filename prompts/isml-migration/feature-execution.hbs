@@ -38,40 +38,38 @@ For each sub-plan, follow this cycle:
 1. **Read** the sub-plan file to understand the goal, implementation steps, and acceptance criteria
 2. **Implement** the code changes described in the sub-plan
 3. **Verify** - run `pnpm build` to ensure TypeScript compiles with no errors
-4. **Screenshot & Compare** - capture screenshots and visually gate the result (see Screenshot Workflow below)
+{{#unless skipScreenshots}}4. **Screenshot & Compare** - capture screenshots and visually gate the result (see Screenshot Workflow below)
 5. **Commit or skip** - run `git status` first. If there are changed files, stage them **including screenshots** with `git add <files> screenshots/` and commit with `git commit -m "subplan-XX-YY: <description>"`. If there are NO changed files (the sub-plan was already satisfied by prior work), **skip the commit entirely** and move on.
-6. **Proceed** to the next sub-plan
+{{else}}4. **Commit or skip** - run `git status` first. If there are changed files, stage them with `git add <files>` and commit with `git commit -m "subplan-XX-YY: <description>"`. If there are NO changed files (the sub-plan was already satisfied by prior work), **skip the commit entirely** and move on.
+{{/unless}}6. **Proceed** to the next sub-plan
 
+{{#unless skipScreenshots}}
 ---
 
 ## Screenshot Workflow
 
-Screenshots are the **primary quality gate** for this migration. Every feature must have
-both a source and target screenshot that are visually compared before the feature is
-considered complete.
+Screenshots are the **primary quality gate** for this migration. The screenshot commands
+below are **pre-approved** — run them directly without asking for permission. Skip
+screenshots only if a sub-plan made zero code changes (verification-only).
 
-### Step 1: Capture source screenshot (MANDATORY — once per feature)
+### Step 1: Capture source screenshot (once per feature)
 
-On the **first sub-plan** of this feature that produces code changes, capture the SFRA
-source screenshot. This only needs to happen once per feature since the source never changes.
-
-```bash
-npx tsx scripts/capture-screenshots.ts \
-  "{{feature.sfra_url}}" \
-  "screenshots/{{feature.feature_id}}-source.png" \
-  --mapping '{{{sourceMapping}}}'
-```
-
-### Step 2: Capture target screenshot (every sub-plan with code changes)
+Capture the SFRA source on the **first sub-plan** that produces code changes. The source
+does not change between sub-plans, so capture it only once.
 
 ```bash
-npx tsx scripts/capture-screenshots.ts \
-  "{{feature.target_url}}" \
-  "screenshots/{{feature.feature_id}}-target.png" \
-  --mapping '{{{targetMapping}}}'
+npx tsx scripts/capture-screenshots.ts "{{feature.sfra_url}}" "screenshots/{{feature.feature_id}}-source.png" --mapping '{{{sourceMapping}}}'
 ```
 
-### Step 3: Visual comparison (REQUIRED — do not skip)
+### Step 2: Capture target screenshot
+
+Capture after every sub-plan that produces code changes.
+
+```bash
+npx tsx scripts/capture-screenshots.ts "{{feature.target_url}}" "screenshots/{{feature.feature_id}}-target.png" --mapping '{{{targetMapping}}}'
+```
+
+### Step 3: Visual comparison (REQUIRED)
 
 After capturing, **read both image files** using the Read tool:
 - `screenshots/{{feature.feature_id}}-source.png`
@@ -86,8 +84,7 @@ Compare them and check for:
 **If the target does NOT visually match the source, you MUST fix the implementation
 before committing.** Do not proceed to the next sub-plan with known visual regressions.
 Document what you fixed in the commit message.
-
-> **Skip screenshots entirely** only if the sub-plan made zero code changes (verification-only).
+{{/unless}}
 
 ---
 
