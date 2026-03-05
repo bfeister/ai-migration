@@ -46,6 +46,10 @@ interface FeatureConfig {
   sfra_url: string;
   target_url: string;
   viewport: { width: number; height: number };
+  source_config?: {
+    dismiss_consent?: boolean;
+    consent_button_selector?: string;
+  };
   migration_priority: number;
   estimated_complexity: string;
   subPlanCount: number;
@@ -184,6 +188,7 @@ function loadFeatureConfigs(): FeatureConfig[] {
         sfra_url: page.sfra_url,
         target_url: page.target_url,
         viewport: page.viewport || { width: 1920, height: 1080 },
+        source_config: page.source_config,
         migration_priority: feature.migration_priority ?? 99,
         estimated_complexity: feature.estimated_complexity ?? 'unknown',
         subPlanCount: subPlanFiles.length,
@@ -243,10 +248,28 @@ async function presentFeatureSelection(configs: FeatureConfig[]): Promise<Featur
 
 function compileFeaturePrompt(config: FeatureConfig): string {
   const template = getTemplate();
+
+  // Build screenshot mapping JSON for the capture-screenshots.ts CLI.
+  // Source mapping includes consent dismissal config from url-mappings.json.
+  const sourceMapping: Record<string, unknown> = {
+    viewport: config.viewport,
+  };
+  if (config.source_config?.dismiss_consent) {
+    sourceMapping.dismiss_consent = true;
+    if (config.source_config.consent_button_selector) {
+      sourceMapping.consent_button_selector = config.source_config.consent_button_selector;
+    }
+  }
+  const targetMapping: Record<string, unknown> = {
+    viewport: config.viewport,
+  };
+
   return template({
     feature: config,
     subPlanFiles: config.subPlanFiles,
     migrationMainPlanPath: MIGRATION_MAIN_PLAN,
+    sourceMapping: JSON.stringify(sourceMapping),
+    targetMapping: JSON.stringify(targetMapping),
   });
 }
 

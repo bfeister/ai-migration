@@ -558,13 +558,13 @@ function generateSubPlansForFeature(
   plans.push({
     number: `${featureNum}-06`,
     title: `Polish ${featureName} Styling`,
-    goal: `Fine-tune visual styling to match source design.`,
+    goal: `Fine-tune visual styling to match source design. If the implementation already matches, skip with no code changes.`,
     dependencies: plans.slice(-1).map((p) => `subplan-${p.number}`),
     steps: [
-      'Compare screenshots of source and target',
-      'Adjust spacing, colors, and typography',
-      'Implement hover/focus states',
-      'Add any animations or transitions',
+      'Run `pnpm build` and visually review the rendered component against the SFRA source URL',
+      'Adjust spacing, colors, and typography if they differ from source',
+      'Implement hover/focus states if they differ from source',
+      'Add any animations or transitions if they differ from source',
     ],
     verification: [
       'Visual appearance matches source',

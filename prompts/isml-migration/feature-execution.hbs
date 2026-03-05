@@ -14,7 +14,7 @@ You are executing the migration sub-plans for the **{{feature.name}}** feature (
 {{/if}}{{#if feature.target_url}}| **Target URL** | {{feature.target_url}} |
 {{/if}}{{#if feature.selector}}| **DOM Selector** | `{{feature.selector}}` |
 {{/if}}{{#if feature.estimated_complexity}}| **Complexity** | {{feature.estimated_complexity}} |
-{{/if}}
+{{/if}}| **Viewport** | {{feature.viewport.width}}x{{feature.viewport.height}} |
 
 ---
 
@@ -37,26 +37,42 @@ For each sub-plan, follow this cycle:
 
 1. **Read** the sub-plan file to understand the goal, implementation steps, and acceptance criteria
 2. **Implement** the code changes described in the sub-plan
-3. **Verify** - ensure TypeScript compiles, no console errors, visual output matches expectations
-4. **Screenshot** - capture dual screenshots (source SFRA + target Storefront Next) using the `CaptureDualScreenshots` MCP tool
-5. **Commit** - create a git commit using the `CommitMigrationProgress` MCP tool
-6. **Log** - record progress using the `LogMigrationProgress` MCP tool
-7. **Proceed** to the next sub-plan
+3. **Verify** - run `pnpm build` to ensure TypeScript compiles with no errors
+4. **Screenshot** - capture dual screenshots for visual comparison (see Screenshot Workflow below)
+5. **Commit or skip** - run `git status` first. If there are changed files, stage them with `git add <files>` and commit with `git commit -m "subplan-XX-YY: <description>"`. If there are NO changed files (the sub-plan was already satisfied by prior work), **skip the commit entirely** and move on.
+6. **Proceed** to the next sub-plan
 
 ---
 
-## Available MCP Tools
+## Screenshot Workflow
 
-Use these tools during execution:
+After implementing and verifying each sub-plan that produces code changes, capture dual
+screenshots so the migration can be visually compared. Use the `capture-screenshots.ts`
+script which is already installed.
 
-| Tool | Purpose |
-|------|---------|
-| `LogMigrationProgress` | Log completion of each sub-plan to migration-log.md |
-| `CaptureDualScreenshots` | Capture SFRA source + Storefront Next target screenshots |
-| `CommitMigrationProgress` | Create standardized git commits per sub-plan |
-| `CheckServerHealth` | Verify the dev server is running before screenshots |
-| `GetVisualFeedback` | Compare source/target screenshots for visual differences |
-| `ExecuteSubPlan` | Orchestrate sub-plan execution with verification and logging |
+### Source screenshot (SFRA)
+```bash
+npx tsx scripts/capture-screenshots.ts \
+  "{{feature.sfra_url}}" \
+  "screenshots/{{feature.feature_id}}-source.png" \
+  --mapping '{{{sourceMapping}}}'
+```
+
+### Target screenshot (Storefront Next)
+```bash
+npx tsx scripts/capture-screenshots.ts \
+  "{{feature.target_url}}" \
+  "screenshots/{{feature.feature_id}}-target.png" \
+  --mapping '{{{targetMapping}}}'
+```
+
+After capturing both screenshots, **read both image files** to visually compare them.
+Note any significant differences in your commit message. If the target doesn't match
+the source, fix the implementation before committing.
+
+> **Skip screenshots** if the sub-plan made no code changes (verification-only).
+> **Skip the source screenshot** if it was already captured by a previous sub-plan
+> for this feature (the source doesn't change between sub-plans).
 
 ---
 
@@ -64,10 +80,10 @@ Use these tools during execution:
 
 - **One sub-plan at a time** - complete each fully before moving to the next
 - **No partial implementations** - each sub-plan must result in working, compilable code
+- **No empty commits** - only commit when `git status` shows actual file changes
 - **TypeScript strict mode** - no `any` types without justification
 - **Tailwind CSS only** - no Bootstrap, no CSS modules, no styled-components
 - **React Server Rendering by default** - use `'use client'` only when interactivity requires it
-- **Commit after each sub-plan** - atomic commits with the sub-plan ID in the message
 
 ---
 
