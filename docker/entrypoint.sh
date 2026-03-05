@@ -203,9 +203,9 @@ if [ "${CLEAN_START:-false}" = "true" ]; then
     fi
 
     # Remove logs
-    if [ -f "$WORKSPACE_ROOT/claude-output.log" ]; then
-        rm -f "$WORKSPACE_ROOT/claude-output.log"
-        echo -e "${GREEN}[CLEAN]${NC}   ✓ Removed claude-output.log"
+    if [ -f "$WORKSPACE_ROOT/claude-output.jsonl" ]; then
+        rm -f "$WORKSPACE_ROOT/claude-output.jsonl"
+        echo -e "${GREEN}[CLEAN]${NC}   ✓ Removed claude-output.jsonl"
     fi
 
     # Optionally backup migration-log.md instead of deleting
@@ -968,128 +968,15 @@ if [ "$AUTO_START" != "true" ]; then
     exit 0
 fi
 
-# TTY detection: interactive vs non-interactive execution path
-if [ -t 0 ]; then
-    # ── Interactive path: run TypeScript execution loop ──
-    log_info "Interactive terminal detected - launching execution loop"
-    log_info "Output also logged to: $WORKSPACE_ROOT/claude-output.log"
-    export WORKSPACE_ROOT MONOREPO_BUILD STANDALONE_PROJECT CLAUDE_ALLOWED_TOOLS_STR
+# Launch the TypeScript execution loop (multi-session, one per feature)
+log_info "Launching execution loop"
+log_info "Output also logged to: $WORKSPACE_ROOT/claude-output.jsonl"
+export WORKSPACE_ROOT MONOREPO_BUILD STANDALONE_PROJECT CLAUDE_ALLOWED_TOOLS_STR
 
-    cd "$WORKSPACE_ROOT"
-    npx tsx "$WORKSPACE_ROOT/scripts/execute-migration.ts"
-    CLAUDE_EXIT_CODE=$?
-    log_info "Execution loop exited with code $CLAUDE_EXIT_CODE"
-else
-    # ── Non-interactive path: single-session Claude invocation ──
-    log_info "Non-interactive mode - using single Claude session"
-
-    # Check for existing Claude session to resume
-    if [ -f "$WORKSPACE_ROOT/.claude-session-id" ]; then
-        SESSION_ID=$(cat "$WORKSPACE_ROOT/.claude-session-id" | tr -d '\r\n')
-
-        if [ -n "$SESSION_ID" ]; then
-            log_info "Found existing Claude session: $SESSION_ID"
-
-            # Check if there are pending interventions without responses
-            pending_interventions=0
-            if [ -d "$INTERVENTION_DIR" ]; then
-                for needed_file in "$INTERVENTION_DIR"/needed-*.json; do
-                    [ -f "$needed_file" ] || continue
-                    worker_id=$(basename "$needed_file" .json | sed 's/needed-//')
-                    response_file="$INTERVENTION_DIR/response-$worker_id.json"
-
-                    if [ ! -f "$response_file" ]; then
-                        pending_interventions=$((pending_interventions + 1))
-                        log_warning "Pending intervention detected: $worker_id"
-                    fi
-                done
-            fi
-
-            if [ $pending_interventions -gt 0 ]; then
-                log_error "Cannot resume: $pending_interventions pending intervention(s) require response"
-                log_info "Please respond via dashboard: http://localhost:3030"
-                if [ "$IN_CONTAINER" = "true" ]; then
-                    log_info "Then restart: docker compose up"
-                else
-                    log_info "Then restart: $0"
-                fi
-                exit_or_keepalive 42 "Pending interventions block startup"
-            fi
-
-            log_info "No pending interventions, attempting to resume session..."
-            cd "$WORKSPACE_ROOT"
-
-            # Resume existing session (output streamed to stdout and log file)
-            if [ "$IN_CONTAINER" = "true" ]; then
-                claude -r "$SESSION_ID" 2>&1 | tee "$WORKSPACE_ROOT/claude-output.log"
-            else
-                claude code resume --session-id "$SESSION_ID" "${CLAUDE_PERMS_ARRAY[@]}" 2>&1 | tee "$WORKSPACE_ROOT/claude-output.log"
-            fi
-            CLAUDE_EXIT_CODE=${PIPESTATUS[0]}
-            log_info "Claude Code exited with code $CLAUDE_EXIT_CODE"
-
-            # Check if resume failed (e.g., session not found, invalid, or stale)
-            if [ $CLAUDE_EXIT_CODE -ne 0 ]; then
-                if grep -qi "Session not found\|No such session\|Invalid session\|No conversation found\|session.*expired\|not.*found" "$WORKSPACE_ROOT/claude-output.log" 2>/dev/null; then
-                    log_warning "Session not found or invalid, removing stale session file"
-                    rm -f "$WORKSPACE_ROOT/.claude-session-id"
-                    log_info "Starting new session instead"
-                    SESSION_ID=""
-                else
-                    log_error "Claude Code failed to resume (exit code: $CLAUDE_EXIT_CODE)"
-                    log_info "Check $WORKSPACE_ROOT/claude-output.log for details"
-                    log_info "Session may be corrupted. Remove .claude-session-id to start fresh."
-                    exit_or_keepalive $CLAUDE_EXIT_CODE "Claude Code resume failed"
-                fi
-            fi
-        else
-            log_warning "Session ID file exists but is empty, starting new session"
-            SESSION_ID=""
-        fi
-    else
-        SESSION_ID=""
-    fi
-
-    # No existing session - start new one
-    if [ -z "$SESSION_ID" ]; then
-        # Check if plan file exists
-        if [ ! -f "$MIGRATION_PLAN" ]; then
-            log_error "Migration plan not found: $MIGRATION_PLAN"
-            log_info "$RUNTIME_NAME will stay running - attach with: $ATTACH_CMD"
-            if [ "$IN_CONTAINER" = "true" ]; then
-                tail -f /dev/null
-            else
-                read -r -p "Press Enter to exit..."
-            fi
-            exit 0
-        fi
-
-        # Generate session ID (UUID v4 - platform-compatible)
-        SESSION_ID=$(cat /proc/sys/kernel/random/uuid 2>/dev/null || \
-                     uuidgen 2>/dev/null || \
-                     printf "%s-%s-%s-%s-%s\n" \
-                        $(head -c 4 /dev/urandom | xxd -p) \
-                        $(head -c 2 /dev/urandom | xxd -p) \
-                        $(head -c 2 /dev/urandom | xxd -p) \
-                        $(head -c 2 /dev/urandom | xxd -p) \
-                        $(head -c 6 /dev/urandom | xxd -p))
-
-        echo "$SESSION_ID" > "$WORKSPACE_ROOT/.claude-session-id"
-        log_info "Starting new Claude Code session: $SESSION_ID"
-        log_info "Migration plan: $MIGRATION_PLAN"
-        cd "$WORKSPACE_ROOT"
-
-        # Execute Claude Code directly (not in background)
-        # Output streamed to stdout and written to log file via tee
-        claude code run \
-            --session-id "$SESSION_ID" \
-            "${CLAUDE_PERMS_ARRAY[@]}" \
-            < "$MIGRATION_PLAN" 2>&1 | tee "$WORKSPACE_ROOT/claude-output.log"
-
-        CLAUDE_EXIT_CODE=${PIPESTATUS[0]}
-        log_info "Claude Code exited with code $CLAUDE_EXIT_CODE"
-    fi
-fi
+cd "$WORKSPACE_ROOT"
+npx tsx "$WORKSPACE_ROOT/scripts/execute-migration.ts"
+CLAUDE_EXIT_CODE=$?
+log_info "Execution loop exited with code $CLAUDE_EXIT_CODE"
 
 # ============================================================================
 # Phase 6: Exit Handling

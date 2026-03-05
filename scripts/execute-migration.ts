@@ -299,7 +299,7 @@ function generateUUID(): string {
   return uuid;
 }
 
-const OUTPUT_LOG = path.join(WORKSPACE_ROOT, 'claude-output.log');
+const OUTPUT_LOG = path.join(WORKSPACE_ROOT, 'claude-output.jsonl');
 
 function executeFeature(config: FeatureConfig, prompt: string): Promise<number> {
   return new Promise((resolve, reject) => {
@@ -308,8 +308,8 @@ function executeFeature(config: FeatureConfig, prompt: string): Promise<number> 
     log(`Starting Claude session ${sessionId} for ${config.feature_id}`);
 
     const claudeArgs = IN_CONTAINER
-      ? ['-p', '--session-id', sessionId, '--dangerously-skip-permissions', '--output-format', 'text']
-      : ['-p', '--session-id', sessionId, '--permission-mode', 'acceptEdits', '--output-format', 'text'];
+      ? ['-p', '--session-id', sessionId, '--dangerously-skip-permissions', '--output-format', 'stream-json']
+      : ['-p', '--session-id', sessionId, '--permission-mode', 'acceptEdits', '--output-format', 'stream-json'];
 
     // Append allowed tools from entrypoint.sh (defined once, shared via env).
     // The env var is newline-delimited to preserve tools containing spaces
