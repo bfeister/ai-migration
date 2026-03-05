@@ -264,6 +264,13 @@ function compileFeaturePrompt(config: FeatureConfig): string {
     viewport: config.viewport,
   };
 
+  // Scope screenshots to the feature's DOM region when a selector is available.
+  // Uses element.screenshot() in capture-screenshots.ts for precise capture.
+  if (config.selector) {
+    sourceMapping.element_selector = config.selector;
+    targetMapping.element_selector = config.selector;
+  }
+
   // 00-* features are scaffolding (route setup) — no visual UI to screenshot.
   const isScaffoldingFeature = config.feature_id.startsWith('00-');
 

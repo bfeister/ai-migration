@@ -82,6 +82,7 @@ interface ScreenshotMapping {
   scroll_to_selector?: string;
   scroll_to?: 'bottom' | 'top';
   crop?: { x?: number; y?: number; width?: number; height?: number };
+  element_selector?: string; // Capture only the matched element (uses element.screenshot())
   dismiss_consent?: boolean; // Auto-dismiss tracking consent modals
   consent_button_selector?: string; // Custom selector for consent button
 }
@@ -197,26 +198,39 @@ async function captureScreenshot(options: CaptureOptions): Promise<void> {
       }
     }
 
-    // Capture screenshot
-    const screenshotOptions: any = {
-      path: outputPath,
-      fullPage: !mapping?.crop // Full page unless cropping
-    };
-
-    if (mapping?.crop) {
-      // If crop specified, use clip instead of fullPage
-      screenshotOptions.fullPage = false;
-      screenshotOptions.clip = {
-        x: mapping.crop.x || 0,
-        y: mapping.crop.y || 0,
-        width: mapping.crop.width || (mapping.viewport?.width || 1920),
-        height: mapping.crop.height || (mapping.viewport?.height || 1080)
+    // Capture screenshot — prefer element-level capture when a selector is provided
+    if (mapping?.element_selector) {
+      console.log(`[Screenshot] Element capture with selector: ${mapping.element_selector}`);
+      try {
+        const element = page.locator(mapping.element_selector).first();
+        await element.waitFor({ state: 'visible', timeout: 10000 });
+        await element.screenshot({ path: outputPath });
+        console.log(`[Screenshot] Saved (element): ${outputPath}`);
+      } catch (err: any) {
+        console.warn(`[Screenshot] Element selector "${mapping.element_selector}" not found, falling back to full-page: ${err.message}`);
+        await page.screenshot({ path: outputPath, fullPage: true });
+        console.log(`[Screenshot] Saved (full-page fallback): ${outputPath}`);
+      }
+    } else {
+      const screenshotOptions: any = {
+        path: outputPath,
+        fullPage: !mapping?.crop
       };
-      console.log(`[Screenshot] Cropping to region:`, screenshotOptions.clip);
-    }
 
-    await page.screenshot(screenshotOptions);
-    console.log(`[Screenshot] ✅ Saved: ${outputPath}`);
+      if (mapping?.crop) {
+        screenshotOptions.fullPage = false;
+        screenshotOptions.clip = {
+          x: mapping.crop.x || 0,
+          y: mapping.crop.y || 0,
+          width: mapping.crop.width || (mapping.viewport?.width || 1920),
+          height: mapping.crop.height || (mapping.viewport?.height || 1080)
+        };
+        console.log(`[Screenshot] Cropping to region:`, screenshotOptions.clip);
+      }
+
+      await page.screenshot(screenshotOptions);
+      console.log(`[Screenshot] Saved: ${outputPath}`);
+    }
 
     // Log file size for verification
     const stats = fs.statSync(outputPath);
