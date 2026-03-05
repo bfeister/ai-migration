@@ -76,19 +76,16 @@ Prepares the development environment and tooling. Runs automatically on `docker 
 -   **Output:** Git commit establishing baseline for tracking migration changes
 -   **Marker:** `.migration-state/baseline-committed`
 
-#### Phase 1.3: MCP Server Setup
+#### Phase 1.3: Playwright & CLI Tools Setup
 
--   **What:** Configure MCP servers for Claude Code automation
+-   **What:** Configure Playwright and CLI scripts for browser automation and migration tooling
 -   **Actions:**
-    -   Build `mcp-server/` TypeScript project
-    -   Generate `~/.config/claude-code/mcp.json` with server configurations:
-        -   `migration-tools` - Custom MCP server with intervention, logging, screenshot tools
-        -   `playwright` - Microsoft Playwright MCP for browser automation
+    -   Configure `~/.config/claude-code/mcp.json` with Playwright MCP server
     -   Install Playwright browsers (Chromium)
 -   **Output:**
-    -   `mcp-server/dist/migration-server.js`
-    -   `~/.config/claude-code/mcp.json`
+    -   `~/.config/claude-code/mcp.json` (Playwright MCP configuration)
 -   **Marker:** `.migration-state/phase3-complete`
+-   **Note:** The custom `mcp-server/` was removed in favor of standalone CLI scripts in `scripts/` (e.g., `log-progress-cli.ts`, `capture-screenshots.ts`).
 
 **To run Phase 1 only:**
 
@@ -251,7 +248,7 @@ CLEAN_START=true docker compose up
 #    - analyze-features.ts extracts DOM + captures screenshots
 #    - generate-subplan-claude.ts generates atomic sub-plans
 #    - init-migration-log.ts initializes progress tracking
-# 3. Phase 3: Claude Code executes sub-plans with MCP tools
+# 3. Phase 3: Claude Code executes sub-plans with CLI scripts
 ```
 
 #### Option 2: Manual (Step-by-Step)
@@ -287,7 +284,7 @@ claude code run < migration-main-plan.md
 
 | Script                                | Purpose                                  | Phase        | Reads                                      | Writes                           |
 | ------------------------------------- | ---------------------------------------- | ------------ | ------------------------------------------ | -------------------------------- |
-| `docker/entrypoint.sh`                | Bootstrap: build monorepo, setup MCP     | 1            | -                                          | `.migration-state/phase*`        |
+| `docker/entrypoint.sh`                | Bootstrap: build monorepo, setup tools   | 1            | -                                          | `.migration-state/phase*`        |
 | `scripts/discover-features-claude.ts` | Discover features from ISML (Claude)     | 2.1          | `url-mappings.json` (page config) + ISML   | `migration-plans/*.json`         |
 | `scripts/analyze-features.ts`         | Extract DOM + screenshots                | 2.2          | `migration-plans/*.json`                   | `analysis/*/`                    |
 | `scripts/generate-subplan-claude.ts`  | Generate atomic sub-plans                | 2.3          | `migration-plans/*.json` + `analysis/`     | `sub-plans/*/subplan-*.md`       |
@@ -305,7 +302,6 @@ claude code run < migration-main-plan.md
 | `docker/entrypoint.sh`    | Phase 1 bootstrap script                  |
 | `scripts/`                | Phase 2 TypeScript scripts                |
 | `prompts/isml-migration/` | Handlebars prompt templates               |
-| `mcp-server/`             | Custom MCP tools server                   |
 | `storefront-next/`        | Generated React project                   |
 | `migration-plans/`        | Feature discovery output                  |
 | `analysis/`               | DOM + screenshot data per feature         |

@@ -48,9 +48,6 @@ fi
 INTERVENTION_NEEDED=$(docker exec -u node "$CONTAINER_NAME" sh -c "ls /workspace/intervention/needed-*.json 2>/dev/null" || echo "")
 INTERVENTION_RESPONSE=$(docker exec -u node "$CONTAINER_NAME" sh -c "ls /workspace/intervention/response-*.json 2>/dev/null" || echo "")
 
-# Check MCP server process
-MCP_PID=$(docker exec -u node "$CONTAINER_NAME" pgrep -f "intervention-server" 2>/dev/null || echo "")
-
 # Check last output timestamp (if log exists)
 # BusyBox stat uses different format than GNU stat
 LAST_OUTPUT_TIME=0
@@ -86,17 +83,6 @@ fi
 
 # Signal 3: Process state is 'S' (interruptible sleep) and idle > 5 seconds
 if [[ "$PROC_STATE" == "S"* ]] && [ "$IDLE_SECONDS" -gt 5 ]; then
-    # Check if MCP server is running (indicates waiting for tool call)
-    if [ -n "$MCP_PID" ]; then
-        # MCP server active but no intervention file - might be stuck
-        echo "IDLE"
-        if [ "${2:-}" = "--verbose" ]; then
-            echo -e "${YELLOW}Claude idle for ${IDLE_SECONDS}s${NC}" >&2
-            echo -e "${CYAN}MCP server running (PID: $MCP_PID)${NC}" >&2
-        fi
-        exit 0
-    fi
-
     echo "IDLE"
     if [ "${2:-}" = "--verbose" ]; then
         echo -e "${GREEN}Claude idle (normal between operations)${NC}" >&2

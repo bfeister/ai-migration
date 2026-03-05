@@ -19,16 +19,6 @@ if [ -d "/node_modules" ]; then
     fi
 fi
 
-if [ -d "/workspace/mcp-server/node_modules" ]; then
-    if [ "$(stat -c '%u' /workspace/mcp-server/node_modules 2>/dev/null || stat -f '%u' /workspace/mcp-server/node_modules)" != "1000" ]; then
-        echo "[INIT] Fixing /workspace/mcp-server/node_modules ownership..."
-        chown -R node:node /workspace/mcp-server/node_modules
-        echo "[INIT] Fixed /workspace/mcp-server/node_modules ownership"
-    else
-        echo "[INIT] /workspace/mcp-server/node_modules already owned by node"
-    fi
-fi
-
 # Check standalone storefront project
 # Note: node_modules is at /node_modules (volume), not in the project directory
 echo "[INIT] Checking standalone storefront project..."

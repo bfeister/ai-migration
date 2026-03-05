@@ -15,9 +15,9 @@ Read `/workspace/migration-log.md` and extract the **last 5 log entries** to und
 - Any user intervention responses
 
 **If the log file doesn't exist:**
-- Don't worry, the `LogMigrationProgress` tool will auto-initialize it on first use
+- Don't worry, the `log-progress-cli.ts` script will auto-initialize it on first use
 - Simply proceed to execute the first micro-plan
-- The tool will create the file with proper header formatting
+- The script will create the file with proper header formatting
 
 ### 2. Load URL Mapping Configuration
 
@@ -53,39 +53,28 @@ TARGET_URL=$(echo "$MAPPING" | jq -r '.target_url')
 
 **Exploration Workflow:**
 
-Use Playwright MCP to interact with the SFRA source page and discover traits:
+Use the screenshot capture script to explore the SFRA source page and discover traits:
 
-```javascript
-// 1. Navigate to SFRA page
-await mcp__playwright__navigate({
-  url: SFRA_URL
-});
+```bash
+# 1. Capture exploratory screenshot of SFRA page (before dismissing consent)
+tsx /workspace/scripts/capture-screenshots.ts \
+  "$SFRA_URL" \
+  "/workspace/screenshots/exploration-${FEATURE_ID}-initial.png" \
+  --mapping '{"viewport": {"width": 1280, "height": 800}}'
 
-// 2. Get accessibility tree snapshot (shows page structure)
-const snapshot = await mcp__playwright__snapshot();
-console.log("Page structure:", snapshot);
+# 2. Capture with consent modal dismissed
+tsx /workspace/scripts/capture-screenshots.ts \
+  "$SFRA_URL" \
+  "/workspace/screenshots/exploration-${FEATURE_ID}-after-dismiss.png" \
+  --mapping '{"viewport": {"width": 1280, "height": 800}, "dismiss_consent": true, "consent_button_selector": "button.affirm"}'
 
-// 3. Identify consent modals
-// Look for keywords: "cookie", "consent", "accept", "privacy"
-// Common selectors: button.affirm, #onetrust-accept-btn-handler
+# 3. View the screenshots to identify page structure
+# Use the Read tool to load screenshots for visual analysis
 
-// 4. Identify carousels/sliders
-// Look for: .slick-slider, .carousel, [role="carousel"]
-// Check for navigation: .slick-prev, .slick-next
-
-// 5. Identify lazy-loaded content
-// Scroll to bottom and observe new elements appearing
-
-// 6. Capture exploratory screenshots
-await mcp__playwright__screenshot({
-  path: `/workspace/screenshots/exploration-${FEATURE_ID}-modal.png`
-});
-
-// 7. Interact with elements
-await mcp__playwright__click({ selector: "button.affirm" });
-await mcp__playwright__screenshot({
-  path: `/workspace/screenshots/exploration-${FEATURE_ID}-after-dismiss.png`
-});
+# 4. Identify consent modals, carousels, lazy-loaded content
+# Look for keywords: "cookie", "consent", "accept", "privacy"
+# Common selectors: button.affirm, #onetrust-accept-btn-handler
+# Look for: .slick-slider, .carousel, [role="carousel"]
 ```
 
 **Discovered Traits:**
@@ -125,60 +114,33 @@ Based on the migration log:
 Read the micro-plan file and follow its instructions precisely. Each micro-plan specifies:
 - ONE focused code change (edit 1-3 files maximum)
 - Specific success criteria
-- Whether to use `mcp__intervention__RequestUserIntervention` for user input
+- Whether to request user intervention (write JSON to `intervention/needed-{worker-id}.json` and exit)
 
 **Important:** Make ONLY the changes specified in the micro-plan. Do not add extra features or refactoring.
 
 ### 6. Production Build & Server Startup for Screenshot Capture
 
-**IMPORTANT: Use production build (`pnpm build && pnpm start`)** instead of dev mode. Dev server's file watching causes Docker file descriptor overflow on Mac bind mounts. Production server runs on port 3000 and avoids file system watching.
+**IMPORTANT: Use production build** instead of dev mode. Dev server's file watching causes Docker file descriptor overflow on Mac bind mounts.
 
 **Step 6.1: Build and start production server**
 
-Use bash to build and start the production server:
-
 ```bash
-cd /workspace/storefront-next
-pnpm build && pnpm start > /tmp/prod-server.log 2>&1 &
+tsx /workspace/scripts/prod-server.ts start
 ```
 
-Then use the `CheckServerHealth` MCP tool to validate:
+This builds the project, starts the production server, and verifies it's healthy. Port is auto-detected from `storefront-next/package.json`. Exits 0 if healthy, 1 if unhealthy (errors printed to stderr, details in `/tmp/prod-server.log`).
 
-```javascript
-const serverResult = await mcp__migration_tools__CheckServerHealth({
-  url: "http://localhost:3000",
-  path: "/",
-  timeout_seconds: 60,
-  build_log_file: "/tmp/prod-server.log"
-});
-
-if (!serverResult.healthy) {
-  console.error("Production server failed:", serverResult.error);
-
-  // Check build status
-  if (serverResult.build_status?.has_errors) {
-    console.error("Build errors:", serverResult.build_status.errors);
-    // Use intervention for build errors
-    await mcp__migration_tools__RequestUserIntervention({
-      question: `Build failed with errors. How should I proceed?`,
-      context: {
-        errors: serverResult.build_status.errors,
-        build_log: "/tmp/prod-server.log"
-      }
-    });
-  }
+If it exits non-zero, write an intervention request and exit:
+```bash
+cat > /workspace/intervention/needed-migration-worker.json <<EOF
+{
+  "worker_id": "migration-worker",
+  "question": "Build failed with errors. How should I proceed?",
+  "options": ["Fix dependencies", "Skip this micro-plan", "Debug manually"],
+  "context": "See /tmp/prod-server.log for details"
 }
-
-// Production server is now running
-const SERVER_URL = "http://localhost:3000";
+EOF
 ```
-
-**What CheckServerHealth does:**
-- ✅ Polls HTTP endpoint until responsive
-- ✅ Reads build log for TypeScript/compilation errors
-- ✅ Returns structured error/warning arrays
-- ✅ Validates server health
-- ✅ Returns structured result with server URL, errors, startup time
 
 **Step 6.2: Capture dual screenshots**
 
@@ -221,8 +183,6 @@ tsx /workspace/scripts/capture-screenshots.ts \
   "/workspace/screenshots/${TIMESTAMP}-${SUBPLAN_ID}-target.png" \
   --mapping "$TARGET_MAPPING"
 ```
-
-**Note:** Dev server continues running in background (managed by ValidateDevServer). It will be reused by next iteration or cleaned up when container stops.
 
 **If screenshot fails:**
 - Log warning but don't block
@@ -271,20 +231,19 @@ Based on your visual analysis, assign a similarity score (0-100) and decide:
 
 If you identify blocking issues (critical mismatches that make the target unusable):
 
-```javascript
-await mcp__intervention__RequestUserIntervention({
-  worker_id: "migration-worker",
-  question: `Visual comparison shows blocking issues: [list issues]. Should I iterate to fix or continue?`,
-  options: ["Iterate to fix issues", "Continue anyway", "Request manual review"],
-  context: JSON.stringify({
-    subplan_id: SUBPLAN_ID,
-    similarity_score: YOUR_CALCULATED_SCORE,
-    blocking_issues: ["issue 1", "issue 2"]
-  })
-});
+```bash
+# Write intervention request JSON and exit gracefully
+cat > /workspace/intervention/needed-migration-worker.json <<EOF
+{
+  "worker_id": "migration-worker",
+  "question": "Visual comparison shows blocking issues: [list issues]. Should I iterate to fix or continue?",
+  "options": ["Iterate to fix issues", "Continue anyway", "Request manual review"],
+  "context": "{\"subplan_id\": \"${SUBPLAN_ID}\", \"similarity_score\": YOUR_CALCULATED_SCORE, \"blocking_issues\": [\"issue 1\", \"issue 2\"]}"
+}
+EOF
 
-// Exit gracefully to allow intervention response
-return;
+# Exit gracefully to allow intervention response
+# Session will be resumed after user responds via dashboard
 ```
 
 **Decision Matrix:**
@@ -319,62 +278,34 @@ Screenshots:
 
 ### 9. Progress Logging
 
-**Use the MCP LogMigrationProgress tool** to log this iteration to `/workspace/migration-log.md`.
+**Use the log-progress CLI script** to log this iteration to `/workspace/migration-log.md`.
 
 **For successful iterations:**
 
-Use the `LogMigrationProgress` tool with these parameters:
-- `subplan_id`: The subplan identifier (e.g., "01-02" or "subplan-01-02" - will be normalized)
-- `status`: "success"
-- `summary`: One-sentence description of what was implemented (e.g., "Implemented hero section layout matching SFRA baseline")
-- `source_screenshot_url`: The SFRA URL that was captured (from url-mappings.json)
-- `target_screenshot_url`: The Storefront Next URL (e.g., "http://localhost:5173")
-- `commit_sha`: The git commit hash from step 7
-- `duration_seconds`: (Optional) Time spent on this iteration in seconds
-
-**Example:**
-```javascript
-await mcp__LogMigrationProgress({
-  subplan_id: "01-02",
-  status: "success",
-  summary: "Implemented hero section layout matching SFRA baseline",
-  source_screenshot_url: "https://zzrf-001.dx.commercecloud.salesforce.com/s/RefArchGlobal/en_GB/home",
-  target_screenshot_url: "http://localhost:5173",
-  commit_sha: "a3f2c1b"
-});
+```bash
+tsx /workspace/scripts/log-progress-cli.ts \
+  --subplan-id "01-02" \
+  --status "success" \
+  --summary "Implemented hero section layout matching SFRA baseline" \
+  --source-screenshot-url "https://zzrf-001.dx.commercecloud.salesforce.com/s/RefArchGlobal/en_GB/home" \
+  --target-screenshot-url "http://localhost:5173" \
+  --commit-sha "a3f2c1b"
 ```
 
 **For failed iterations:**
 
 If dev server failed, compilation errors occurred, or other blocking issues:
-- `subplan_id`: The subplan identifier
-- `status`: "failed"
-- `summary`: Brief description of what was attempted
-- `source_screenshot_url`: "" (empty string)
-- `target_screenshot_url`: "" (empty string)
-- `commit_sha`: "" (empty string)
-- `error_message`: Full error message or description of what went wrong
 
-**Example:**
-```javascript
-await mcp__LogMigrationProgress({
-  subplan_id: "01-03",
-  status: "failed",
-  summary: "Attempted to implement navigation component",
-  source_screenshot_url: "",
-  target_screenshot_url: "",
-  commit_sha: "",
-  error_message: "Dev server failed: Cannot find module 'react'. Tried installing dependencies but error persists."
-});
+```bash
+tsx /workspace/scripts/log-progress-cli.ts \
+  --subplan-id "01-03" \
+  --status "failed" \
+  --summary "Attempted to implement navigation component" \
+  --source-screenshot-url "" \
+  --target-screenshot-url "" \
+  --commit-sha "" \
+  --error-message "Dev server failed: Cannot find module 'react'. Tried installing dependencies but error persists."
 ```
-
-**Benefits of using this tool:**
-- ✅ Auto-initializes migration-log.md if it doesn't exist
-- ✅ Automatically formats entries with timestamps
-- ✅ Updates header counts (Completed Micro-Plans: X / Y)
-- ✅ Normalizes subplan IDs to standard format
-- ✅ Looks up subplan titles from actual .md files
-- ✅ Consistent formatting for dashboard parsing
 
 ### 10. Loop Decision & Continue
 
@@ -382,12 +313,12 @@ After logging, **immediately determine the next action and continue**:
 - **If more micro-plans in current feature:** GO BACK TO STEP 1 with the next micro-plan in same directory
 - **If current feature complete:** GO BACK TO STEP 1 with the first micro-plan in next feature directory, reload URL mapping
 - **If all features complete:** Append completion summary to migration-log.md and exit cleanly. **DO NOT ask user for permission** - just write the summary and exit.
-- **If error or user intervention needed:** Use `RequestUserIntervention` tool (creates intervention/needed-{worker-id}.json), wait for response, then resume by going back to step 1
+- **If error or user intervention needed:** Write JSON to `intervention/needed-{worker-id}.json` and exit gracefully; session will resume after user responds via dashboard, then go back to step 1
 
 **CRITICAL:**
 1. Do not stop after completing one micro-plan. Continue executing sequentially until all are complete.
 2. After each micro-plan, immediately loop back to step 1 to load context and determine the next micro-plan.
-3. **DO NOT ask the user questions or present checkboxes** unless using the `RequestUserIntervention` tool for actual blockers.
+3. **DO NOT ask the user questions or present checkboxes** unless writing an intervention request (to `intervention/needed-{worker-id}.json`) for actual blockers.
 4. When all work is done, write completion summary to migration-log.md and exit - no user confirmation needed.
 
 ## Critical Rules
@@ -397,22 +328,22 @@ After logging, **immediately determine the next action and continue**:
 3. **Always Commit:** Every micro-plan gets a git commit for easy rollback.
 4. **Always Log:** Keep migration-log.md in sync with reality immediately after each iteration.
 5. **Sliding Window Only:** Load last 5 log entries for context, not entire history.
-6. **Dev Server Management:** Bash handles dev server start/stop, CheckServerHealth tool validates health and build errors.
+6. **Production Server Management:** `tsx scripts/prod-server.ts start|stop|health` handles the full server lifecycle (build, start, health check, stop). Port auto-detected from package.json.
 7. **URL Mapping per Feature:** Reload URL mapping when switching to new feature directory.
 
 ## File Naming Conventions & Prohibited Files
 
 **✅ ALWAYS use these files/locations:**
-- **`migration-log.md`** - Primary continuous log (use `LogMigrationProgress` tool)
-- **`intervention/needed-{worker-id}.json`** - For blockers (use `RequestUserIntervention` tool)
+- **`migration-log.md`** - Primary continuous log (use `tsx scripts/log-progress-cli.ts`)
+- **`intervention/needed-{worker-id}.json`** - For blockers (write JSON file directly)
 - **`screenshots/YYYYMMDD-HHMMSS-subplan-XX-YY-{source|target}.png`** - Screenshots
 
 **❌ NEVER create these files:**
-- Any ad-hoc markdown files in workspace root - All logs must go through proper tools
+- Any ad-hoc markdown files in workspace root - All logs must go through the log-progress CLI script
 
 **When completely blocked:**
-1. Log failure to `migration-log.md` using `LogMigrationProgress` with `status: "failed"`
-2. Call `RequestUserIntervention` tool with blocker details
+1. Log failure to `migration-log.md` using `tsx scripts/log-progress-cli.ts` with `--status "failed"`
+2. Write blocker details to `intervention/needed-{worker-id}.json` and exit gracefully
 3. DO NOT create `BLOCKER_REPORT.md` or similar files
 
 **When all micro-plans complete:**
@@ -422,37 +353,25 @@ After logging, **immediately determine the next action and continue**:
 ## Error Handling
 
 ### Production Server Errors
-**Note:** Using production build (`pnpm build && pnpm start`) to avoid file descriptor overflow from dev server's file watching on bind mounts.
 
-**Production Server Workflow:**
-1. Bash builds and starts server: `cd /workspace/storefront-next && pnpm build && pnpm start > /tmp/prod-server.log 2>&1 &`
-2. `CheckServerHealth` tool validates:
-   - ✅ HTTP endpoint responds (port 3000)
-   - ✅ Reads build log for TypeScript/compilation errors
-   - ✅ Catches compilation errors even when server responds HTTP 200
-
-**If CheckServerHealth returns `healthy: false`:**
-1. Check `build_status.errors` for specific issues
-2. If blocking errors (e.g., "Module not found", "Cannot find module"):
+**If `prod-server.ts start` exits 1:**
+1. Review error output on stderr
+2. If blocking errors (e.g., "Module not found"):
    - Attempt one fix based on error message
-   - Call CheckServerHealth again to verify fix
-3. If can't fix in one attempt, use `mcp__intervention__RequestUserIntervention`:
-   ```javascript
-   await mcp__intervention__RequestUserIntervention({
-     worker_id: "migration-worker",
-     question: `Dev server unhealthy with build errors: ${health.build_status.errors.join(", ")}. How should I fix this?`,
-     options: ["Fix dependencies", "Skip this micro-plan", "Debug manually"],
-     context: JSON.stringify({
-       app_dir: "/workspace/storefront-next",
-       server_responding: health.server_responding,
-       build_errors: health.build_status?.errors || [],
-       build_warnings: health.build_status?.warnings || [],
-       attempted_fix: "description of what was tried"
-     })
-   });
+   - Re-check with `tsx /workspace/scripts/prod-server.ts health`
+3. If three attempts fail to fix, write an intervention request:
+   ```bash
+   cat > /workspace/intervention/needed-migration-worker.json <<EOF
+   {
+     "worker_id": "migration-worker",
+     "question": "Server unhealthy with build errors. How should I fix this?",
+     "options": ["Fix dependencies", "Skip this micro-plan", "Debug manually"],
+     "context": "See /tmp/prod-server.log for build errors"
+   }
+   EOF
    ```
-4. Don't proceed to screenshots without working dev server
-5. Mark log entry as `❌ Failed` if blocking errors prevent implementation
+4. Don't proceed to screenshots without working server
+5. Mark log entry as failed if blocking errors prevent implementation
 
 ### Screenshot Failure
 - Log warning in migration-log.md Notes section
@@ -461,43 +380,38 @@ After logging, **immediately determine the next action and continue**:
 - User can debug later by checking log and git history
 
 ### User Intervention
-When using `mcp__intervention__RequestUserIntervention`:
+To request user intervention:
 
-1. The tool creates `/workspace/intervention/needed-{worker-id}.json` and returns immediately (non-blocking)
+1. Write a JSON file to `/workspace/intervention/needed-{worker-id}.json`
 2. **IMPORTANT**: After requesting intervention, Claude MUST:
    - Log the intervention request to migration-log.md
    - Exit gracefully to allow external response
    - Session will be auto-resumed after user responds via dashboard
 
 **Example Flow**:
-```javascript
-// Request intervention (non-blocking - returns immediately)
-await mcp__intervention__RequestUserIntervention({
-    worker_id: 'migration-worker',
-    question: `Dev server failed with errors: ${errors.join(', ')}. How should I proceed?`,
-    options: ['Fix manually', 'Skip this micro-plan', 'Debug manually'],
-    context: JSON.stringify({ app_dir, errors, warnings })
-});
+```bash
+# Write intervention request JSON
+cat > /workspace/intervention/needed-migration-worker.json <<EOF
+{
+  "worker_id": "migration-worker",
+  "question": "Dev server failed with errors. How should I proceed?",
+  "options": ["Fix manually", "Skip this micro-plan", "Debug manually"],
+  "context": "Errors found in /tmp/prod-server.log"
+}
+EOF
 
-// Log intervention in migration-log.md
-await LogMigrationProgress({
-    subplan_id: '01-03',
-    status: 'failed',
-    summary: 'Dev server failed, awaiting user intervention',
-    error_message: 'Intervention needed: migration-worker',
-    notes: `
-**Status:** ⏸️ Awaiting Intervention
-**Intervention Request:**
-- Question: "Dev server failed with errors: ${errors.join(', ')}. How should I proceed?"
-- Options: ["Fix manually", "Skip this micro-plan", "Debug manually"]
-- Intervention ID: migration-worker
-- Requested at: ${new Date().toISOString()}
-    `
-});
+# Log the intervention to migration-log.md
+tsx /workspace/scripts/log-progress-cli.ts \
+  --subplan-id "01-03" \
+  --status "failed" \
+  --summary "Dev server failed, awaiting user intervention" \
+  --source-screenshot-url "" \
+  --target-screenshot-url "" \
+  --commit-sha "" \
+  --error-message "Intervention needed: migration-worker"
 
-// Exit gracefully - user will respond via dashboard, session will auto-resume
-// DO NOT continue execution - return control to allow intervention response
-return;
+# Exit gracefully - user will respond via dashboard, session will auto-resume
+# DO NOT continue execution - return control to allow intervention response
 ```
 
 **When to Request Intervention**:
@@ -509,16 +423,16 @@ return;
 **After User Responds** (on session resume):
 Claude will be resumed automatically and should continue from where it left off. The response file will be available at `intervention/response-{worker-id}.json` if needed for reference.
 
-## Available Tools
+## Available CLI Scripts & Conventions
 
-You have access to these MCP tools:
-- `LogMigrationProgress` - Log iteration progress to migration-log.md (auto-initializes if needed)
-- `CheckServerHealth` - Poll HTTP endpoint and parse build logs for errors (stateless, no process management)
-- `CaptureDualScreenshots` - Capture both SFRA source and Storefront Next target screenshots with proper naming
-- `CommitMigrationProgress` - Git commit with standardized message format
-- `GetNextMicroPlan` - Determine next micro-plan to execute based on migration log
-- `ParseURLMapping` - Look up SFRA source + target URLs for a feature
-- `RequestUserIntervention` - Request user input for decisions (creates intervention/needed-{worker-id}.json)
+The following CLI scripts and conventions replace the former MCP tools:
+- **Log progress**: `tsx /workspace/scripts/log-progress-cli.ts <args>` - Log iteration progress to migration-log.md (auto-initializes if needed)
+- **Production server**: `tsx /workspace/scripts/prod-server.ts <start|stop|health>` - Manage production server lifecycle. Exits 0 (healthy) or 1 (errors on stderr)
+- **Capture screenshots**: `tsx /workspace/scripts/capture-screenshots.ts <url> <output-path> [--mapping '<json>']` - Capture source/target screenshots
+- **Git commit**: `git add -A && git commit -m "subplan-XX-YY: description"` - Commit with standardized message
+- **Get next micro-plan**: Read `migration-log.md` to find last completed subplan, then read next file from `sub-plans/` directory
+- **Parse URL mapping**: `jq '.mappings[] | select(.feature_id == "FEATURE_ID")' /workspace/url-mappings.json`
+- **Request user intervention**: Write JSON to `intervention/needed-{worker-id}.json` and exit gracefully
 
 ## First Action: Establish Baseline (If Starting Fresh)
 
@@ -526,28 +440,39 @@ You have access to these MCP tools:
 
 1. Read `/workspace/migration-log.md` - if empty or doesn't exist, this is a fresh start
 2. **Capture baseline screenshots** to establish the "before" state:
-   ```javascript
-   // Capture baseline for the first feature (e.g., 01-homepage-content)
-   await CaptureDualScreenshots({
-     feature_id: "01-homepage-hero",  // From url-mappings.json
-     subplan_id: "00-00-baseline"     // Special ID for baseline
-     // URLs will be auto-looked up from url-mappings.json
-   });
+   ```bash
+   TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+   FEATURE_ID="01-homepage-hero"
+   MAPPING=$(jq -r ".mappings[] | select(.feature_id == \"$FEATURE_ID\")" /workspace/url-mappings.json)
+   SFRA_URL=$(echo "$MAPPING" | jq -r '.sfra_url')
+   SOURCE_MAPPING=$(echo "$MAPPING" | jq '{viewport: .viewport, dismiss_consent: .source_config.dismiss_consent, consent_button_selector: .source_config.consent_button_selector}')
+   TARGET_MAPPING=$(echo "$MAPPING" | jq '{viewport: .viewport}')
+
+   # Capture SFRA source baseline
+   tsx /workspace/scripts/capture-screenshots.ts \
+     "$SFRA_URL" \
+     "/workspace/screenshots/${TIMESTAMP}-subplan-00-00-baseline-source.png" \
+     --mapping "$SOURCE_MAPPING"
+
+   # Capture Storefront Next target baseline
+   tsx /workspace/scripts/capture-screenshots.ts \
+     "http://localhost:3000" \
+     "/workspace/screenshots/${TIMESTAMP}-subplan-00-00-baseline-target.png" \
+     --mapping "$TARGET_MAPPING"
    ```
    This creates:
    - `screenshots/{timestamp}-subplan-00-00-baseline-source.png` (SFRA starting state)
    - `screenshots/{timestamp}-subplan-00-00-baseline-target.png` (Storefront Next starting state)
 
 3. Log the baseline capture (no git commit needed for baseline):
-   ```javascript
-   await LogMigrationProgress({
-     subplan_id: "00-00-baseline",
-     status: "success",
-     summary: "Captured baseline screenshots of SFRA and Storefront Next before migration",
-     source_screenshot_url: "{sfra_url from url-mappings}",
-     target_screenshot_url: "http://localhost:5173",
-     commit_sha: "baseline"  // No code changes yet
-   });
+   ```bash
+   tsx /workspace/scripts/log-progress-cli.ts \
+     --subplan-id "00-00-baseline" \
+     --status "success" \
+     --summary "Captured baseline screenshots of SFRA and Storefront Next before migration" \
+     --source-screenshot-url "$SFRA_URL" \
+     --target-screenshot-url "http://localhost:3000" \
+     --commit-sha "baseline"
    ```
 
 **Then proceed to normal iteration loop:**

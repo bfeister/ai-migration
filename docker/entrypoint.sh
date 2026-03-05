@@ -32,6 +32,32 @@ else
     MONOREPO_BUILD="$MONOREPO_SOURCE_PATH"
     STANDALONE_BUILD="$WORKSPACE_ROOT/storefront-next"
     USE_TMP_STRATEGY=false
+
+    # Host-mode allowed tools — commands Claude may run unattended during migration.
+    # Defined once here, exported for execute-migration.ts to reuse.
+    CLAUDE_ALLOWED_TOOLS=(
+        # Built-in file tools
+        "Read" "Write" "Edit" "Glob" "Grep"
+        # Package manager (typecheck, build, dev, start, test, lint, install)
+        "Bash(pnpm:*)"
+        # Git operations — scoped to non-destructive only (no reset, push, rebase, etc.)
+        "Bash(git add:*)" "Bash(git commit:*)"
+        # Filesystem (archive dirs, file moves)
+        "Bash(mkdir:*)" "Bash(mv:*)" "Bash(cp:*)"
+        # Read-only utilities
+        "Bash(cat:*)" "Bash(ls:*)" "Bash(jq:*)" "Bash(date:*)"
+        "Bash(head:*)" "Bash(tail:*)" "Bash(wc:*)" "Bash(find:*)"
+        # Script runners (covers CLI migration tooling: capture-screenshots.ts,
+        # log-progress-cli.ts, generate-plans.ts, etc.)
+        "Bash(npx:*)" "Bash(tsx:*)"
+        # Process management (dev server lifecycle)
+        "Bash(kill:*)" "Bash(pkill:*)" "Bash(lsof:*)"
+    )
+    # Flat string for env export to execute-migration.ts
+    CLAUDE_ALLOWED_TOOLS_STR="${CLAUDE_ALLOWED_TOOLS[*]}"
+
+    # Build CLAUDE_PERMS as an array to preserve quoting through expansion
+    CLAUDE_PERMS_ARRAY=(-p --permission-mode acceptEdits --allowedTools "${CLAUDE_ALLOWED_TOOLS[@]}")
     CLAUDE_PERMS="-p --permission-mode acceptEdits"
     RUNTIME_NAME="script"
     ATTACH_CMD="tail -f \$WORKSPACE_ROOT/migration-log.md"
@@ -788,175 +814,28 @@ Components:
 fi
 
 # ============================================================================
-# Phase 3: MCP Migration Tools Server Setup
+# Host Mode: Tool Allow-List Transparency Prompt
 # ============================================================================
 
-# Check if Phase 3 already complete
-if [ -f "$STATE_DIR/phase3-complete" ] && \
-   [ -f ~/.config/claude-code/mcp.json ]; then
-    log_success "Phase 3 already complete (setup: $(cat "$STATE_DIR/phase3-complete"))"
-    log_info "Skipping to Phase 4..."
-else
-    log_info "Running Phase 3: MCP Migration Tools Server Setup"
-
-log_info "Setting up MCP Migration Tools Server..."
-
-# Build MCP server
-if [ -d "$WORKSPACE_ROOT/mcp-server" ]; then
-    # Check if already built (dist/ exists from host build via volume mount)
-    if [ -f "$WORKSPACE_ROOT/mcp-server/dist/migration-server.js" ]; then
-        log_success "MCP server already built (found dist/migration-server.js)"
-    else
-        log_info "Building MCP server in $RUNTIME_NAME..."
-        cd "$WORKSPACE_ROOT/mcp-server"
-
-        # Note: node_modules permissions are fixed by pre-entrypoint.sh (container only)
-        # Note: node_modules is excluded from volume mount, so we need to install
-        log_info "Installing MCP server dependencies..."
-        if < /dev/null pnpm install; then
-            log_success "Dependencies installed"
-        else
-            log_error "Failed to install dependencies"
-            cd "$WORKSPACE_ROOT"
-            log_warning "Claude Code will run without intervention tool"
-            # Skip build and continue
-            return 0 2>/dev/null || exit 0
-        fi
-
-        # Build the server
-        if < /dev/null pnpm build; then
-            log_success "MCP server built successfully"
-        else
-            log_error "MCP server build failed"
-            log_warning "Claude Code will run without intervention tool"
-        fi
-
-        cd "$WORKSPACE_ROOT"
-    fi
-else
-    log_warning "MCP server directory not found at $WORKSPACE_ROOT/mcp-server"
-    log_warning "Claude Code will run without intervention tool"
+if [ "$IN_CONTAINER" = "false" ] && [ -t 0 ]; then
+    echo ""
+    log_info "━━━ Host Mode: Tool Allow-List ━━━"
+    log_info "The following commands are pre-approved for Claude during migration:"
+    log_info ""
+    log_info "  Package manager:  pnpm typecheck, build, dev, start, test, lint"
+    log_info "  Git:              git add, git commit (destructive ops require approval)"
+    log_info "  Filesystem:       mkdir, mv, cp, cat, ls, head, tail, find"
+    log_info "  Script runners:   npx, tsx (covers CLI migration tools:"
+    log_info "                    capture-screenshots.ts, log-progress-cli.ts, etc.)"
+    log_info "  Process mgmt:     kill, pkill, lsof"
+    log_info "  File editing:     Read, Write, Edit, Glob, Grep"
+    log_info ""
+    log_info "All other bash commands will still require manual approval."
+    log_info "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo ""
+    read -r -t 10 -p "Press Enter to continue (auto-continues in 10s)... " || true
+    echo ""
 fi
-
-# Configure Claude Code CLI to use MCP server
-log_info "Configuring Claude Code with MCP server..."
-mkdir -p ~/.config/claude-code
-
-# Generate MCP config with environment-specific paths
-generate_mcp_config() {
-    cat <<EOF
-{
-  "mcpServers": {
-    "migration-tools": {
-      "command": "node",
-      "args": ["$WORKSPACE_ROOT/mcp-server/dist/migration-server.js"],
-      "env": {
-        "WORKSPACE_ROOT": "$WORKSPACE_ROOT",
-        "INTERVENTION_DIR": "$INTERVENTION_DIR"
-      }
-    },
-    "playwright": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@microsoft/playwright-mcp@latest"
-      ],
-      "env": {
-        "PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH": "$CHROMIUM_PATH"
-      }
-    }
-  }
-}
-EOF
-}
-
-# Merge MCP config (preserves user's existing servers on host)
-merge_mcp_config() {
-    local mcp_file="$HOME/.config/claude-code/mcp.json"
-    local new_config
-    new_config=$(generate_mcp_config)
-
-    if [ "$IN_CONTAINER" = "true" ]; then
-        # Container: always overwrite (isolated environment)
-        echo "$new_config" > "$mcp_file"
-        log_info "MCP config overwritten (container mode)"
-    else
-        # Host: merge servers, preserving user's existing config
-        if [ -f "$mcp_file" ] && command -v jq >/dev/null 2>&1; then
-            log_info "Merging MCP config with existing configuration..."
-            local backup_file="${mcp_file}.backup.$(date +%s)"
-            cp "$mcp_file" "$backup_file"
-
-            # Merge mcpServers objects (new config takes precedence for conflicts)
-            if jq -s '.[0] * .[1] | .mcpServers = (.[0].mcpServers + .[1].mcpServers)' \
-                "$mcp_file" <(echo "$new_config") > "${mcp_file}.tmp" 2>/dev/null; then
-                mv "${mcp_file}.tmp" "$mcp_file"
-                log_success "MCP config merged (backup: $backup_file)"
-            else
-                log_warning "jq merge failed, overwriting config"
-                echo "$new_config" > "$mcp_file"
-            fi
-        elif [ -f "$mcp_file" ]; then
-            # No jq available - backup and overwrite
-            local backup_file="${mcp_file}.backup.$(date +%s)"
-            cp "$mcp_file" "$backup_file"
-            echo "$new_config" > "$mcp_file"
-            log_warning "jq not available - config overwritten (backup: $backup_file)"
-        else
-            # No existing config
-            echo "$new_config" > "$mcp_file"
-            log_info "MCP config created (new file)"
-        fi
-    fi
-}
-
-merge_mcp_config
-
-if [ -f ~/.config/claude-code/mcp.json ]; then
-    log_success "Claude Code MCP configuration ready"
-    log_info "MCP servers configured:"
-    log_info "  [1] migration-tools - Custom migration automation tools"
-    log_info "      - RequestUserIntervention, LogMigrationProgress (with visual feedback)"
-    log_info "      - CheckServerHealth, CaptureDualScreenshots, CommitMigrationProgress"
-    log_info "      - GetNextMicroPlan, ParseURLMapping"
-    log_info "  [2] playwright - Dynamic browser automation (microsoft/playwright-mcp)"
-    log_info "      - playwright_navigate, playwright_screenshot"
-    log_info "      - playwright_click, playwright_fill, playwright_evaluate"
-    log_info "      - playwright_snapshot (accessibility tree)"
-else
-    log_error "Failed to create MCP configuration"
-fi
-
-# ============================================================================
-# Install Playwright MCP (for dynamic page exploration)
-# ============================================================================
-
-log_info "Checking Playwright MCP installation..."
-
-# Check if @microsoft/playwright-mcp is globally available
-if npm list -g @microsoft/playwright-mcp &>/dev/null 2>&1; then
-    log_success "Playwright MCP already installed globally"
-elif command -v npx &>/dev/null; then
-    log_success "Playwright MCP will use npx (on-demand installation)"
-else
-    log_warning "Neither global Playwright MCP nor npx found"
-    log_info "Attempting global installation..."
-    if npm install -g @microsoft/playwright-mcp; then
-        log_success "Playwright MCP installed globally"
-    else
-        log_error "Failed to install Playwright MCP"
-        log_warning "Dynamic page exploration will not be available"
-    fi
-fi
-
-# ============================================================================
-# End Phase 3 Setup
-# ============================================================================
-
-# Mark Phase 3 complete
-echo "$(date -u +"%Y-%m-%dT%H:%M:%SZ")" > "$STATE_DIR/phase3-complete"
-log_success "Phase 3 complete: MCP server configured"
-fi  # End Phase 3 skip check
 
 log_success "$RUNTIME_NAME initialization complete"
 log_info "Chromium available: $([ -n "$CHROMIUM_PATH" ] && echo "Yes ($CHROMIUM_PATH)" || echo 'No')"
@@ -1079,7 +958,7 @@ fi
 if [ -t 0 ]; then
     # ── Interactive path: run TypeScript execution loop ──
     log_info "Interactive terminal detected - launching execution loop"
-    export WORKSPACE_ROOT MONOREPO_BUILD STANDALONE_PROJECT
+    export WORKSPACE_ROOT MONOREPO_BUILD STANDALONE_PROJECT CLAUDE_ALLOWED_TOOLS_STR
 
     cd "$WORKSPACE_ROOT"
     npx tsx "$WORKSPACE_ROOT/scripts/execute-migration.ts"
@@ -1129,7 +1008,7 @@ else
             if [ "$IN_CONTAINER" = "true" ]; then
                 claude -r "$SESSION_ID" 2>&1 | tee "$WORKSPACE_ROOT/claude-output.log"
             else
-                claude code resume --session-id "$SESSION_ID" $CLAUDE_PERMS 2>&1 | tee "$WORKSPACE_ROOT/claude-output.log"
+                claude code resume --session-id "$SESSION_ID" "${CLAUDE_PERMS_ARRAY[@]}" 2>&1 | tee "$WORKSPACE_ROOT/claude-output.log"
             fi
             CLAUDE_EXIT_CODE=${PIPESTATUS[0]}
             log_info "Claude Code exited with code $CLAUDE_EXIT_CODE"
@@ -1189,7 +1068,7 @@ else
         # Output streamed to stdout and written to log file via tee
         claude code run \
             --session-id "$SESSION_ID" \
-            $CLAUDE_PERMS \
+            "${CLAUDE_PERMS_ARRAY[@]}" \
             < "$MIGRATION_PLAN" 2>&1 | tee "$WORKSPACE_ROOT/claude-output.log"
 
         CLAUDE_EXIT_CODE=${PIPESTATUS[0]}

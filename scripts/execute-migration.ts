@@ -282,6 +282,12 @@ function executeFeature(config: FeatureConfig, prompt: string): Promise<number> 
       ? ['-p', '--session-id', sessionId, '--dangerously-skip-permissions', '--output-format', 'text']
       : ['-p', '--session-id', sessionId, '--permission-mode', 'acceptEdits', '--output-format', 'text'];
 
+    // Append allowed tools from entrypoint.sh (defined once, shared via env)
+    const allowedToolsStr = process.env.CLAUDE_ALLOWED_TOOLS_STR;
+    if (allowedToolsStr) {
+      claudeArgs.push('--allowedTools', ...allowedToolsStr.split(' '));
+    }
+
     const child = spawn('claude', claudeArgs, {
       cwd: WORKSPACE_ROOT,
       stdio: ['pipe', 'pipe', 'pipe'],

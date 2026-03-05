@@ -7,6 +7,12 @@
 
 ---
 
+## What's New (2026-03-04)
+
+**MCP Server Removed:** The custom `mcp-server/` directory and its `migration-server.js` have been removed in favor of standalone CLI scripts in `scripts/` (e.g., `log-progress-cli.ts`, `capture-screenshots.ts`). Phase 3 MCP setup in entrypoint.sh now only configures the Playwright MCP server; the custom migration-tools MCP server configuration should be removed from the merge logic.
+
+---
+
 ## What's New (2026-02-09)
 
 **Major Enhancement: Non-Destructive MCP Configuration**
@@ -326,6 +332,8 @@ fi
 ---
 
 ### 4. MCP Configuration (Smart Merge - Phase 3)
+
+> **UPDATE (2026-03-04):** The custom `migration-tools` MCP server has been removed. Phase 3 now only needs to configure the `playwright` MCP server. The `migration_server` JSON block and merge logic below should be updated to remove `migration-tools` references. All migration tooling now uses CLI scripts in `scripts/` instead.
 
 **Location:** Lines 596-621 (config creation)
 **Issue:** MCP config must work in both environments AND preserve user's existing servers
