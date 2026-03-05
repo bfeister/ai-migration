@@ -35,26 +35,39 @@ else
 
     # Host-mode allowed tools — commands Claude may run unattended during migration.
     # Defined once here, exported for execute-migration.ts to reuse.
+    # NOTE: Bash patterns match the START of the command string. Compound commands
+    # like "cd /foo && pnpm build" match on "cd", not "pnpm".
     CLAUDE_ALLOWED_TOOLS=(
         # Built-in file tools
         "Read" "Write" "Edit" "Glob" "Grep"
         # Package manager (typecheck, build, dev, start, test, lint, install)
         "Bash(pnpm:*)"
         # Git operations — scoped to non-destructive only (no reset, push, rebase, etc.)
-        "Bash(git add:*)" "Bash(git commit:*)"
-        # Filesystem (archive dirs, file moves)
-        "Bash(mkdir:*)" "Bash(mv:*)" "Bash(cp:*)"
+        "Bash(git add:*)" "Bash(git commit:*)" "Bash(git status:*)"
+        "Bash(git diff:*)" "Bash(git log:*)"
+        # Filesystem (archive dirs, file moves, cleanup)
+        "Bash(mkdir:*)" "Bash(mv:*)" "Bash(cp:*)" "Bash(rm:*)" "Bash(touch:*)"
         # Read-only utilities
         "Bash(cat:*)" "Bash(ls:*)" "Bash(jq:*)" "Bash(date:*)"
         "Bash(head:*)" "Bash(tail:*)" "Bash(wc:*)" "Bash(find:*)"
+        "Bash(grep:*)" "Bash(pwd:*)" "Bash(echo:*)" "Bash(which:*)"
         # Script runners (covers CLI migration tooling: capture-screenshots.ts,
-        # log-progress-cli.ts, generate-plans.ts, etc.)
-        "Bash(npx:*)" "Bash(tsx:*)"
-        # Process management (dev server lifecycle)
+        # log-progress-cli.ts, prod-server.ts, etc.)
+        "Bash(npx:*)" "Bash(tsx:*)" "Bash(node:*)"
+        # Process management (prod server lifecycle)
         "Bash(kill:*)" "Bash(pkill:*)" "Bash(lsof:*)"
+        # Shell constructs that start compound commands (e.g. "cd /foo && pnpm build")
+        "Bash(cd:*)" "Bash(export:*)" "Bash(source:*)" "Bash(test:*)"
+        # Network (health check fallback)
+        "Bash(curl:*)"
+        # Waiting (retry loops)
+        "Bash(sleep:*)"
+        # Text processing
+        "Bash(sed:*)" "Bash(sort:*)" "Bash(tee:*)"
     )
-    # Flat string for env export to execute-migration.ts
-    CLAUDE_ALLOWED_TOOLS_STR="${CLAUDE_ALLOWED_TOOLS[*]}"
+    # Newline-delimited string for env export to execute-migration.ts.
+    # Space-delimited would break tools containing spaces (e.g. "Bash(git add:*)").
+    CLAUDE_ALLOWED_TOOLS_STR="$(printf '%s\n' "${CLAUDE_ALLOWED_TOOLS[@]}")"
 
     # Build CLAUDE_PERMS as an array to preserve quoting through expansion
     CLAUDE_PERMS_ARRAY=(-p --permission-mode acceptEdits --allowedTools "${CLAUDE_ALLOWED_TOOLS[@]}")
@@ -822,12 +835,13 @@ if [ "$IN_CONTAINER" = "false" ] && [ -t 0 ]; then
     log_info "━━━ Host Mode: Tool Allow-List ━━━"
     log_info "The following commands are pre-approved for Claude during migration:"
     log_info ""
-    log_info "  Package manager:  pnpm typecheck, build, dev, start, test, lint"
-    log_info "  Git:              git add, git commit (destructive ops require approval)"
-    log_info "  Filesystem:       mkdir, mv, cp, cat, ls, head, tail, find"
-    log_info "  Script runners:   npx, tsx (covers CLI migration tools:"
-    log_info "                    capture-screenshots.ts, log-progress-cli.ts, etc.)"
-    log_info "  Process mgmt:     kill, pkill, lsof"
+    log_info "  Package manager:  pnpm (typecheck, build, dev, start, test, lint)"
+    log_info "  Git:              add, commit, status, diff, log (no reset/push/rebase)"
+    log_info "  Filesystem:       mkdir, mv, cp, rm, touch, cat, ls, head, tail, find"
+    log_info "  Script runners:   npx, tsx, node (migration tools, prod-server.ts, etc.)"
+    log_info "  Shell:            cd, echo, grep, sed, sort, tee, pwd, which, export, test"
+    log_info "  Process mgmt:     kill, pkill, lsof, sleep"
+    log_info "  Network:          curl (health check fallback)"
     log_info "  File editing:     Read, Write, Edit, Glob, Grep"
     log_info ""
     log_info "All other bash commands will still require manual approval."
@@ -958,6 +972,7 @@ fi
 if [ -t 0 ]; then
     # ── Interactive path: run TypeScript execution loop ──
     log_info "Interactive terminal detected - launching execution loop"
+    log_info "Output also logged to: $WORKSPACE_ROOT/claude-output.log"
     export WORKSPACE_ROOT MONOREPO_BUILD STANDALONE_PROJECT CLAUDE_ALLOWED_TOOLS_STR
 
     cd "$WORKSPACE_ROOT"

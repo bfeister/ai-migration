@@ -272,6 +272,8 @@ function generateUUID(): string {
   return uuid;
 }
 
+const OUTPUT_LOG = path.join(WORKSPACE_ROOT, 'claude-output.log');
+
 function executeFeature(config: FeatureConfig, prompt: string): Promise<number> {
   return new Promise((resolve, reject) => {
     const sessionId = generateUUID();
@@ -282,38 +284,56 @@ function executeFeature(config: FeatureConfig, prompt: string): Promise<number> 
       ? ['-p', '--session-id', sessionId, '--dangerously-skip-permissions', '--output-format', 'text']
       : ['-p', '--session-id', sessionId, '--permission-mode', 'acceptEdits', '--output-format', 'text'];
 
-    // Append allowed tools from entrypoint.sh (defined once, shared via env)
+    // Append allowed tools from entrypoint.sh (defined once, shared via env).
+    // The env var is newline-delimited to preserve tools containing spaces
+    // (e.g. "Bash(git add:*)").
     const allowedToolsStr = process.env.CLAUDE_ALLOWED_TOOLS_STR;
     if (allowedToolsStr) {
-      claudeArgs.push('--allowedTools', ...allowedToolsStr.split(' '));
+      const tools = allowedToolsStr.split('\n').filter(Boolean);
+      claudeArgs.push('--allowedTools', ...tools);
     }
+
+    // Persistent log file — append per session so history survives across features
+    const logStream = fs.createWriteStream(OUTPUT_LOG, { flags: 'a' });
+    const banner = `\n${'='.repeat(60)}\nSession: ${sessionId} | Feature: ${config.feature_id}\nStarted: ${new Date().toISOString()}\n${'='.repeat(60)}\n`;
+    logStream.write(banner);
 
     const child = spawn('claude', claudeArgs, {
       cwd: WORKSPACE_ROOT,
       stdio: ['pipe', 'pipe', 'pipe'],
     });
 
-    // Stream stdout to console
+    // Stream stdout to console AND log file
     child.stdout.on('data', (data: Buffer) => {
       process.stdout.write(data);
+      logStream.write(data);
     });
 
-    // Stream stderr to console
+    // Stream stderr to console AND log file
     child.stderr.on('data', (data: Buffer) => {
       process.stderr.write(data);
+      logStream.write(data);
     });
 
     child.on('error', (err) => {
+      logStream.end();
       reject(new Error(`Failed to spawn Claude CLI: ${err.message}`));
     });
 
     child.on('close', (code) => {
+      logStream.write(`\nExited with code: ${code}\n`);
+      logStream.end();
       resolve(code ?? 1);
     });
 
-    // Send prompt via stdin
-    child.stdin.write(prompt);
-    child.stdin.end();
+    // Send prompt via stdin then close it. The -p flag requires EOF to signal
+    // "prompt complete, start processing". Wait for the 'spawn' event before
+    // writing to avoid a race where stdin writes arrive before the child
+    // process is ready to read (which caused silent empty-output sessions).
+    child.on('spawn', () => {
+      child.stdin.write(prompt);
+      child.stdin.end();
+    });
   });
 }
 
