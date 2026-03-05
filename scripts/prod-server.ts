@@ -22,7 +22,7 @@ import { resolveServerPort } from './lib/server-port.js';
 // ============================================================================
 
 const WORKSPACE_ROOT = process.env.WORKSPACE_ROOT || process.cwd();
-const LOG_FILE = '/tmp/prod-server.log';
+const LOG_FILE = path.join(WORKSPACE_ROOT, 'prod-server.log');
 const PID_FILE = '/tmp/prod-server.pid';
 const HEALTH_TIMEOUT_MS = 60_000;
 const HEALTH_POLL_INTERVAL_MS = 1_000;

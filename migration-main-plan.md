@@ -128,7 +128,7 @@ Read the micro-plan file and follow its instructions precisely. Each micro-plan 
 tsx /workspace/scripts/prod-server.ts start
 ```
 
-This builds the project, starts the production server, and verifies it's healthy. Port is auto-detected from `storefront-next/package.json`. Exits 0 if healthy, 1 if unhealthy (errors printed to stderr, details in `/tmp/prod-server.log`).
+This builds the project, starts the production server, and verifies it's healthy. Port is auto-detected from `storefront-next/package.json`. Exits 0 if healthy, 1 if unhealthy (errors printed to stderr, details in `prod-server.log`).
 
 If it exits non-zero, write an intervention request and exit:
 ```bash
@@ -137,7 +137,7 @@ cat > /workspace/intervention/needed-migration-worker.json <<EOF
   "worker_id": "migration-worker",
   "question": "Build failed with errors. How should I proceed?",
   "options": ["Fix dependencies", "Skip this micro-plan", "Debug manually"],
-  "context": "See /tmp/prod-server.log for details"
+  "context": "See prod-server.log for details"
 }
 EOF
 ```
@@ -189,56 +189,53 @@ tsx /workspace/scripts/capture-screenshots.ts \
 - Capture what's available (if one fails, still try the other)
 - Continue to commit and log
 
-### 7. Visual Comparison & Feedback Loop
+### 7. Visual + Log Refinement Loop
 
-After capturing screenshots, analyze them to guide the next iteration:
+After capturing screenshots, run a refinement loop that compares the **SFRA source screenshot** against the **Storefront Next target screenshot** for the specific functional area being migrated (e.g., the hero banner, the product grid — not the whole page), and cross-references `prod-server.log` for runtime context. The goal is to converge the target toward the source within this subplan before committing.
 
-**Step 7.1: Load and View Screenshots**
+**Important:** Screenshots are scoped to one functional area via the `crop` / `scroll_to_selector` config in `url-mappings.json`. Compare only the region relevant to the current subplan, not the full page.
 
-Use the Read tool to load both screenshots so Claude's vision model can see them:
+**Step 7.1: Gather context**
 
-```javascript
-// Read the SFRA source screenshot
-await Read({
-  file_path: `/workspace/screenshots/${TIMESTAMP}-${SUBPLAN_ID}-source.png`
-});
+Load both screenshots (source + target) using the Read tool so vision can compare them. Also read `prod-server.log` for any runtime warnings, data-fetch errors, or component fallbacks that might explain visual differences.
 
-// Read the Storefront Next target screenshot
-await Read({
-  file_path: `/workspace/screenshots/${TIMESTAMP}-${SUBPLAN_ID}-target.png`
-});
-```
+**Step 7.2: Compare and diagnose**
 
-**Step 7.2: Claude Vision Analysis**
+With both images and the server log loaded, identify what's different and *why*:
+- **Visual differences** — layout, spacing, colors, missing elements, wrong text
+- **Log-explained differences** — a missing image might trace to a 404 in the log; a fallback component might trace to a data-fetch error
+- Assign a similarity score (0–100) for the functional area
 
-With both images loaded, Claude's vision model will analyze them to identify:
+**Step 7.3: Decide — fix, commit, or escalate**
 
-1. **Layout differences**: Spacing, alignment, sizing, positioning
-2. **Styling differences**: Colors, fonts, borders, shadows
-3. **Content differences**: Missing elements, wrong text, incorrect images
-4. **Interactive elements**: Buttons, links, forms that differ
+| Condition | Action |
+|-----------|--------|
+| Score ≥ 70% and no blocking issues | **Proceed to commit** (Step 8) |
+| Score < 70% OR visual/log issues are fixable | **Fix and re-verify** (Step 7.4) |
+| 3 refinement attempts haven't improved the score | **Escalate to intervention** (Step 7.5) |
 
-**Step 7.3: Calculate Similarity and Decide Next Action**
+**Step 7.4: Fix and re-verify (inner loop)**
 
-Based on your visual analysis, assign a similarity score (0-100) and decide:
+When the comparison reveals fixable issues:
 
-- **Score ≥90%**: Excellent match, proceed to commit
-- **Score 70-89%**: Good match with minor issues, note recommendations for future
-- **Score 50-69%**: Significant differences, consider iterating immediately
-- **Score <50%**: Major mismatches, intervention recommended
+1. Make a targeted code change to address the specific difference identified in 7.2
+2. Rebuild and re-verify: `tsx /workspace/scripts/prod-server.ts start`
+3. Re-capture the target screenshot (Step 6.2 — source screenshot can be reused)
+4. Go back to Step 7.1 to re-compare
 
-**Step 7.4: Handle Blocking Issues**
+Cap this inner loop at **3 attempts**. Each attempt should fix a specific issue identified in the previous comparison — do not re-attempt the same fix.
 
-If you identify blocking issues (critical mismatches that make the target unusable):
+**Step 7.5: Escalate to intervention**
+
+If 3 refinement attempts haven't converged, or the issue is unclear:
 
 ```bash
-# Write intervention request JSON and exit gracefully
 cat > /workspace/intervention/needed-migration-worker.json <<EOF
 {
   "worker_id": "migration-worker",
-  "question": "Visual comparison shows blocking issues: [list issues]. Should I iterate to fix or continue?",
-  "options": ["Iterate to fix issues", "Continue anyway", "Request manual review"],
-  "context": "{\"subplan_id\": \"${SUBPLAN_ID}\", \"similarity_score\": YOUR_CALCULATED_SCORE, \"blocking_issues\": [\"issue 1\", \"issue 2\"]}"
+  "question": "Visual refinement stalled after 3 attempts for ${SUBPLAN_ID}. Remaining differences: [list]. How should I proceed?",
+  "options": ["Continue with current state", "Skip this subplan", "Debug manually"],
+  "context": "See prod-server.log and screenshots/${TIMESTAMP}-${SUBPLAN_ID}-target.png"
 }
 EOF
 
@@ -366,7 +363,7 @@ After logging, **immediately determine the next action and continue**:
      "worker_id": "migration-worker",
      "question": "Server unhealthy with build errors. How should I fix this?",
      "options": ["Fix dependencies", "Skip this micro-plan", "Debug manually"],
-     "context": "See /tmp/prod-server.log for build errors"
+     "context": "See prod-server.log for build errors"
    }
    EOF
    ```
@@ -396,7 +393,7 @@ cat > /workspace/intervention/needed-migration-worker.json <<EOF
   "worker_id": "migration-worker",
   "question": "Dev server failed with errors. How should I proceed?",
   "options": ["Fix manually", "Skip this micro-plan", "Debug manually"],
-  "context": "Errors found in /tmp/prod-server.log"
+  "context": "Errors found in prod-server.log"
 }
 EOF
 
