@@ -1,4 +1,19 @@
-import { Fragment, Suspense, useEffect, useMemo, useRef, useState, use } from 'react';
+/**
+ * Copyright 2026 Salesforce, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+import { Fragment, Suspense, useEffect, useMemo, useRef, use } from 'react';
 import { Await, type LoaderFunctionArgs, useLocation } from 'react-router';
 import type { ShopperProducts, ShopperSearch, ShopperExperience } from '@salesforce/storefront-next-runtime/scapi';
 import { fetchCategory } from '@/lib/api/categories';
@@ -6,32 +21,23 @@ import { fetchSearchProducts } from '@/lib/api/search';
 import { getAllQueryParams, getQueryParam, PRODUCT_SEARCH_QUERY_PARAMS } from '@/lib/query-params';
 import { getConfig, useConfig } from '@/config';
 import { currencyContext } from '@/lib/currency';
-import { collectComponentDataPromises, fetchPageFromLoader } from '@/lib/util/pageLoader';
-import { generateCategorySchema } from '@/utils/category-schema';
 import CategorySkeleton, {
     CategoryBreadcrumbsSkeleton,
     CategoryHeaderSkeleton,
     CategoryRefinementsSkeleton,
 } from '@/components/category-skeleton';
-import CategoryPageHeader from '@/components/category-page-header';
-import CategoryRefinements from '@/components/category-refinements';
-import { PlpFilterActionsBar } from '@/components/plp-filter-actions-bar';
-import ProductGrid from '@/components/product-grid';
+import CategoryBreadcrumbs from '@/components/category-breadcrumbs';
 import CategoryPagination from '@/components/category-pagination';
+import CategoryRefinements from '@/components/category-refinements';
+import CategorySorting from '@/components/category-sorting';
+import ProductGrid from '@/components/product-grid';
 import { useAnalytics } from '@/hooks/use-analytics';
 import { PageType } from '@/lib/decorators/page-type';
 import { RegionDefinition } from '@/lib/decorators/region-definition';
 import { Region } from '@/components/region';
+import { collectComponentDataPromises, fetchPageFromLoader } from '@/lib/util/pageLoader';
 import { JsonLd } from '@/components/json-ld';
-
-/**
- * Product listing page (PLP) – category route.
- *
- * ISML source templates:
- *   - search/pt_productsearchresult.isml (page decorator)
- *   - search/searchResultsNoDecorator.isml (base SFRA content)
- *   - search/productGrid.isml (product tile grid)
- */
+import { generateCategorySchema } from '@/utils/category-schema';
 
 @PageType({
     name: 'Product Listing Page',
@@ -72,18 +78,27 @@ type CategoryPageData = {
     categorySchema: Promise<ReturnType<typeof generateCategorySchema> | null>;
 };
 
+/**
+ * Server-side loader function that fetches category data and product search results.
+ * This function runs on the server during SSR and prepares data for the category page.
+ * @returns Object containing search results, category data, and page metadata
+ */
 // eslint-disable-next-line react-refresh/only-export-components
 export function loader(args: LoaderFunctionArgs): CategoryPageData {
     const { searchParams } = new URL(args.request.url);
     const { categoryId = '' } = args.params;
+
+    // Ensure we have a valid category ID, fallback to 'root' if undefined or empty
     const safeCategoryId = categoryId && categoryId !== 'undefined' ? categoryId : 'root';
 
     const offset = parseInt(getQueryParam(searchParams, PRODUCT_SEARCH_QUERY_PARAMS.OFFSET) || '0', 10);
     const sort = getQueryParam(searchParams, PRODUCT_SEARCH_QUERY_PARAMS.SORT);
     const refine = getAllQueryParams(searchParams, PRODUCT_SEARCH_QUERY_PARAMS.REFINE);
 
+    // Get currency and locale for cache-busting the page key
     const config = getConfig(args.context);
     const currency = args.context.get(currencyContext) as string;
+    // TODO: replace this with locale detection when multi site implementation starts
     const currentSite = config.commerce.sites[0];
     const locale = currentSite.defaultLocale;
     const limit = config.global.productListing.productsPerPage;
@@ -99,15 +114,18 @@ export function loader(args: LoaderFunctionArgs): CategoryPageData {
         limit,
         offset,
         sort,
+        // This is a known type limitation, the API intelligently serializes the refine parameter (array) automatically, but the OAS types refers to string.
         refine: refine as unknown as string,
         currency,
     });
 
+    // Generate category schema in loader (server-side) for SEO
     const categorySchemaPromise = Promise.all([categoryPromise, searchResultPromise])
         .then(([category, searchResult]) => {
             try {
                 const url = new URL(args.request.url);
                 const pageUrl = `${url.origin}${url.pathname}${url.search}`;
+                // Validate inputs before generating schema
                 if (!category || !searchResult) {
                     return null;
                 }
@@ -130,6 +148,7 @@ export function loader(args: LoaderFunctionArgs): CategoryPageData {
             limit: 1,
             offset: 0,
             sort,
+            // This is a known type limitation, the API intelligently serializes the refine parameter (array) automatically, but the OAS types refers to string.
             refine: refine as unknown as string,
             expand: ['none'],
             currency,
@@ -145,6 +164,15 @@ export function loader(args: LoaderFunctionArgs): CategoryPageData {
     };
 }
 
+/**
+ * Category page component that displays a product category with filtering, sorting, and pagination.
+ * This component uses the createPage factory to handle Suspense patterns.
+ * @returns JSX element representing the category page
+ */
+/**
+ * Component that renders JSON-LD schema when categorySchema promise resolves.
+ * Must be inside Suspense boundary to ensure it streams correctly in SSR.
+ */
 function CategoryJsonLdWrapper({
     categorySchemaPromise,
 }: {
@@ -169,17 +197,21 @@ export default function CategoryPage({
 }: {
     loaderData: CategoryPageData;
 }) {
-    const config = useConfig();
-    const limit = config.global.productListing.productsPerPage;
-    const analytics = useAnalytics();
-    const lastTrackedDataRef = useRef<string | null>(null);
-    const [isRefinementsOpen, setIsRefinementsOpen] = useState(false);
-
     // Memoize Promise.all to prevent creating new promises on every render
+    // This prevents infinite loop when basket updates trigger re-renders
     const combinedPromise = useMemo(() => Promise.all([category, searchResult]), [category, searchResult]);
 
+    const config = useConfig();
+    const limit = config.global.productListing.productsPerPage;
+
+    const analytics = useAnalytics();
+    const lastTrackedDataRef = useRef<string | null>(null);
+
     useEffect(() => {
+        // Create a unique key based on the promise references
         const dataKey = `${String(category)}-${String(searchResult)}`;
+
+        // Only track if we haven't already tracked this specific data combination
         if (dataKey !== lastTrackedDataRef.current) {
             void Promise.all([Promise.resolve(category), searchResult])
                 .then(([categoryData, searchData]) => {
@@ -199,41 +231,51 @@ export default function CategoryPage({
         }
     }, [analytics, category, searchResult]);
 
-    // Force remount when currency/locale/search params change to update Suspense boundaries
+    // Force remount when currency/locale/search params change to update Suspense boundaries with
+    // new data without manually refresh the page on new selected currency/locale/filters (incl. pagination, sort, refinements)
     const location = useLocation();
     const pageKey = `${categoryId}-${currency}-${locale}-${location.search}-${location.hash}`;
 
     return (
         <Fragment key={pageKey}>
+            {/* Category JSON-LD Schema for SEO - separate Suspense to ensure it appears at the very top of body */}
             <Suspense fallback={null}>
                 <CategoryJsonLdWrapper categorySchemaPromise={categorySchema} />
             </Suspense>
             <div className="pb-16">
-                {/* Category page header with breadcrumbs – SFRA banner + heading pattern */}
-                <Suspense fallback={<CategoryBreadcrumbsSkeleton />}>
-                    <Await resolve={category}>
-                        {(categoryData: ShopperProducts.schemas['Category']) => (
-                            <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
-                                <CategoryPageHeader
-                                    category={categoryData}
-                                    bannerImageUrl={(categoryData.c_slotBannerImage ?? categoryData.image) as string | undefined}
-                                />
-                            </div>
-                        )}
-                    </Await>
-                </Suspense>
-
                 <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
-                    {/* Filter Actions & Sort Bar – SFRA .plp-actions */}
-                    <div className="mb-8">
+                    <div className="mb-4">
+                        <Suspense fallback={<CategoryBreadcrumbsSkeleton />}>
+                            <Await resolve={category}>
+                                {(categoryData: ShopperProducts.schemas['Category']) => (
+                                    <CategoryBreadcrumbs category={categoryData} />
+                                )}
+                            </Await>
+                        </Suspense>
+                    </div>
+
+                    <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                         <Suspense fallback={<CategoryHeaderSkeleton />}>
+                            <h1 className="text-3xl font-bold text-foreground">
+                                <Await resolve={category}>
+                                    {(categoryData: ShopperProducts.schemas['Category']) => (
+                                        <>{categoryData?.name || categoryData.id}</>
+                                    )}
+                                </Await>{' '}
+                                <Await resolve={refinements}>
+                                    {(refinementsData: ShopperSearch.schemas['ProductSearchResult']) => (
+                                        <>({refinementsData.total})</>
+                                    )}
+                                </Await>
+                            </h1>
                             <Await resolve={refinements}>
                                 {(refinementsData: ShopperSearch.schemas['ProductSearchResult']) => (
-                                    <PlpFilterActionsBar
-                                        result={refinementsData}
-                                        isRefinementsOpen={isRefinementsOpen}
-                                        onToggleRefinements={() => setIsRefinementsOpen((prev) => !prev)}
-                                    />
+                                    <div className="flex-shrink-0">
+                                        {refinementsData?.sortingOptions &&
+                                            refinementsData.sortingOptions.length > 0 && (
+                                                <CategorySorting result={refinementsData} />
+                                            )}
+                                    </div>
                                 )}
                             </Await>
                         </Suspense>
@@ -250,41 +292,27 @@ export default function CategoryPage({
                     </div>
 
                     <div className="flex flex-col lg:flex-row gap-8">
-                        {/* Refinement Sidebar – SFRA #secondary.refinements */}
-                        <aside
-                            id="category-refinements-panel"
-                            role="region"
-                            aria-label="Product filters"
-                            className={`w-64 flex-shrink-0 transition-all duration-300 ${
-                                isRefinementsOpen
-                                    ? 'block opacity-100'
-                                    : 'hidden opacity-0'
-                            }`}
-                        >
-                            <div className="sticky top-4">
-                                <h2 className="text-sm font-semibold uppercase tracking-wider text-foreground mb-4">
-                                    Refine By
-                                </h2>
-                                <Suspense fallback={<CategoryRefinementsSkeleton />}>
-                                    <Await resolve={refinements}>
-                                        {(refinementsData: ShopperSearch.schemas['ProductSearchResult']) => (
-                                            <CategoryRefinements result={refinementsData} />
-                                        )}
-                                    </Await>
-                                </Suspense>
-                            </div>
-                        </aside>
+                        <div className="hidden lg:block w-64 flex-shrink-0">
+                            <Suspense fallback={<CategoryRefinementsSkeleton />}>
+                                <Await resolve={refinements}>
+                                    {(refinementsData: ShopperSearch.schemas['ProductSearchResult']) => (
+                                        <CategoryRefinements result={refinementsData} />
+                                    )}
+                                </Await>
+                            </Suspense>
+                        </div>
 
-                        {/* Main content column */}
-                        <div className="flex-grow min-w-0">
-                            {/* plpTopContent */}
+                        {/* plpTopContent */}
+                        <div className="mb-8">
                             <Region
                                 page={page}
                                 regionId="plpTopContent"
                                 componentData={componentData}
                                 errorElement={<div />}
                             />
+                        </div>
 
+                        <div className="flex-grow">
                             <Suspense fallback={<CategorySkeleton />}>
                                 <Await resolve={combinedPromise}>
                                     {([categoryData, searchResultData]: [
