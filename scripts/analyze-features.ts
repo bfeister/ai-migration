@@ -249,47 +249,9 @@ function inferSelector(featureId: string): string {
   return DEFAULT_SELECTORS['default'];
 }
 
-/**
- * Build a CSS selector list with progressively broader fallbacks.
- *
- * Given a compound selector like "#home-slot-1.homepage-slot-1", produces:
- *   #home-slot-1.homepage-slot-1, #home-slot-1, .homepage-slot-1, main, body
- *
- * document.querySelector with a comma-separated list returns the first
- * element in DOM order matching ANY of the selectors, so the most specific
- * match wins when present.
- */
-function buildSelectorWithFallbacks(primary: string, featureId: string): string {
-  const parts: string[] = [primary];
-
-  const idMatch = primary.match(/#[\w-]+/);
-  const classMatches = primary.match(/\.[\w-]+/g);
-
-  if (idMatch && classMatches) {
-    parts.push(idMatch[0]);
-    parts.push(classMatches.join(''));
-  }
-
-  const inferred = inferSelector(featureId);
-  for (const seg of inferred.split(',').map(s => s.trim())) {
-    if (!parts.includes(seg)) {
-      parts.push(seg);
-    }
-  }
-
-  if (!parts.includes('body')) {
-    parts.push('body');
-  }
-
-  return parts.join(', ');
-}
-
 async function analyzeFeature(feature: FeatureConfig, screenshotPath: string): Promise<ExtractionResult> {
   const name = feature.name || feature.feature_name || feature.feature_id;
-  const rawSelector = feature.selector || inferSelector(feature.feature_id);
-  const selector = feature.selector
-    ? buildSelectorWithFallbacks(feature.selector, feature.feature_id)
-    : rawSelector;
+  const selector = feature.selector || inferSelector(feature.feature_id);
   const viewport = feature.viewport || { width: 1920, height: 1080 };
 
   log(`Analyzing: ${feature.feature_id} (${name})`);
