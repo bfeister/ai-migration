@@ -245,17 +245,110 @@ async function captureScreenshot(options: CaptureOptions): Promise<void> {
   }
 }
 
-// CLI usage
-async function main() {
-  const args = process.argv.slice(2);
+// ---------------------------------------------------------------------------
+// CLI helpers
+// ---------------------------------------------------------------------------
 
-  if (args.length < 2) {
-    console.error('Usage: tsx capture-screenshots.ts <url> <output-path> [--mapping <json>]');
-    console.error('');
-    console.error('Examples:');
-    console.error('  tsx capture-screenshots.ts https://example.com screenshots/test.png');
-    console.error('  tsx capture-screenshots.ts https://example.com screenshots/test.png --mapping \'{"viewport":{"width":1920,"height":1080}}\'');
+function getNamedArg(args: string[], flag: string): string | undefined {
+  const idx = args.indexOf(flag);
+  return idx !== -1 && args[idx + 1] ? args[idx + 1] : undefined;
+}
+
+interface PageConfig {
+  page_id: string;
+  sfra_url?: string;
+  target_url?: string;
+  viewport?: { width: number; height: number };
+  source_config?: { dismiss_consent?: boolean; consent_button_selector?: string };
+  [key: string]: unknown;
+}
+
+/**
+ * Load page config from url-mappings.json by page_id.
+ * Returns the matching page entry or exits with an error.
+ */
+function loadPageConfig(pageId: string): PageConfig {
+  const mappingsPath = path.join(
+    process.env.WORKSPACE_ROOT || path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..'),
+    'url-mappings.json',
+  );
+  if (!fs.existsSync(mappingsPath)) {
+    console.error(`[Screenshot] url-mappings.json not found at: ${mappingsPath}`);
     process.exit(1);
+  }
+  const data = JSON.parse(fs.readFileSync(mappingsPath, 'utf-8'));
+  const page = data.pages?.find((p: any) => p.page_id === pageId);
+  if (!page) {
+    const ids = (data.pages || []).map((p: any) => p.page_id).join(', ');
+    console.error(`[Screenshot] Unknown page_id "${pageId}". Available: ${ids}`);
+    process.exit(1);
+  }
+  return page;
+}
+
+function printUsage(): never {
+  console.error('Usage:');
+  console.error('  tsx capture-screenshots.ts --page <page_id> --type source|target [--selector <css>] [--output <path>]');
+  console.error('  tsx capture-screenshots.ts <url> <output-path> [--mapping <json>]');
+  console.error('');
+  console.error('Simplified (reads url-mappings.json):');
+  console.error('  tsx capture-screenshots.ts --page plp --type source');
+  console.error('  tsx capture-screenshots.ts --page plp --type target --selector "#product-grid"');
+  console.error('  tsx capture-screenshots.ts --page plp --type target --output screenshots/06-plp-product-grid-target.png');
+  console.error('');
+  console.error('Legacy (inline JSON):');
+  console.error('  tsx capture-screenshots.ts https://example.com screenshots/test.png');
+  process.exit(1);
+}
+
+function resolveOptions(args: string[]): CaptureOptions {
+  const pageId = getNamedArg(args, '--page');
+
+  // -----------------------------------------------------------------------
+  // Mode 1: --page <page_id> --type source|target  (simplified, no JSON)
+  // -----------------------------------------------------------------------
+  if (pageId) {
+    const captureType = getNamedArg(args, '--type') as 'source' | 'target' | undefined;
+    if (!captureType || !['source', 'target'].includes(captureType)) {
+      printUsage();
+    }
+
+    const page = loadPageConfig(pageId);
+    const url = captureType === 'source' ? page.sfra_url : page.target_url;
+    if (!url) {
+      console.error(`[Screenshot] No ${captureType === 'source' ? 'sfra_url' : 'target_url'} defined for page "${pageId}"`);
+      process.exit(1);
+    }
+
+    const outputPath = getNamedArg(args, '--output') || `screenshots/${pageId}-${captureType}.png`;
+    const selectorArg = getNamedArg(args, '--selector');
+
+    const mapping: ScreenshotMapping = {
+      viewport: page.viewport || { width: 1920, height: 1080 },
+    };
+
+    if (captureType === 'source' && page.source_config) {
+      if (page.source_config.dismiss_consent) {
+        mapping.dismiss_consent = true;
+        if (page.source_config.consent_button_selector) {
+          mapping.consent_button_selector = page.source_config.consent_button_selector;
+        }
+      }
+    }
+
+    if (selectorArg) {
+      mapping.element_selector = selectorArg;
+    }
+
+    console.log(`[Screenshot] Page mode: page=${pageId} type=${captureType}`);
+    return { url, outputPath, mapping };
+  }
+
+  // -----------------------------------------------------------------------
+  // Mode 2: Positional args (legacy) — <url> <output-path> [--mapping <json>]
+  // -----------------------------------------------------------------------
+  if (args.length < 2 || args[0].startsWith('--')) {
+    printUsage();
   }
 
   const url = args[0];
@@ -273,8 +366,15 @@ async function main() {
     }
   }
 
+  return { url, outputPath, mapping };
+}
+
+// CLI usage
+async function main() {
+  const options = resolveOptions(process.argv.slice(2));
+
   try {
-    await captureScreenshot({ url, outputPath, mapping });
+    await captureScreenshot(options);
     process.exit(0);
   } catch (error) {
     console.error('[Screenshot] Fatal error:', error);

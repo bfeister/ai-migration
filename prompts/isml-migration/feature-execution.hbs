@@ -63,7 +63,7 @@ Capture the SFRA source on the **first sub-plan** that produces code changes. Th
 does not change between sub-plans, so capture it only once.
 
 ```bash
-npx tsx scripts/capture-screenshots.ts "{{feature.sfra_url}}" "screenshots/{{feature.feature_id}}-source.png" --mapping '{{{sourceMapping}}}'
+tsx scripts/capture-screenshots.ts --page {{feature.page_id}} --type source{{#if feature.selector}} --selector "{{feature.selector}}"{{/if}} --output "screenshots/{{feature.feature_id}}-source.png"
 ```
 
 ### Step 2: Capture target screenshot
@@ -71,7 +71,7 @@ npx tsx scripts/capture-screenshots.ts "{{feature.sfra_url}}" "screenshots/{{fea
 Capture after every sub-plan that produces code changes.
 
 ```bash
-npx tsx scripts/capture-screenshots.ts "{{feature.target_url}}" "screenshots/{{feature.feature_id}}-target.png" --mapping '{{{targetMapping}}}'
+tsx scripts/capture-screenshots.ts --page {{feature.page_id}} --type target{{#if feature.selector}} --selector "{{feature.selector}}"{{/if}} --output "screenshots/{{feature.feature_id}}-target.png"
 ```
 
 ### Step 3: Visual comparison (REQUIRED)

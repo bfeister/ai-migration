@@ -43,6 +43,7 @@ interface FeatureConfig {
   name: string;
   description?: string;
   selector: string;
+  page_id: string;
   sfra_url: string;
   target_url: string;
   viewport: { width: number; height: number };
@@ -185,6 +186,7 @@ function loadFeatureConfigs(): FeatureConfig[] {
         name: feature.name,
         description: feature.description,
         selector: feature.selector,
+        page_id: result.page_id,
         sfra_url: page.sfra_url,
         target_url: page.target_url,
         viewport: page.viewport || { width: 1920, height: 1080 },
@@ -249,28 +251,6 @@ async function presentFeatureSelection(configs: FeatureConfig[]): Promise<Featur
 function compileFeaturePrompt(config: FeatureConfig): string {
   const template = getTemplate();
 
-  // Build screenshot mapping JSON for the capture-screenshots.ts CLI.
-  // Source mapping includes consent dismissal config from url-mappings.json.
-  const sourceMapping: Record<string, unknown> = {
-    viewport: config.viewport,
-  };
-  if (config.source_config?.dismiss_consent) {
-    sourceMapping.dismiss_consent = true;
-    if (config.source_config.consent_button_selector) {
-      sourceMapping.consent_button_selector = config.source_config.consent_button_selector;
-    }
-  }
-  const targetMapping: Record<string, unknown> = {
-    viewport: config.viewport,
-  };
-
-  // Scope screenshots to the feature's DOM region when a selector is available.
-  // Uses element.screenshot() in capture-screenshots.ts for precise capture.
-  if (config.selector) {
-    sourceMapping.element_selector = config.selector;
-    targetMapping.element_selector = config.selector;
-  }
-
   // 00-* features are scaffolding (route setup) — no visual UI to screenshot.
   const isScaffoldingFeature = config.feature_id.startsWith('00-');
 
@@ -278,8 +258,6 @@ function compileFeaturePrompt(config: FeatureConfig): string {
     feature: config,
     subPlanFiles: config.subPlanFiles,
     migrationMainPlanContent: fs.readFileSync(MIGRATION_MAIN_PLAN, 'utf-8').replaceAll('{{WORKSPACE_ROOT}}', WORKSPACE_ROOT),
-    sourceMapping: JSON.stringify(sourceMapping),
-    targetMapping: JSON.stringify(targetMapping),
     skipScreenshots: isScaffoldingFeature,
   });
 }
