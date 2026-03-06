@@ -210,6 +210,16 @@ if [ "${CLEAN_START:-false}" = "true" ]; then
         echo -e "${GREEN}[CLEAN]${NC}   ✓ Removed claude-output.jsonl"
     fi
 
+    # Remove generated screenshot wrapper artifacts
+    if [ -d "$WORKSPACE_ROOT/scripts/generated" ]; then
+        rm -rf "$WORKSPACE_ROOT/scripts/generated"
+        echo -e "${GREEN}[CLEAN]${NC}   ✓ Removed scripts/generated"
+    fi
+    if [ -f "$WORKSPACE_ROOT/analysis/screenshot-commands.json" ]; then
+        rm -f "$WORKSPACE_ROOT/analysis/screenshot-commands.json"
+        echo -e "${GREEN}[CLEAN]${NC}   ✓ Removed analysis/screenshot-commands.json"
+    fi
+
     # Optionally backup migration-log.md instead of deleting
     if [ -f "$LOG_FILE" ]; then
         backup_log="$WORKSPACE_ROOT/migration-log-backup-$(date -u +"%Y%m%d-%H%M%S").md"

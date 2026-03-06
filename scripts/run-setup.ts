@@ -4,10 +4,11 @@
  *
  * Interactive top-level script that walks through the entire setup workflow:
  * 1. Configuration (setup-migration.ts)
- * 2. Baseline screenshots (capture-baselines.ts)
- * 3. DOM analysis (analyze-features.ts)
- * 4. Plan generation (generate-plans.ts)
- * 5. Migration log initialization (init-migration-log.ts)
+ * 2. Screenshot wrapper generation (generate-screenshot-wrappers.ts)
+ * 3. Baseline screenshots (capture-baselines.ts)
+ * 4. DOM analysis (analyze-features.ts)
+ * 5. Plan generation (generate-plans.ts)
+ * 6. Migration log initialization (init-migration-log.ts)
  *
  * Usage:
  *   npx tsx scripts/run-setup.ts
@@ -178,6 +179,13 @@ const phases: Phase[] = [
     description: 'Analyze ISML templates to dynamically discover migratable features',
     script: 'discover-features-claude.ts',
     completionCheck: () => hasFeatureDiscovery(),
+  },
+  {
+    id: 'screenshotWrappers',
+    name: 'Screenshot Wrapper Manifest',
+    description: 'Generate safe screenshot wrapper scripts and manifest for feature execution',
+    script: 'generate-screenshot-wrappers.ts',
+    completionCheck: () => fs.existsSync(path.join(WORKSPACE_ROOT, 'analysis', 'screenshot-commands.json')),
   },
   {
     id: 'baselines',

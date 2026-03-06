@@ -19,7 +19,8 @@ import { spawn } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 import { loadDiscoveryResults, findPage, loadURLMappings } from './lib/discovery.js';
-import type { DiscoveredFeature, FeatureDiscoveryResult, PageConfig } from './lib/discovery.js';
+import { writeScreenshotWrappers } from './lib/screenshot-manifest.js';
+import type { ScreenshotCommandEntry, ScreenshotCommandManifest } from './lib/screenshot-manifest.js';
 
 // ============================================================================
 // Constants
@@ -53,6 +54,7 @@ interface FeatureConfig {
   };
   migration_priority: number;
   estimated_complexity: string;
+  screenshotCommands?: ScreenshotCommandEntry;
   subPlanCount: number;
   subPlanFiles: string[];
   executionSubPlanFiles?: string[];
@@ -181,7 +183,7 @@ function isPartialExecution(config: FeatureConfig): boolean {
   return getExecutionSubPlanCount(config) !== config.subPlanCount;
 }
 
-function loadFeatureConfigs(): FeatureConfig[] {
+function loadFeatureConfigs(screenshotManifest: ScreenshotCommandManifest): FeatureConfig[] {
   const discoveryResults = loadDiscoveryResults(MIGRATION_PLANS_DIR);
   if (discoveryResults.length === 0) {
     error('No discovery results found in migration-plans/');
@@ -219,6 +221,7 @@ function loadFeatureConfigs(): FeatureConfig[] {
         source_config: page.source_config,
         migration_priority: feature.migration_priority ?? 99,
         estimated_complexity: feature.estimated_complexity ?? 'unknown',
+        screenshotCommands: screenshotManifest.features[feature.feature_id],
         subPlanCount: subPlanFiles.length,
         subPlanFiles,
         isComplete: isFeatureComplete(feature.feature_id),
@@ -559,8 +562,13 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
+  const screenshotArtifacts = writeScreenshotWrappers(WORKSPACE_ROOT);
+  log(
+    `Generated screenshot wrapper manifest for ${Object.keys(screenshotArtifacts.manifest.features).length} feature(s)`
+  );
+
   // Load feature configs
-  let configs = loadFeatureConfigs();
+  let configs = loadFeatureConfigs(screenshotArtifacts.manifest);
   if (configs.length === 0) {
     error('No features found. Run discovery and plan generation first.');
     process.exit(1);

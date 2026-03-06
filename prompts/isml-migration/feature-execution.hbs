@@ -63,25 +63,27 @@ code will reveal how it is conditionally shown.
 ### Step 1: Capture source screenshot (once per feature)
 
 Capture the SFRA source on the **first sub-plan** that produces code changes. The source
-does not change between sub-plans, so capture it only once.
+does not change between sub-plans, so capture it only once. Use the generated wrapper
+command below exactly as written:
 
 ```bash
-tsx scripts/capture-screenshots.ts --page {{feature.page_id}} --type source{{#if feature.selector}} --selector "{{feature.selector}}"{{/if}} --output "screenshots/{{feature.feature_id}}-source.png"
+{{#if feature.screenshotCommands.sourceCommand}}{{feature.screenshotCommands.sourceCommand}}{{else}}tsx scripts/capture-screenshots.ts --page {{feature.page_id}} --type source{{#if feature.selector}} --selector "{{feature.selector}}"{{/if}} --output "screenshots/{{feature.feature_id}}-source.png"{{/if}}
 ```
 
 ### Step 2: Capture target screenshot
 
-Capture after every sub-plan that produces code changes.
+Capture after every sub-plan that produces code changes. Use the generated wrapper
+command below exactly as written:
 
 ```bash
-tsx scripts/capture-screenshots.ts --page {{feature.page_id}} --type target{{#if feature.selector}} --selector "{{feature.selector}}"{{/if}} --output "screenshots/{{feature.feature_id}}-target.png"
+{{#if feature.screenshotCommands.targetCommand}}{{feature.screenshotCommands.targetCommand}}{{else}}tsx scripts/capture-screenshots.ts --page {{feature.page_id}} --type target{{#if feature.selector}} --selector "{{feature.selector}}"{{/if}} --output "screenshots/{{feature.feature_id}}-target.png"{{/if}}
 ```
 
 ### Step 3: Visual comparison (REQUIRED)
 
 After capturing, **read both image files** using the Read tool:
-- `screenshots/{{feature.feature_id}}-source.png`
-- `screenshots/{{feature.feature_id}}-target.png`
+- `{{#if feature.screenshotCommands.sourceOutput}}{{feature.screenshotCommands.sourceOutput}}{{else}}screenshots/{{feature.feature_id}}-source.png{{/if}}`
+- `{{#if feature.screenshotCommands.targetOutput}}{{feature.screenshotCommands.targetOutput}}{{else}}screenshots/{{feature.feature_id}}-target.png{{/if}}`
 
 Compare them and check for:
 - **Layout differences** (grid columns, spacing, alignment)

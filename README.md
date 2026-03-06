@@ -1,4 +1,4 @@
-# Migration Demo
+# SFRA AI-Powered Migration
 
 This repository drives an SFRA to Storefront Next migration workflow.
 
@@ -226,7 +226,7 @@ These come from the root `.env` file via `docker/docker-compose.yml`:
 | `CLAUDE_CODE_SKIP_BEDROCK_AUTH` | Optional | unset | Skips extra Bedrock auth handling |
 | `SFRA_SOURCE` | Strongly recommended | none | Resolves ISML template paths |
 | `SFRA_TEMPLATE_BASE` | Optional | `cartridges/app_storefront_base/cartridge/templates/default` | Base path for relative ISML mappings |
-| `CLEAN_START` | Optional | `false` | Clears state and backs up `migration-log.md` |
+| `CLEAN_START` | Optional | `false` | Clears state, removes generated screenshot wrappers, and backs up `migration-log.md` |
 | `KEEPALIVE` | Optional | `false` | Prevents immediate exit on failure / completion |
 | `AUTO_START` | Optional | `true` | Runs the execution loop automatically |
 | `MIGRATION_PLAN` | Optional | `/workspace/migration-main-plan.md` | Plan file used by migration execution |
@@ -269,6 +269,8 @@ If `CLEAN_START=true`, the script removes or resets:
 - `intervention/needed-*.json`
 - `intervention/response-*.json`
 - `claude-output.jsonl`
+- `scripts/generated/`
+- `analysis/screenshot-commands.json`
 
 It also backs up `migration-log.md` instead of deleting it.
 
@@ -329,6 +331,9 @@ npx tsx scripts/execute-migration.ts
 ```
 
 That execution loop reads the generated discovery and sub-plan artifacts and runs migration work feature by feature.
+It also regenerates a screenshot wrapper manifest at `analysis/screenshot-commands.json`
+and per-feature wrapper scripts under `scripts/generated/` so Claude can invoke simple
+`tsx scripts/generated/capture-...` commands instead of flag-heavy screenshot CLI calls.
 
 ### 8. Exit and intervention handling
 
@@ -351,8 +356,10 @@ These are the directories you will interact with most often while running or deb
 | --- | --- | --- |
 | `migration-plans/` | Per-page discovery output such as `*-features.json` and related planning files | This is the first structured output from feature discovery and the main handoff into downstream analysis and planning |
 | `analysis/` | Per-feature extracted DOM structure, metadata, and focused screenshots | Use this to understand what the system observed about each discovered feature before plan generation |
+| `analysis/screenshot-commands.json` | Generated manifest mapping each feature to safe source/target screenshot commands | This is how the execution prompt gets simple wrapper-backed screenshot commands |
 | `sub-plans/` | Generated sub-plans grouped by feature | This is the work queue that the execution loop consumes feature by feature |
 | `screenshots/` | Baseline, analysis, source, and target screenshots | Useful for visual comparison, debugging regressions, and dashboard display |
+| `scripts/generated/` | Generated per-feature screenshot wrapper entrypoints | These wrappers preserve dynamic screenshot config while keeping the shell command permission-safe |
 | `.migration-state/` | Phase markers and per-feature completion files | This is how the workflow knows what can be skipped or resumed |
 | `intervention/` | `needed-*.json`, `response-*.json`, and intervention history | This is the pause-and-resume handshake when a migration step needs user input |
 
