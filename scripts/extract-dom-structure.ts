@@ -281,6 +281,8 @@ interface ExtractionResult {
   extractedAt: string;
   viewport: { width: number; height: number };
   wafBlocked?: { detected: true; signals: string[]; pageTitle: string };
+  /** True when the target selector did not match any element on the page. */
+  selectorMissing?: boolean;
   summary: {
     totalElements: number;
     links: { href: string; text?: string }[];
@@ -593,7 +595,7 @@ async function extractDomStructure(options: ExtractionOptions): Promise<Extracti
 
         var targetEl = document.querySelector(selector);
         if (!targetEl) {
-          throw new Error('Selector not found: ' + selector);
+          return null;
         }
 
         return extractNode(targetEl, 0);
@@ -616,7 +618,30 @@ async function extractDomStructure(options: ExtractionOptions): Promise<Extracti
     const rootNode = await page.evaluate(extractionScript.replace('arguments[0]', 'window.__extractConfig'));
 
     if (!rootNode) {
-      throw new Error(`Failed to extract DOM from selector: ${selector}`);
+      console.error(`[Extract] Selector not found on page: ${selector}`);
+      console.error(`[Extract] This feature may be conditionally rendered (e.g. search-only). Returning empty result.`);
+
+      const emptyNode: ExtractedNode = { tag: 'empty', styles: {}, children: [] };
+      const emptySummary = {
+        totalElements: 0,
+        links: [] as { href: string; text?: string }[],
+        images: [] as { src: string; alt?: string }[],
+        headings: [] as { level: number; text: string }[],
+        backgroundImages: [] as string[],
+        textColors: [] as string[],
+        backgroundColors: [] as string[],
+        fonts: [] as string[],
+      };
+
+      return {
+        url,
+        selector,
+        extractedAt: new Date().toISOString(),
+        viewport,
+        selectorMissing: true,
+        summary: emptySummary,
+        rootNode: emptyNode,
+      };
     }
 
     console.error(`[Extract] Extraction complete`);

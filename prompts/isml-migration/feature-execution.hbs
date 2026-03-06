@@ -51,6 +51,12 @@ Screenshots are the **primary quality gate** for this migration. The screenshot 
 below are **pre-approved** — run them directly without asking for permission. Skip
 screenshots only if a sub-plan made zero code changes (verification-only).
 
+**Important:** Some features are conditionally rendered (e.g. "did you mean" only appears
+after a misspelled search). If a screenshot command fails because the selector is not
+found on the page, **do not retry or treat it as a blocker**. Proceed with the migration
+using the ISML call chain analysis and sub-plan instructions alone. The feature's server-side
+code will reveal how it is conditionally shown.
+
 ### Step 1: Capture source screenshot (once per feature)
 
 Capture the SFRA source on the **first sub-plan** that produces code changes. The source

@@ -301,7 +301,7 @@ async function main(): Promise<void> {
   fs.mkdirSync(ANALYSIS_DIR, { recursive: true });
   fs.mkdirSync(SCREENSHOTS_DIR, { recursive: true });
 
-  const results: { feature: string; status: 'success' | 'error' | 'waf_blocked'; error?: string }[] = [];
+  const results: { feature: string; status: 'success' | 'error' | 'waf_blocked' | 'selector_missing'; error?: string }[] = [];
   let wafBlockDetected = false;
   // Track which discovery files need updating with analysis data
   const discoveryUpdates = new Map<string, { filePath: string; data: any }>();
@@ -315,6 +315,12 @@ async function main(): Promise<void> {
 
     try {
       const result = await analyzeFeature(feature, screenshotPath);
+
+      if (result.selectorMissing) {
+        log(`  Selector not found on page — feature may be conditionally rendered. Skipping analysis.`);
+        results.push({ feature: feature.feature_id, status: 'selector_missing' });
+        continue;
+      }
 
       if (result.wafBlocked) {
         if (!wafBlockDetected) {
@@ -397,6 +403,11 @@ async function main(): Promise<void> {
   const successCount = results.filter((r) => r.status === 'success').length;
   const errorCount = results.filter((r) => r.status === 'error').length;
   const wafCount = results.filter((r) => r.status === 'waf_blocked').length;
+  const selectorMissingCount = results.filter((r) => r.status === 'selector_missing').length;
+
+  if (selectorMissingCount > 0) {
+    log(`${selectorMissingCount} feature(s) had no matching selector on page (conditionally rendered) — skipped analysis`);
+  }
 
   if (wafCount > 0) {
     error(`Completed: ${wafCount} blocked by WAF/CDN, ${errorCount} failed, ${successCount} succeeded`);
@@ -407,10 +418,10 @@ async function main(): Promise<void> {
     error('  • Add the site to a CDN bypass list');
     process.exit(1);
   } else if (errorCount > 0) {
-    error(`Completed: ${successCount} succeeded, ${errorCount} failed`);
+    error(`Completed: ${successCount} succeeded, ${errorCount} failed, ${selectorMissingCount} skipped (no selector)`);
     process.exit(1);
   } else {
-    success(`All ${successCount} features analyzed successfully`);
+    success(`All ${successCount} features analyzed successfully${selectorMissingCount > 0 ? ` (${selectorMissingCount} skipped — selector not on page)` : ''}`);
     console.error(`\nNext: npx tsx scripts/generate-plans.ts`);
   }
 }
