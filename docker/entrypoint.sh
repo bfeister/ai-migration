@@ -44,7 +44,7 @@ else
         "Bash(pnpm:*)"
         # Git operations — scoped to non-destructive only (no reset, push, rebase, etc.)
         "Bash(git add:*)" "Bash(git commit:*)" "Bash(git status:*)"
-        "Bash(git diff:*)" "Bash(git log:*)"
+        "Bash(git diff:*)" "Bash(git log:*)" "Bash(git -C:*)"
         # Filesystem (archive dirs, file moves, cleanup)
         "Bash(mkdir:*)" "Bash(mv:*)" "Bash(cp:*)" "Bash(rm:*)" "Bash(touch:*)"
         # Read-only utilities

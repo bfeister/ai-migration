@@ -96,6 +96,17 @@ Document what you fixed in the commit message.
 - **Tailwind CSS only** - no Bootstrap, no CSS modules, no styled-components
 - **React Server Rendering by default** - use `'use client'` only when interactivity requires it
 
+### Shell & Tool Safety Rules
+
+These rules prevent permission denials that waste turns and slow migration:
+
+- **Files with `$` in the name** (e.g. `_app.category.$categoryId.tsx`): NEVER use `Bash(cp)`, `Bash(cat)`, `Bash(mv)` or any shell command for these files. The `$` triggers shell expansion detection and will be denied. Instead, use the **Read**, **Write**, and **Edit** tools which bypass the shell entirely.
+- **No `cd && ...` compound commands**: Commands like `cd /path && git add ...` or `cd /path && npx tsx ...` are denied because compound commands starting with `cd` require manual approval. Instead:
+  - For **git**: use absolute-path git commands without `cd`, e.g. `git add storefront-next/src/...` (the cwd is already the workspace root). If you must specify a repo path, use `git -C /absolute/path`.
+  - For **other commands**: use absolute paths without `cd` (e.g. `npx tsx /absolute/path/to/script.ts`)
+  - The working directory is already set to the workspace root — you rarely need `cd` at all.
+- **Git path prefixes**: When running git commands from the workspace root, files in the standalone project are at `storefront-next/src/...` — do NOT double the prefix (e.g. `storefront-next/storefront-next/...` is wrong).
+
 ---
 
 ## Completion
