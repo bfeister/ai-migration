@@ -88,8 +88,8 @@
     <section class="tabs-container">
       <div class="tabs">
         <button class="tab tab-active" data-tab="micro-plans">Micro-Plans</button>
+        <button class="tab" data-tab="migration-progress">Migration Progress</button>
         <button class="tab" data-tab="screenshots">Screenshots</button>
-        <button class="tab" data-tab="log">Migration Log</button>
         <button class="tab" data-tab="interventions">Interventions</button>
       </div>
 
@@ -102,6 +102,20 @@
           <div class="card-body">
             <div id="micro-plans-list" class="micro-plans-list">
               <div class="loading">Loading micro-plans...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: Migration Progress -->
+      <div class="tab-content" id="tab-migration-progress">
+        <div class="card">
+          <div class="card-header">
+            <h2>Claude Migration Progress</h2>
+          </div>
+          <div class="card-body">
+            <div id="migration-progress-content" class="migration-progress">
+              <div class="loading">Loading Claude migration progress...</div>
             </div>
           </div>
         </div>
@@ -122,20 +136,6 @@
           <div class="card-body">
             <div id="screenshots-gallery" class="screenshots-gallery">
               <div class="loading">Loading screenshots...</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Tab: Migration Log -->
-      <div class="tab-content" id="tab-log">
-        <div class="card">
-          <div class="card-header">
-            <h2>Migration Log</h2>
-          </div>
-          <div class="card-body">
-            <div id="migration-log-content" class="migration-log">
-              <div class="loading">Loading migration log...</div>
             </div>
           </div>
         </div>

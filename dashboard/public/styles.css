@@ -425,65 +425,273 @@ body {
 }
 
 /* ========================================
-   Migration Log
+   Migration Progress
    ======================================== */
 
-.migration-log {
-  font-size: 14px;
-  line-height: 1.8;
-  color: var(--color-text);
+.migration-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
-.migration-log h1,
-.migration-log h2,
-.migration-log h3 {
-  margin-top: 24px;
-  margin-bottom: 12px;
-  color: var(--color-text);
+.migration-progress-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
 }
 
-.migration-log h1 {
-  font-size: 24px;
-  border-bottom: 2px solid var(--color-border);
-  padding-bottom: 8px;
-}
-
-.migration-log h2 {
-  font-size: 20px;
-}
-
-.migration-log h3 {
-  font-size: 16px;
-}
-
-.migration-log p {
-  margin-bottom: 12px;
-}
-
-.migration-log ul {
-  margin-left: 24px;
-  margin-bottom: 12px;
-}
-
-.migration-log code {
+.migration-progress-stat {
+  padding: 16px;
   background: var(--color-bg);
-  padding: 2px 6px;
-  border-radius: var(--radius-sm);
-  font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.migration-progress-stat-label {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+  margin-bottom: 8px;
+}
+
+.migration-progress-stat-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-text);
+  word-break: break-word;
+}
+
+.migration-progress-section {
+  padding: 18px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.migration-progress-section-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: 12px;
+}
+
+.migration-progress-task-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 14px;
+  color: var(--color-text-muted);
   font-size: 13px;
 }
 
-.migration-log pre {
-  background: var(--color-bg);
-  padding: 16px;
-  border-radius: var(--radius-md);
-  overflow-x: auto;
-  margin-bottom: 16px;
+.migration-progress-task-summary span {
+  padding: 6px 10px;
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
 }
 
-.migration-log pre code {
-  background: none;
-  padding: 0;
+.migration-progress-todos {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.migration-progress-todo-item {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 12px 14px;
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+}
+
+.migration-progress-todo-status {
+  min-width: 90px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 4px 8px;
+  border-radius: 999px;
+  text-align: center;
+}
+
+.migration-progress-todo-status.pending {
+  background: rgba(139, 146, 184, 0.2);
+  color: var(--color-text-muted);
+}
+
+.migration-progress-todo-status.in_progress {
+  background: rgba(59, 130, 246, 0.18);
+  color: var(--color-primary);
+}
+
+.migration-progress-todo-status.completed {
+  background: rgba(16, 185, 129, 0.18);
+  color: var(--color-success);
+}
+
+.migration-progress-todo-status.cancelled {
+  background: rgba(239, 68, 68, 0.18);
+  color: var(--color-danger);
+}
+
+.migration-progress-result {
+  padding: 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-card);
+}
+
+.migration-progress-result.success {
+  border-color: rgba(16, 185, 129, 0.35);
+}
+
+.migration-progress-result.error {
+  border-color: rgba(239, 68, 68, 0.35);
+}
+
+.migration-progress-result-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: 6px;
+}
+
+.migration-progress-result-meta {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  margin-bottom: 10px;
+}
+
+.migration-progress-result-summary {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--color-text);
+}
+
+.migration-progress-columns {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+.migration-progress-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.migration-progress-list-item {
+  padding: 12px 14px;
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+}
+
+.migration-progress-list-item-plain {
+  padding: 10px 12px;
+}
+
+.migration-progress-parsed-item {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.migration-progress-list-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: 4px;
+}
+
+.migration-progress-list-meta {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  margin-bottom: 8px;
+}
+
+.migration-progress-list-body {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-text);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.migration-progress-literal {
+  font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+}
+
+.migration-progress-audit-trail {
+  max-height: 960px;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.migration-progress-parsed-trail {
+  max-height: 960px;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.migration-progress-audit-row {
+  padding: 10px 12px;
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+}
+
+.migration-progress-audit-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 12px;
+  color: var(--color-text-muted);
+  font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+}
+
+.migration-progress-audit-line {
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.migration-progress-audit-kind {
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+}
+
+.migration-progress-audit-kind.json {
+  color: var(--color-primary);
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+.migration-progress-audit-kind.literal {
+  color: var(--color-text-muted);
+}
+
+.migration-progress-audit-kind.invalid-json {
+  color: var(--color-danger);
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.migration-progress-audit-session {
+  color: var(--color-text-muted);
+}
+
+.empty-state.compact {
+  padding: 16px 12px;
 }
 
 /* ========================================
