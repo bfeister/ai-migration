@@ -277,7 +277,7 @@ function compileFeaturePrompt(config: FeatureConfig): string {
   return template({
     feature: config,
     subPlanFiles: config.subPlanFiles,
-    migrationMainPlanPath: MIGRATION_MAIN_PLAN,
+    migrationMainPlanContent: fs.readFileSync(MIGRATION_MAIN_PLAN, 'utf-8').replaceAll('{{WORKSPACE_ROOT}}', WORKSPACE_ROOT),
     sourceMapping: JSON.stringify(sourceMapping),
     targetMapping: JSON.stringify(targetMapping),
     skipScreenshots: isScaffoldingFeature,

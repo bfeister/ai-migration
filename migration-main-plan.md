@@ -8,7 +8,7 @@ You are executing a **micro-iteration migration loop** to migrate SFRA pages to 
 
 ### 1. Context Loading (Sliding Window)
 
-Read `/workspace/migration-log.md` and extract the **last 5 log entries** to understand:
+Read `{{WORKSPACE_ROOT}}/migration-log.md` and extract the **last 5 log entries** to understand:
 - What was just completed
 - What worked vs what had issues
 - Current momentum and patterns
@@ -21,7 +21,7 @@ Read `/workspace/migration-log.md` and extract the **last 5 log entries** to und
 
 ### 2. Load URL Mapping Configuration
 
-Read `/workspace/url-mappings.json` to get the list of features and their URL mappings.
+Read `{{WORKSPACE_ROOT}}/url-mappings.json` to get the list of features and their URL mappings.
 
 For the **current feature**, extract:
 - `feature_id` (e.g., "01-homepage-hero")
@@ -34,7 +34,7 @@ For the **current feature**, extract:
 # Determine feature from micro-plan path or migration log
 # For 01-homepage-content directory, use feature_id "01-homepage-hero" from url-mappings.json
 FEATURE_ID="01-homepage-hero"  # Maps to sub-plans/01-homepage-content/
-MAPPING=$(jq -r ".mappings[] | select(.feature_id == \"$FEATURE_ID\")" /workspace/url-mappings.json)
+MAPPING=$(jq -r ".mappings[] | select(.feature_id == \"$FEATURE_ID\")" {{WORKSPACE_ROOT}}/url-mappings.json)
 SFRA_URL=$(echo "$MAPPING" | jq -r '.sfra_url')
 TARGET_URL=$(echo "$MAPPING" | jq -r '.target_url')
 ```
@@ -57,15 +57,15 @@ Use the screenshot capture script to explore the SFRA source page and discover t
 
 ```bash
 # 1. Capture exploratory screenshot of SFRA page (before dismissing consent)
-tsx /workspace/scripts/capture-screenshots.ts \
+tsx {{WORKSPACE_ROOT}}/scripts/capture-screenshots.ts \
   "$SFRA_URL" \
-  "/workspace/screenshots/exploration-${FEATURE_ID}-initial.png" \
+  "{{WORKSPACE_ROOT}}/screenshots/exploration-${FEATURE_ID}-initial.png" \
   --mapping '{"viewport": {"width": 1280, "height": 800}}'
 
 # 2. Capture with consent modal dismissed
-tsx /workspace/scripts/capture-screenshots.ts \
+tsx {{WORKSPACE_ROOT}}/scripts/capture-screenshots.ts \
   "$SFRA_URL" \
-  "/workspace/screenshots/exploration-${FEATURE_ID}-after-dismiss.png" \
+  "{{WORKSPACE_ROOT}}/screenshots/exploration-${FEATURE_ID}-after-dismiss.png" \
   --mapping '{"viewport": {"width": 1280, "height": 800}, "dismiss_consent": true, "consent_button_selector": "button.affirm"}'
 
 # 3. View the screenshots to identify page structure
@@ -89,13 +89,13 @@ Document findings for manual update to url-mappings.json:
 
 Based on the migration log:
 - Identify the last completed subplan (e.g., "subplan-01-02")
-- Load the next sequential micro-plan file: `/workspace/sub-plans/{feature_directory}/subplan-{XX}-{YY}.md`
+- Load the next sequential micro-plan file: `{{WORKSPACE_ROOT}}/sub-plans/{feature_directory}/subplan-{XX}-{YY}.md`
 - If all micro-plans in current feature are complete, move to next feature
 - If all features complete, write final summary and exit
 
 **Directory structure:**
 ```
-/workspace/sub-plans/
+{{WORKSPACE_ROOT}}/sub-plans/
 ├── 01-homepage-content/        # Feature directory (not feature_id)
 │   ├── subplan-01-01.md
 │   ├── subplan-01-02.md
@@ -125,14 +125,14 @@ Read the micro-plan file and follow its instructions precisely. Each micro-plan 
 **Step 6.1: Build and start production server**
 
 ```bash
-tsx /workspace/scripts/prod-server.ts start
+tsx {{WORKSPACE_ROOT}}/scripts/prod-server.ts start
 ```
 
 This builds the project, starts the production server, and verifies it's healthy. Port is auto-detected from `storefront-next/package.json`. Exits 0 if healthy, 1 if unhealthy (errors printed to stderr, details in `prod-server.log`).
 
 If it exits non-zero, write an intervention request and exit:
 ```bash
-cat > /workspace/intervention/needed-migration-worker.json <<EOF
+cat > {{WORKSPACE_ROOT}}/intervention/needed-migration-worker.json <<EOF
 {
   "worker_id": "migration-worker",
   "question": "Build failed with errors. How should I proceed?",
@@ -172,15 +172,15 @@ TARGET_MAPPING=$(echo "$MAPPING" | jq '{
 }')
 
 # Capture SFRA source screenshot with source config
-tsx /workspace/scripts/capture-screenshots.ts \
+tsx {{WORKSPACE_ROOT}}/scripts/capture-screenshots.ts \
   "$SFRA_URL" \
-  "/workspace/screenshots/${TIMESTAMP}-${SUBPLAN_ID}-source.png" \
+  "{{WORKSPACE_ROOT}}/screenshots/${TIMESTAMP}-${SUBPLAN_ID}-source.png" \
   --mapping "$SOURCE_MAPPING"
 
 # Capture Storefront Next target screenshot with target config
-tsx /workspace/scripts/capture-screenshots.ts \
+tsx {{WORKSPACE_ROOT}}/scripts/capture-screenshots.ts \
   "$SERVER_URL" \
-  "/workspace/screenshots/${TIMESTAMP}-${SUBPLAN_ID}-target.png" \
+  "{{WORKSPACE_ROOT}}/screenshots/${TIMESTAMP}-${SUBPLAN_ID}-target.png" \
   --mapping "$TARGET_MAPPING"
 ```
 
@@ -219,7 +219,7 @@ With both images and the server log loaded, identify what's different and *why*:
 When the comparison reveals fixable issues:
 
 1. Make a targeted code change to address the specific difference identified in 7.2
-2. Rebuild and re-verify: `tsx /workspace/scripts/prod-server.ts start`
+2. Rebuild and re-verify: `tsx {{WORKSPACE_ROOT}}/scripts/prod-server.ts start`
 3. Re-capture the target screenshot (Step 6.2 — source screenshot can be reused)
 4. Go back to Step 7.1 to re-compare
 
@@ -230,7 +230,7 @@ Cap this inner loop at **3 attempts**. Each attempt should fix a specific issue 
 If 3 refinement attempts haven't converged, or the issue is unclear:
 
 ```bash
-cat > /workspace/intervention/needed-migration-worker.json <<EOF
+cat > {{WORKSPACE_ROOT}}/intervention/needed-migration-worker.json <<EOF
 {
   "worker_id": "migration-worker",
   "question": "Visual refinement stalled after 3 attempts for ${SUBPLAN_ID}. Remaining differences: [list]. How should I proceed?",
@@ -253,7 +253,7 @@ EOF
 Commit all changes with a descriptive message:
 
 ```bash
-cd /workspace/storefront-next
+cd {{WORKSPACE_ROOT}}/storefront-next
 git add -A
 git commit -m "subplan-{XX}-{YY}: {Brief description}
 
@@ -275,12 +275,12 @@ Screenshots:
 
 ### 9. Progress Logging
 
-**Use the log-progress CLI script** to log this iteration to `/workspace/migration-log.md`.
+**Use the log-progress CLI script** to log this iteration to `{{WORKSPACE_ROOT}}/migration-log.md`.
 
 **For successful iterations:**
 
 ```bash
-tsx /workspace/scripts/log-progress-cli.ts \
+tsx {{WORKSPACE_ROOT}}/scripts/log-progress-cli.ts \
   --subplan-id "01-02" \
   --status "success" \
   --summary "Implemented hero section layout matching SFRA baseline" \
@@ -294,7 +294,7 @@ tsx /workspace/scripts/log-progress-cli.ts \
 If dev server failed, compilation errors occurred, or other blocking issues:
 
 ```bash
-tsx /workspace/scripts/log-progress-cli.ts \
+tsx {{WORKSPACE_ROOT}}/scripts/log-progress-cli.ts \
   --subplan-id "01-03" \
   --status "failed" \
   --summary "Attempted to implement navigation component" \
@@ -355,10 +355,10 @@ After logging, **immediately determine the next action and continue**:
 1. Review error output on stderr
 2. If blocking errors (e.g., "Module not found"):
    - Attempt one fix based on error message
-   - Re-check with `tsx /workspace/scripts/prod-server.ts health`
+   - Re-check with `tsx {{WORKSPACE_ROOT}}/scripts/prod-server.ts health`
 3. If three attempts fail to fix, write an intervention request:
    ```bash
-   cat > /workspace/intervention/needed-migration-worker.json <<EOF
+   cat > {{WORKSPACE_ROOT}}/intervention/needed-migration-worker.json <<EOF
    {
      "worker_id": "migration-worker",
      "question": "Server unhealthy with build errors. How should I fix this?",
@@ -379,7 +379,7 @@ After logging, **immediately determine the next action and continue**:
 ### User Intervention
 To request user intervention:
 
-1. Write a JSON file to `/workspace/intervention/needed-{worker-id}.json`
+1. Write a JSON file to `{{WORKSPACE_ROOT}}/intervention/needed-{worker-id}.json`
 2. **IMPORTANT**: After requesting intervention, Claude MUST:
    - Log the intervention request to migration-log.md
    - Exit gracefully to allow external response
@@ -388,7 +388,7 @@ To request user intervention:
 **Example Flow**:
 ```bash
 # Write intervention request JSON
-cat > /workspace/intervention/needed-migration-worker.json <<EOF
+cat > {{WORKSPACE_ROOT}}/intervention/needed-migration-worker.json <<EOF
 {
   "worker_id": "migration-worker",
   "question": "Dev server failed with errors. How should I proceed?",
@@ -398,7 +398,7 @@ cat > /workspace/intervention/needed-migration-worker.json <<EOF
 EOF
 
 # Log the intervention to migration-log.md
-tsx /workspace/scripts/log-progress-cli.ts \
+tsx {{WORKSPACE_ROOT}}/scripts/log-progress-cli.ts \
   --subplan-id "01-03" \
   --status "failed" \
   --summary "Dev server failed, awaiting user intervention" \
@@ -423,38 +423,38 @@ Claude will be resumed automatically and should continue from where it left off.
 ## Available CLI Scripts & Conventions
 
 The following CLI scripts and conventions replace the former MCP tools:
-- **Log progress**: `tsx /workspace/scripts/log-progress-cli.ts <args>` - Log iteration progress to migration-log.md (auto-initializes if needed)
-- **Production server**: `tsx /workspace/scripts/prod-server.ts <start|stop|health>` - Manage production server lifecycle. Exits 0 (healthy) or 1 (errors on stderr)
-- **Capture screenshots**: `tsx /workspace/scripts/capture-screenshots.ts <url> <output-path> [--mapping '<json>']` - Capture source/target screenshots
+- **Log progress**: `tsx {{WORKSPACE_ROOT}}/scripts/log-progress-cli.ts <args>` - Log iteration progress to migration-log.md (auto-initializes if needed)
+- **Production server**: `tsx {{WORKSPACE_ROOT}}/scripts/prod-server.ts <start|stop|health>` - Manage production server lifecycle. Exits 0 (healthy) or 1 (errors on stderr)
+- **Capture screenshots**: `tsx {{WORKSPACE_ROOT}}/scripts/capture-screenshots.ts <url> <output-path> [--mapping '<json>']` - Capture source/target screenshots
 - **Git commit**: `git add -A && git commit -m "subplan-XX-YY: description"` - Commit with standardized message
 - **Get next micro-plan**: Read `migration-log.md` to find last completed subplan, then read next file from `sub-plans/` directory
-- **Parse URL mapping**: `jq '.mappings[] | select(.feature_id == "FEATURE_ID")' /workspace/url-mappings.json`
+- **Parse URL mapping**: `jq '.mappings[] | select(.feature_id == "FEATURE_ID")' {{WORKSPACE_ROOT}}/url-mappings.json`
 - **Request user intervention**: Write JSON to `intervention/needed-{worker-id}.json` and exit gracefully
 
 ## First Action: Establish Baseline (If Starting Fresh)
 
 **Before executing any micro-plans**, if this is the first time running the migration loop:
 
-1. Read `/workspace/migration-log.md` - if empty or doesn't exist, this is a fresh start
+1. Read `{{WORKSPACE_ROOT}}/migration-log.md` - if empty or doesn't exist, this is a fresh start
 2. **Capture baseline screenshots** to establish the "before" state:
    ```bash
    TIMESTAMP=$(date +%Y%m%d-%H%M%S)
    FEATURE_ID="01-homepage-hero"
-   MAPPING=$(jq -r ".mappings[] | select(.feature_id == \"$FEATURE_ID\")" /workspace/url-mappings.json)
+   MAPPING=$(jq -r ".mappings[] | select(.feature_id == \"$FEATURE_ID\")" {{WORKSPACE_ROOT}}/url-mappings.json)
    SFRA_URL=$(echo "$MAPPING" | jq -r '.sfra_url')
    SOURCE_MAPPING=$(echo "$MAPPING" | jq '{viewport: .viewport, dismiss_consent: .source_config.dismiss_consent, consent_button_selector: .source_config.consent_button_selector}')
    TARGET_MAPPING=$(echo "$MAPPING" | jq '{viewport: .viewport}')
 
    # Capture SFRA source baseline
-   tsx /workspace/scripts/capture-screenshots.ts \
+   tsx {{WORKSPACE_ROOT}}/scripts/capture-screenshots.ts \
      "$SFRA_URL" \
-     "/workspace/screenshots/${TIMESTAMP}-subplan-00-00-baseline-source.png" \
+     "{{WORKSPACE_ROOT}}/screenshots/${TIMESTAMP}-subplan-00-00-baseline-source.png" \
      --mapping "$SOURCE_MAPPING"
 
    # Capture Storefront Next target baseline
-   tsx /workspace/scripts/capture-screenshots.ts \
+   tsx {{WORKSPACE_ROOT}}/scripts/capture-screenshots.ts \
      "http://localhost:3000" \
-     "/workspace/screenshots/${TIMESTAMP}-subplan-00-00-baseline-target.png" \
+     "{{WORKSPACE_ROOT}}/screenshots/${TIMESTAMP}-subplan-00-00-baseline-target.png" \
      --mapping "$TARGET_MAPPING"
    ```
    This creates:
@@ -463,7 +463,7 @@ The following CLI scripts and conventions replace the former MCP tools:
 
 3. Log the baseline capture (no git commit needed for baseline):
    ```bash
-   tsx /workspace/scripts/log-progress-cli.ts \
+   tsx {{WORKSPACE_ROOT}}/scripts/log-progress-cli.ts \
      --subplan-id "00-00-baseline" \
      --status "success" \
      --summary "Captured baseline screenshots of SFRA and Storefront Next before migration" \
@@ -474,8 +474,8 @@ The following CLI scripts and conventions replace the former MCP tools:
 
 **Then proceed to normal iteration loop:**
 
-1. Read `/workspace/migration-log.md` (tool will auto-initialize if missing)
-2. Read `/workspace/url-mappings.json`
+1. Read `{{WORKSPACE_ROOT}}/migration-log.md` (tool will auto-initialize if missing)
+2. Read `{{WORKSPACE_ROOT}}/url-mappings.json`
 3. Determine next micro-plan to execute (start with subplan-01-01 if completed baseline, or continue from last completed)
 4. Execute the micro-plan (steps 4-8)
 5. **IMMEDIATELY loop back to step 1** to execute the next micro-plan
@@ -486,7 +486,7 @@ The following CLI scripts and conventions replace the former MCP tools:
 - Log progress
 - **Automatically proceed to the next micro-plan** (no user prompt needed)
 
-If no micro-plans exist yet at `/workspace/sub-plans/`, you should:
+If no micro-plans exist yet at `{{WORKSPACE_ROOT}}/sub-plans/`, you should:
 1. Inform the user that micro-plans directory doesn't exist
 2. Suggest creating the first micro-plan for `01-homepage-content`
 3. Wait for user to create micro-plan files before starting loop
