@@ -1,772 +1,484 @@
-# Migration Demo - Quick Start
+# Migration Demo
 
-**Purpose:** Run the automated SFRA → storefront-next migration demo
-**Duration:** Varies by plan (typically 20-60 minutes)
-**Prerequisites:** Docker, .env file with API credentials
+This repository drives an SFRA to Storefront Next migration workflow.
 
----
+The main entrypoint is `docker/entrypoint.sh`. In its current form it:
 
-## 🚀 Quick Start (TL;DR)
+- Optionally wipes migration state for a clean run
+- Bootstraps `storefront-next/` from the Storefront Next monorepo
+- Creates a baseline git commit for `storefront-next/`
+- Runs page setup, feature discovery, feature analysis, and sub-plan generation
+- Launches the migration execution loop
+- Pauses for intervention when needed and can resume on the next run
+
+## Quick Start
+
+Both modes use `docker/entrypoint.sh`, but they differ in how Claude permissions are handled:
+
+- Host mode uses the host-mode allow-list with `--permission-mode acceptEdits`
+- Docker mode runs inside the container with `--dangerously-skip-permissions`
+
+### Quick Start: Host Mode
+
+Use this when you want the migration to run directly on your machine instead of inside Docker.
+
+Prerequisites:
+
+- `node`, `pnpm`, `git`, and `claude` installed on the host
+- Chrome or Chromium installed on the host
+- A local checkout of the Storefront Next monorepo
+- A local checkout of `storefront-reference-architecture`
+
+From the repo root:
 
 ```bash
-cd /Users/bfeister/dev/test-storefront
-
 cp .env.example .env
-
-# Update needed environment variables depending on workflow
-
-CLEAN_START=true # used for re-initiating the project bootstrap phase (`create-storefront, `pnpm install`, etc)
-KEEPALIVE=true # keep the container running instead of exiting
-AUTO_START=true # prevent auto-start, keep the container running
-
-# First time or clean start
-docker compose up
 ```
 
-### Environment Flags
-
--   **`CLEAN_START=true`** - Remove session, state, and intervention files to start fresh
--   **`KEEPALIVE=true`** - Keep container running on errors/exits for inspection (debug mode)
--   **`AUTO_START=false`** - Skip automatic migration execution, keep container running
--   **`MIGRATION_PLAN=<path>`** - Use custom migration plan file
-
-**Combine flags:**
+Set at least these values in `.env`:
 
 ```bash
-# Clean start + keep alive on errors
-CLEAN_START=true KEEPALIVE=true docker compose up
+# Choose one auth method
+ANTHROPIC_API_KEY=your_key_here
 
-# Manual execution mode
-AUTO_START=false docker compose up
-# Then: docker compose exec claude-migration bash
+# Or use Bedrock / gateway auth instead
+# ANTHROPIC_AUTH_TOKEN=your_token_here
+# ANTHROPIC_BEDROCK_BASE_URL=https://your-bedrock-endpoint
+# CLAUDE_CODE_USE_BEDROCK=1
+# CLAUDE_CODE_SKIP_BEDROCK_AUTH=1
+
+SFRA_SOURCE=/absolute/path/to/storefront-reference-architecture
+
+# Optional
+# CLEAN_START=true
+# KEEPALIVE=false
+# AUTO_START=true
 ```
 
----
-
-## 📚 Complete Pipeline Overview (From Zero to React)
-
-The migration pipeline consists of **two major phases** that transform SFRA templates into React components:
-
----
-
-### **Phase 1: Bootstrap** (Automated via `docker/entrypoint.sh`)
-
-Prepares the development environment and tooling. Runs automatically on `docker compose up`.
-
-#### Phase 1.1: Build Monorepo & Generate Standalone Project
-
--   **What:** Builds the Storefront Next monorepo and generates a standalone React project
--   **Actions:**
-    -   Copy monorepo source to `/tmp` (container) or use in-place (host)
-    -   Run `pnpm install` and `pnpm -r build` to build all packages
-    -   Run `create-storefront` CLI to generate standalone project from template
-    -   Convert `workspace:*` dependencies to `file://` references to local packages
-    -   Install dependencies with symlinked node_modules (container) or direct (host)
--   **Output:**
-    -   Built monorepo at `/tmp/SFCC-Odyssey` (container) or `$MONOREPO_SOURCE` (host)
-    -   Standalone project at `storefront-next/` with working `sfnext` CLI
--   **Marker:** `.migration-state/phase1-complete`
-
-#### Phase 1.2: Commit Storefront-Next Baseline
-
--   **What:** Create initial git commit for the generated React project
--   **Actions:**
-    -   Add `storefront-next/` directory to git
-    -   Commit with message "chore: add storefront-next baseline after bootstrap"
--   **Output:** Git commit establishing baseline for tracking migration changes
--   **Marker:** `.migration-state/baseline-committed`
-
-#### Phase 1.3: Playwright & CLI Tools Setup
-
--   **What:** Configure Playwright and CLI scripts for browser automation and migration tooling
--   **Actions:**
-    -   Configure `~/.config/claude-code/mcp.json` with Playwright MCP server
-    -   Install Playwright browsers (Chromium)
--   **Output:**
-    -   `~/.config/claude-code/mcp.json` (Playwright MCP configuration)
--   **Marker:** `.migration-state/phase3-complete`
--   **Note:** The custom `mcp-server/` was removed in favor of standalone CLI scripts in `scripts/` (e.g., `log-progress-cli.ts`, `capture-screenshots.ts`).
-
-**To run Phase 1 only:**
+Then run:
 
 ```bash
-# Manual (host)
-MONOREPO_SOURCE=/path/to/SFCC-Odyssey ./docker/entrypoint.sh
+set -a
+source .env
+set +a
 
-# Automated (future feature)
-docker compose up
+MONOREPO_SOURCE="$HOME/dev/SFCC-Odyssey" \
+./docker/entrypoint.sh
 ```
 
----
+Notes:
 
-### **Phase 2: Feature Discovery & Sub-Plan Generation** (Scripts in `scripts/`)
+- This path runs on the host and uses the host allow-list instead of `--dangerously-skip-permissions`
+- For a first run, set `CLEAN_START=true` in `.env`
 
-Dynamically discovers features from ISML templates and generates atomic migration sub-plans.
+### Quick Start: Docker Mode
 
-**Architecture:** Discovery drives Phase 2. `discover-features-claude.ts` dynamically discovers features from ISML templates and writes them to `migration-plans/{page-id}-features.json`. `url-mappings.json` provides page-level config (URLs, ISML paths, viewport).
+Use this when you want the migration to run inside the `claude-migration` container.
 
-See [`scripts/WORKFLOW.md`](./scripts/WORKFLOW.md) for detailed architecture.
-
-#### Step 2.1: Feature Discovery (`discover-features-claude.ts`)
-
--   **What:** Claude analyzes ISML template to discover migratable features
--   **How:**
-    -   Parse ISML for `<isslot>`, `<isinclude>`, and static sections
-    -   Resolve slot configurations via `slots.xml`
-    -   Capture full-page screenshot + DOM extraction
-    -   Invoke Claude CLI with discovery prompt (uses file paths, not inline content)
-    -   Claude determines feature boundaries, selectors, priorities
--   **Input:**
-    -   ISML template path (e.g., `home/homePage.isml`)
-    -   `slots.xml` for slot resolution
-    -   SFRA URL for screenshot capture
--   **Output:** `migration-plans/{page-id}-features.json` with:
-    -   Feature IDs (e.g., `01-home-hero`, `02-home-categories`)
-    -   Feature names and descriptions
-    -   CSS selectors for DOM extraction
-    -   Slot IDs and ISML line references
-    -   Migration priority order
-
-**Run:**
+From the repo root:
 
 ```bash
-CLAUDECODE= npx tsx scripts/discover-features-claude.ts --page home
+cp .env.example .env
 ```
 
-**Key Innovation:** Features are **discovered dynamically** by Claude, not hardcoded. Claude reads ISML template files on-demand using the Read tool, avoiding massive prompt context.
-
-#### Step 2.2: Feature-Specific Analysis (`analyze-features.ts`)
-
--   **What:** Extract DOM structure and capture screenshots for each discovered feature
--   **How:**
-    -   Read feature definitions from `migration-plans/{page-id}-features.json`
-    -   For each feature, use Claude-determined selector
-    -   Extract DOM structure with Playwright
-    -   Capture focused screenshot of that section
--   **Output:** For each feature in `analysis/{feature-id}/`:
-    -   `dom-extraction.json` - Structural data (headings, colors, fonts, layout)
-    -   `screenshot.png` - Visual reference
-
-**Run:**
+Set at least these values in `.env`:
 
 ```bash
-npx tsx scripts/analyze-features.ts --features 01-home-hero,02-home-categories
+# Choose one auth method
+ANTHROPIC_API_KEY=your_key_here
+
+# Or use Bedrock / gateway auth instead
+# ANTHROPIC_AUTH_TOKEN=your_token_here
+# ANTHROPIC_BEDROCK_BASE_URL=https://your-bedrock-endpoint
+# CLAUDE_CODE_USE_BEDROCK=1
+# CLAUDE_CODE_SKIP_BEDROCK_AUTH=1
+
+SFRA_SOURCE=/absolute/path/to/storefront-reference-architecture
+
+# Optional
+# CLEAN_START=true
+# KEEPALIVE=false
+# AUTO_START=true
+# MIGRATION_PLAN=/workspace/migration-main-plan.md
 ```
 
-#### Step 2.3: Sub-Plan Generation (`generate-subplan-claude.ts`)
-
--   **What:** Generate atomic migration sub-plans iteratively using Claude CLI
--   **How:**
-    -   For each discovered feature, read:
-        -   DOM extraction + screenshots from Step 2.2
-        -   ISML template content (via file path reference)
-        -   Slot configurations (via file path reference)
-        -   Previously generated sub-plans (for context)
-    -   Invoke Claude CLI with iterative sub-plan prompt
-    -   Claude generates ONE sub-plan per invocation
-    -   Continue until Claude outputs `<!-- STATUS: COMPLETE -->`
--   **Input:**
-    -   Feature discovery results from Step 2.1
-    -   Feature analysis from Step 2.2
-    -   `prompts/isml-migration/iterative-subplan.hbs` template
--   **Output:** `sub-plans/{feature-id}/subplan-01-01.md`, `subplan-01-02.md`, etc.
-    -   Each sub-plan is an atomic unit of work
-    -   Ordered by dependency (layout → components → data → styling)
-
-**Run:**
+Then run:
 
 ```bash
-CLAUDECODE= npx tsx scripts/generate-subplan-claude.ts \
-  --features 01-home-hero \
-  --max-plans 10
+STOREFRONT_MONOREPO_PATH="$HOME/dev/SFCC-Odyssey" \
+docker compose -f docker/docker-compose.yml up
 ```
 
-**Key Innovation:** Prompts pass **file paths** to Claude, not full file contents. Claude uses Read/Grep tools to explore on-demand, avoiding context overload.
+Notes:
 
-#### Step 2.4: Initialize Migration Log (`init-migration-log.ts`)
+- This path runs `docker/entrypoint.sh` inside the container
+- In container mode, Claude uses `--dangerously-skip-permissions`
+- `STOREFRONT_MONOREPO_PATH` must be supplied in the shell when you launch Compose
+- The migration workflow should use the production preview server, not `pnpm dev` / Vite
+- Internal migration scripts in Docker should target `http://localhost:3000`; the `3009:3000` mapping is for host-side browser access
+- For a first run, set `CLEAN_START=true` in `.env`
 
--   **What:** Create initial migration log with headers and feature summary
--   **Output:** `migration-log.md` ready for progress tracking
+### Optional: Run The Dashboard
 
-**Run:**
+The dashboard is not started by either quick-start path. Run it separately if you want the UI:
 
 ```bash
+cd dashboard
+pnpm install
+pnpm start
+```
+
+Then open <http://localhost:3030>.
+
+### Execution Range Selection
+
+When the execution loop starts, it first asks which features to run. For each selected
+feature with multiple sub-plans, it then asks for:
+
+- the first sub-plan to execute
+- the last sub-plan to execute
+
+Only that inclusive sub-plan range is passed to Claude, and the run stops after the
+selected last sub-plan instead of continuing through the rest of the feature.
+
+### Resume Or Stop
+
+Resume host mode:
+
+```bash
+set -a
+source .env
+set +a
+
+MONOREPO_SOURCE="$HOME/dev/SFCC-Odyssey" \
+./docker/entrypoint.sh
+```
+
+Resume Docker mode:
+
+```bash
+STOREFRONT_MONOREPO_PATH="$HOME/dev/SFCC-Odyssey" \
+docker compose -f docker/docker-compose.yml up
+```
+
+Stop Docker mode:
+
+```bash
+docker compose -f docker/docker-compose.yml down
+```
+
+## Common Run Modes
+
+Fresh run from scratch:
+
+Set `CLEAN_START=true` in `.env`, then run:
+
+```bash
+STOREFRONT_MONOREPO_PATH="$HOME/dev/SFCC-Odyssey" \
+docker compose -f docker/docker-compose.yml up
+```
+
+Keep the container alive after errors so you can inspect it:
+
+Set `KEEPALIVE=true` in `.env`, then run:
+
+```bash
+STOREFRONT_MONOREPO_PATH="$HOME/dev/SFCC-Odyssey" \
+docker compose -f docker/docker-compose.yml up
+```
+
+Run setup only, then stop before the execution loop:
+
+Set `AUTO_START=false` in `.env`, then run:
+
+```bash
+STOREFRONT_MONOREPO_PATH="$HOME/dev/SFCC-Odyssey" \
+docker compose -f docker/docker-compose.yml up
+```
+
+Run in the background:
+
+```bash
+STOREFRONT_MONOREPO_PATH="$HOME/dev/SFCC-Odyssey" \
+docker compose -f docker/docker-compose.yml up -d
+
+docker compose -f docker/docker-compose.yml logs -f
+```
+
+Open a shell in the running container:
+
+```bash
+docker compose -f docker/docker-compose.yml exec claude-migration bash
+```
+
+## Environment Variables
+
+### Runtime variables loaded into the container
+
+These come from the root `.env` file via `docker/docker-compose.yml`:
+
+| Variable | Required | Default | Used for |
+| --- | --- | --- | --- |
+| `ANTHROPIC_API_KEY` | Yes, unless using auth token | none | Claude authentication |
+| `ANTHROPIC_AUTH_TOKEN` | Yes, unless using API key | none | Claude / gateway auth |
+| `ANTHROPIC_BEDROCK_BASE_URL` | With auth token flows | none | Bedrock / gateway endpoint |
+| `CLAUDE_CODE_USE_BEDROCK` | Optional | unset | Enables Bedrock mode |
+| `CLAUDE_CODE_SKIP_BEDROCK_AUTH` | Optional | unset | Skips extra Bedrock auth handling |
+| `SFRA_SOURCE` | Strongly recommended | none | Resolves ISML template paths |
+| `SFRA_TEMPLATE_BASE` | Optional | `cartridges/app_storefront_base/cartridge/templates/default` | Base path for relative ISML mappings |
+| `CLEAN_START` | Optional | `false` | Clears state and backs up `migration-log.md` |
+| `KEEPALIVE` | Optional | `false` | Prevents immediate exit on failure / completion |
+| `AUTO_START` | Optional | `true` | Runs the execution loop automatically |
+| `MIGRATION_PLAN` | Optional | `/workspace/migration-main-plan.md` | Plan file used by migration execution |
+
+### Compose-time variable
+
+This is not loaded from the root `.env` file by `env_file`; set it in your shell when invoking Docker Compose:
+
+| Variable | Required | Default | Used for |
+| --- | --- | --- | --- |
+| `STOREFRONT_MONOREPO_PATH` | Yes in practice | `~/dev/SFCC-Odyssey` | Mounted to `/monorepo-source` inside the container |
+
+### Host-mode variable
+
+If you run `docker/entrypoint.sh` directly on the host instead of through Docker:
+
+| Variable | Required | Used for |
+| --- | --- | --- |
+| `MONOREPO_SOURCE` | Yes | Path to the Storefront Next monorepo |
+
+## What `docker/entrypoint.sh` Actually Does
+
+The current execution path looks like this.
+
+### 1. Detect environment and validate prerequisites
+
+The script switches behavior based on whether it is running in Docker or directly on the host:
+
+- Container mode uses `/workspace` and mounts the monorepo at `/monorepo-source`
+- Host mode works from the local checkout and requires `MONOREPO_SOURCE`
+- Host mode also checks for Chrome or Chromium because screenshot tooling depends on it
+- Both modes validate `node`, `pnpm`, `git`, and `claude`
+
+### 2. Optional clean start branch
+
+If `CLEAN_START=true`, the script removes or resets:
+
+- `.claude-session-id`
+- `.migration-state/`
+- `intervention/needed-*.json`
+- `intervention/response-*.json`
+- `claude-output.jsonl`
+
+It also backs up `migration-log.md` instead of deleting it.
+
+### 3. Bootstrap `storefront-next/`
+
+If `.migration-state/phase1-complete` exists and the expected artifacts are still present, Phase 1 is skipped.
+
+Otherwise the script:
+
+- Builds the monorepo if `packages/storefront-next-dev/dist/cli.js` is missing
+- Uses a `/tmp` copy inside the container to avoid bind-mount file-descriptor issues
+- Generates `storefront-next/` with `create-storefront`
+- Rewrites `workspace:*` dependencies to `file://.../packages/...`
+- Installs dependencies
+- Creates `.env` from `.env.default` inside `storefront-next/` if needed
+
+### 4. Commit the baseline
+
+If `.migration-state/baseline-committed` is missing and `storefront-next/` has changes, the script stages `storefront-next/` and creates a baseline commit in the current git repo.
+
+If the repo is not a git repository, or `storefront-next/` is unchanged, it skips this safely.
+
+### 5. Host-only allow-list prompt
+
+In interactive host mode, the script prints the pre-approved Claude tool / command allow-list and pauses briefly before continuing.
+
+This branch does not run in the container.
+
+### 6. Setup branch: page config, discovery, analysis, and plan generation
+
+If `.migration-state/phase4-complete` exists, this entire setup branch is skipped.
+
+Otherwise the script:
+
+1. Installs root dependencies if needed
+2. Requires `url-mappings.json`
+3. Runs `scripts/setup-migration.ts` only when stdin is interactive
+4. Reads selected pages from `url-mappings.json`
+5. Runs `scripts/discover-features-claude.ts` for each selected page
+6. Runs `scripts/analyze-features.ts`
+7. Runs `scripts/generate-plans.ts`
+8. Runs `scripts/init-migration-log.ts`
+
+Important details:
+
+- Non-interactive runs skip `setup-migration.ts` and use `url-mappings.json` as-is
+- The current default setup path uses `scripts/generate-plans.ts`
+- `scripts/generate-subplan-claude.ts` still exists, but it is not the script the entrypoint calls during the normal execution path
+
+### 7. Execution loop branch
+
+If `AUTO_START=false`, the script stops after setup and keeps the runtime available for manual work.
+
+If `AUTO_START=true`, it launches:
+
+```bash
+npx tsx scripts/execute-migration.ts
+```
+
+That execution loop reads the generated discovery and sub-plan artifacts and runs migration work feature by feature.
+
+### 8. Exit and intervention handling
+
+After the execution loop exits, the script:
+
+- Checks `intervention/needed-*.json` for unresolved intervention requests
+- Exits with code `42` when intervention is required
+- Logs a migration summary, including screenshot counts
+- Uses `KEEPALIVE=true` to stay attached instead of exiting immediately
+
+To resume after intervention, respond to the pending request and then rerun the same startup command.
+
+## Meaningful Directories
+
+These are the directories you will interact with most often while running or debugging the migration flow.
+
+### Generated migration artifacts
+
+| Path | What it contains | Why it matters |
+| --- | --- | --- |
+| `migration-plans/` | Per-page discovery output such as `*-features.json` and related planning files | This is the first structured output from feature discovery and the main handoff into downstream analysis and planning |
+| `analysis/` | Per-feature extracted DOM structure, metadata, and focused screenshots | Use this to understand what the system observed about each discovered feature before plan generation |
+| `sub-plans/` | Generated sub-plans grouped by feature | This is the work queue that the execution loop consumes feature by feature |
+| `screenshots/` | Baseline, analysis, source, and target screenshots | Useful for visual comparison, debugging regressions, and dashboard display |
+| `.migration-state/` | Phase markers and per-feature completion files | This is how the workflow knows what can be skipped or resumed |
+| `intervention/` | `needed-*.json`, `response-*.json`, and intervention history | This is the pause-and-resume handshake when a migration step needs user input |
+
+### Runtime logs and top-level outputs
+
+| Path | What it contains | Why it matters |
+| --- | --- | --- |
+| `migration-log.md` | Human-readable status log for setup and execution | The fastest place to see what the system is doing and where it failed |
+| `claude-output.jsonl` | Raw execution-loop output | Useful when `migration-log.md` is not detailed enough and you need lower-level execution context |
+| `url-mappings.json` | Page configuration, source/target URLs, selected pages, and ISML paths | This is the primary config file for what gets discovered and migrated |
+
+### Core project code
+
+| Path | What it contains | Why it matters |
+| --- | --- | --- |
+| `scripts/` | TypeScript and shell tooling for setup, discovery, analysis, plan generation, execution, screenshot capture, logging, and diagnostics | This is the automation backbone of the repo |
+| `prompts/` | Handlebars prompt templates used by Claude-driven steps | Prompt behavior for discovery and execution is defined here |
+| `dashboard/` | The standalone monitoring UI and server | Run this separately when you want live status, screenshots, and intervention handling in the browser |
+| `docker/` | Dockerfile, compose file, and entrypoint scripts | This is the containerized runtime path, including the Docker startup flow |
+
+### Source applications
+
+| Path | What it contains | Why it matters |
+| --- | --- | --- |
+| `storefront-next/` | The generated or updated Storefront Next application under migration | This is the target app that gets bootstrapped, modified, committed, and compared against SFRA |
+| `storefront-reference-architecture/` | Your SFRA source checkout, usually provided through `SFRA_SOURCE` rather than committed here | This is the source-of-truth storefront that discovery, mapping, and screenshot comparison are based on |
+
+Notes:
+
+- `storefront-next/` lives inside this workspace and is actively modified by the workflow
+- `storefront-reference-architecture/` is often external to this repo and referenced through `SFRA_SOURCE`
+- If you only need to inspect migration progress, start with `migration-log.md`, `sub-plans/`, `screenshots/`, and `intervention/`
+
+## Manual Commands
+
+Run the setup wrapper manually from the repo root:
+
+```bash
+pnpm install
+pnpm start
+```
+
+Run individual setup phases manually:
+
+```bash
+npx tsx scripts/setup-migration.ts
+npx tsx scripts/discover-features-claude.ts --page home
+npx tsx scripts/analyze-features.ts
+npx tsx scripts/generate-plans.ts
 npx tsx scripts/init-migration-log.ts
 ```
 
----
-
-### **Phase 2 Architecture Diagram**
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│  STEP 2.1: Feature Discovery                                │
-│  discover-features-claude.ts                                │
-│                                                              │
-│  Input:   home/homePage.isml, slots.xml, SFRA URL          │
-│  Process: Claude CLI reads ISML + resolves slots           │
-│  Output:  migration-plans/home-features.json               │
-│           (5 discovered features with selectors)            │
-└─────────────────────────────────────────────────────────────┘
-                          ↓
-┌─────────────────────────────────────────────────────────────┐
-│  STEP 2.2: Feature Analysis                                 │
-│  analyze-features.ts                                        │
-│                                                              │
-│  Input:   Feature definitions from Step 2.1                │
-│  Process: Playwright extracts DOM + captures screenshots   │
-│  Output:  analysis/{feature-id}/dom-extraction.json        │
-│           analysis/{feature-id}/screenshot.png             │
-└─────────────────────────────────────────────────────────────┘
-                          ↓
-┌─────────────────────────────────────────────────────────────┐
-│  STEP 2.3: Sub-Plan Generation                              │
-│  generate-subplan-claude.ts                                 │
-│                                                              │
-│  Input:   Features + Analysis from Steps 2.1-2.2           │
-│  Process: Claude CLI generates sub-plans iteratively       │
-│  Output:  sub-plans/01-home-hero/subplan-01-01.md         │
-│           sub-plans/01-home-hero/subplan-01-02.md         │
-│           ... (until COMPLETE)                              │
-└─────────────────────────────────────────────────────────────┘
-```
-
----
-
-### **Running the Complete Pipeline**
-
-#### Option 1: Fully Automated (Docker)
+Run the execution loop directly:
 
 ```bash
-# Clean start - runs both Phase 1 and Phase 2
-CLEAN_START=true docker compose up
-
-# What happens:
-# 1. Phase 1: Bootstrap (entrypoint.sh phases 1-3)
-# 2. Phase 2: Feature discovery + sub-plan generation
-#    - discover-features-claude.ts analyzes ISML → migration-plans/*.json
-#    - analyze-features.ts extracts DOM + captures screenshots
-#    - generate-subplan-claude.ts generates atomic sub-plans
-#    - init-migration-log.ts initializes progress tracking
-# 3. Phase 3: Claude Code executes sub-plans with CLI scripts
+npx tsx scripts/execute-migration.ts
 ```
 
-#### Option 2: Manual (Step-by-Step)
+Run the entrypoint directly on the host:
 
 ```bash
-# Phase 1: Bootstrap
-docker compose up  # Or run entrypoint.sh manually
+set -a
+source .env
+set +a
 
-# Phase 2: Feature Discovery & Sub-Plan Generation
-cd /workspace  # or your project root
-
-# Step 2.1: Discover features from ISML
-CLAUDECODE= npx tsx scripts/discover-features-claude.ts --page home
-
-# Step 2.2: Analyze discovered features
-npx tsx scripts/analyze-features.ts --features 01-home-hero,02-home-categories
-
-# Step 2.3: Generate sub-plans
-CLAUDECODE= npx tsx scripts/generate-subplan-claude.ts \
-  --features 01-home-hero \
-  --max-plans 10
-
-# Step 2.4: Initialize log
-npx tsx scripts/init-migration-log.ts
-
-# Phase 3: Execute sub-plans with Claude Code
-claude code run < migration-main-plan.md
+MONOREPO_SOURCE="$HOME/dev/SFCC-Odyssey" \
+./docker/entrypoint.sh
 ```
 
----
+Host mode requires `node`, `pnpm`, `git`, `claude`, and Chrome or Chromium to already be available on your machine.
 
-### **Key Scripts Reference**
+## Monitoring and Troubleshooting
 
-| Script                                | Purpose                                  | Phase        | Reads                                      | Writes                           |
-| ------------------------------------- | ---------------------------------------- | ------------ | ------------------------------------------ | -------------------------------- |
-| `docker/entrypoint.sh`                | Bootstrap: build monorepo, setup tools   | 1            | -                                          | `.migration-state/phase*`        |
-| `scripts/discover-features-claude.ts` | Discover features from ISML (Claude)     | 2.1          | `url-mappings.json` (page config) + ISML   | `migration-plans/*.json`         |
-| `scripts/analyze-features.ts`         | Extract DOM + screenshots                | 2.2          | `migration-plans/*.json`                   | `analysis/*/`                    |
-| `scripts/generate-subplan-claude.ts`  | Generate atomic sub-plans                | 2.3          | `migration-plans/*.json` + `analysis/`     | `sub-plans/*/subplan-*.md`       |
-| `scripts/init-migration-log.ts`       | Initialize migration log                 | 2.4          | `migration-plans/*.json`                   | `migration-log.md`               |
-| `scripts/run-setup.ts`               | Run all Phase 2 steps                    | 2 (wrapper)  | -                                          | -                                |
-
-**Note:** `url-mappings.json` provides page-level config (URLs, ISML paths, viewport). Features flow from discovery output (`migration-plans/*.json`) to downstream scripts.
-
----
-
-### **Key Files & Directories**
-
-| Path                      | Purpose                                   |
-| ------------------------- | ----------------------------------------- |
-| `docker/entrypoint.sh`    | Phase 1 bootstrap script                  |
-| `scripts/`                | Phase 2 TypeScript scripts                |
-| `prompts/isml-migration/` | Handlebars prompt templates               |
-| `storefront-next/`        | Generated React project                   |
-| `migration-plans/`        | Feature discovery output                  |
-| `analysis/`               | DOM + screenshot data per feature         |
-| `sub-plans/`              | Generated sub-plan markdown files         |
-| `screenshots/`            | Screenshot comparisons (source vs target) |
-| `migration-log.md`        | Progress log with commits                 |
-| `url-mappings.json`       | Page-level config (URLs, ISML paths)      |
-| `.migration-state/`       | Phase completion markers                  |
-
----
-
-### **Critical Implementation Details**
-
-**Why File Paths, Not Inline Content?**
-
-From `PLAN-isml-subplan-generation.md`:
-
-❌ **Before (BAD - caused timeouts):**
-
-````handlebars
-## ISML Template ```isml
-{{{ismlContent}}}
-<!-- 500+ lines injected -->
-````
-
-````
-
-✅ **After (GOOD - uses agentic tools):**
-```handlebars
-## File References
-
-Use the Read tool to examine these files as needed:
-
-### ISML Template
-**Path:** `{{ismlTemplatePath}}`
-````
-
-**Benefits:**
-
--   Smaller prompts (only metadata and instructions)
--   Targeted discovery (Claude reads only what it needs)
--   Better context (Claude builds understanding incrementally)
--   Leverages agentic tools (Read, Grep work better than massive context dumps)
-
----
-
-**For detailed prompt templates, see:**
-
--   `prompts/isml-migration/README.md` - Template architecture
--   `prompts/isml-migration/INTEGRATION-GUIDE.md` - Integration patterns
--   `PLAN-isml-subplan-generation.md` - Phase 2 implementation details
-
----
-
-## 🎯 What Happens
-
-That's it! The container will:
-
--   ✅ Start Claude Code with the migration plan
--   ✅ Execute micro-plans automatically
--   ✅ Capture screenshots (SFRA source + storefront-next target)
--   ✅ Request intervention when needed
--   ✅ Log all progress to migration-log.md
--   ✅ Create git commits for each completed micro-plan
-
----
-
-## 🔄 Clean Start vs Resume
-
-### Clean Start (Fresh State)
+Tail the migration log:
 
 ```bash
-CLEAN_START=true docker compose up
-```
-
-**Removes:**
-
--   Claude session ID (starts new session)
--   Stage completion markers
--   Intervention files (needed-_.json, response-_.json)
--   Claude output log
-
-**Preserves:**
-
--   Migration log (backed up with timestamp)
--   Screenshots
--   Git history in storefront-next/
-
-**Use when:**
-
--   Starting a new migration from scratch
--   Recovering from a stuck/broken state
--   Testing changes to the migration plan
-
-### Resume Existing Session
-
-```bash
-docker compose up
-```
-
-**Resumes:**
-
--   Existing Claude session (if .claude-session-id exists)
--   Continues from last completed stage
--   Checks for pending interventions
-
-**Blocks if:**
-
--   Pending interventions exist without responses (must respond via dashboard first)
-
----
-
-## 📋 What Happens
-
-### 1. Container Startup
-
--   Docker builds/starts the migration container
--   Entrypoint runs permission fixes (root → node user)
--   Verifies storefront-next/ project exists with dependencies
-
-### 2. Migration Execution
-
--   Launches Claude Code with migration-main-plan.md
--   Claude reads micro-plan files from sub-plans/
--   Executes each micro-plan sequentially
--   Logs progress to migration-log.md
-
-### 3. Screenshot Capture
-
--   For each micro-plan, Claude:
-    -   Starts SFRA reference server (source)
-    -   Starts storefront-next dev server (target)
-    -   Captures side-by-side screenshots
-    -   Saves to screenshots/ directory
-
-### 4. Intervention Handling
-
--   When Claude needs input, creates intervention/needed-\*.json
--   Dashboard (http://localhost:3030) displays the question
--   User selects an option
--   Dashboard saves intervention/response-\*.json
--   Claude automatically resumes
-
-### 5. Git Commits
-
--   Each completed micro-plan gets a commit in storefront-next/.git/
--   Commit messages follow format: "subplan-XX-YY: Description"
-
----
-
-## 🎯 Monitor Progress
-
-### View Logs
-
-```bash
-# Watch migration log in real-time
 tail -f migration-log.md
-
-# View container logs
-docker compose logs -f
-
-# View Claude Code output
-docker exec -u node claude-migration-demo cat /tmp/claude-output.log
 ```
 
-### Dashboard
-
-Open http://localhost:3030 to:
-
--   View current migration status
--   See recent screenshots
--   Respond to intervention requests
--   View git commit history
-
-### Screenshots
+Tail the execution log:
 
 ```bash
-# List all screenshots
-ls -lh screenshots/
-
-# Open screenshots folder
-open screenshots/
+tail -f claude-output.jsonl
 ```
 
----
-
-## 📁 Files Created/Modified
-
-```
-test-storefront/
-├── migration-log.md                      # Progress log (grows over time)
-├── .claude-session-id                    # Current session ID
-├── screenshots/
-│   ├── YYYYMMDD-HHMMSS-subplan-XX-YY-source.png
-│   └── YYYYMMDD-HHMMSS-subplan-XX-YY-target.png
-├── intervention/
-│   ├── needed-*.json                     # Requests from Claude
-│   ├── response-*.json                   # Your responses
-│   └── history/                          # Archived interventions
-├── .migration-state/
-│   └── completed-stages.json             # Stage tracking
-└── storefront-next/
-    └── .git/                             # Git commits (one per micro-plan)
-```
-
----
-
-## 🔧 Common Commands
+Watch container logs:
 
 ```bash
-# Start fresh (clean state)
-CLEAN_START=true docker compose up
-
-# Resume existing migration
-docker compose up
-
-# Stop migration (keeps state)
-docker compose down
-
-# Stop and remove everything
-docker compose down -v
-
-# View logs
-docker compose logs -f
-
-# Shell into container
-docker exec -u node -it claude-migration-demo bash
-
-# Check if Claude is running
-docker exec -u node claude-migration-demo pgrep -fa claude
-
-# Read Claude output
-docker exec -u node claude-migration-demo cat /tmp/claude-output.log
+docker compose -f docker/docker-compose.yml logs -f
 ```
 
----
+### Common issues
 
-## 🎮 Intervention Example
+Missing Claude auth:
 
-When Claude needs your input, the dashboard will show:
+- Set `ANTHROPIC_API_KEY`, or
+- Set `ANTHROPIC_AUTH_TOKEN` plus `ANTHROPIC_BEDROCK_BASE_URL`
 
-```
-INTERVENTION REQUIRED
+No pages selected:
 
-Question: Build validation failed. How should we proceed?
+- Update `url-mappings.json` so at least one page has `"selected": true`
+- Or rerun `scripts/setup-migration.ts` interactively
 
-Options:
-  1. Skip build validation and continue
-  2. Fix permissions and retry build
-  3. Abort migration
+Container exits too quickly:
 
-Select option [1-3]:
-```
+- Set `KEEPALIVE=true` in `.env` and retry
+- Then inspect `migration-log.md` and `claude-output.jsonl`
 
-**Via Dashboard:**
+Bootstrap cannot find the monorepo:
 
-1. Open http://localhost:3030
-2. Click on the intervention
-3. Select your option
-4. Claude resumes automatically
+- In Docker mode, pass `STOREFRONT_MONOREPO_PATH=/absolute/path/to/SFCC-Odyssey`
+- In host mode, pass `MONOREPO_SOURCE=/absolute/path/to/SFCC-Odyssey`
 
-**Via Manual JSON (advanced):**
+ISML mapping is incomplete:
 
-```bash
-cat > intervention/response-migration-worker.json <<EOF
-{
-  "worker_id": "migration-worker",
-  "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
-  "selected_option": "skip-build-validation",
-  "response": "skip-build-validation"
-}
-EOF
-```
+- Set `SFRA_SOURCE` to a valid `storefront-reference-architecture` checkout
 
----
+Pending intervention blocks progress:
 
-## 🔍 Troubleshooting
+- Check `intervention/needed-*.json`
+- Respond through the dashboard or by writing the matching `intervention/response-*.json`
+- Rerun the same startup command
 
-### Issue: "ANTHROPIC_API_KEY not set"
+## Notes
 
-**Solution:** Check your .env file:
-
-```bash
-cat .env
-# Should contain:
-ANTHROPIC_API_KEY=sk-ant-...
-# OR
-ANTHROPIC_AUTH_TOKEN=...
-ANTHROPIC_BEDROCK_BASE_URL=...
-```
-
-### Issue: "storefront-next/ not found"
-
-**Solution:** The project should already exist. If missing:
-
-```bash
-# Check if it exists
-ls storefront-next/
-
-# If missing, you need to generate it first
-# (Contact maintainer for generation instructions)
-```
-
-### Issue: "Permission denied" errors
-
-**Solution:** The entrypoint should fix permissions automatically. If issues persist:
-
-```bash
-# Fix permissions manually
-sudo chown -R $(id -u):$(id -g) .
-
-# Restart
-docker compose down
-docker compose up
-```
-
-### Issue: "Container exits immediately"
-
-**Solution:** Use KEEPALIVE to prevent exit and inspect:
-
-```bash
-# Keep container running on errors
-KEEPALIVE=true docker compose up
-
-# In another terminal, exec into container
-docker compose exec claude-migration bash
-
-# Check logs
-cat /workspace/claude-output.log
-cat /workspace/migration-log.md
-
-# Or view container logs
-docker compose logs
-```
-
-### Issue: "Pending intervention blocks startup"
-
-**Solution:** Check for pending interventions:
-
-```bash
-# List pending interventions
-ls intervention/needed-*.json
-
-# Option 1: Respond via dashboard
-# Open http://localhost:3030, respond to interventions
-docker compose down
-docker compose up
-
-# Option 2: Keep container running to inspect/respond manually
-KEEPALIVE=true docker compose up
-# Then: docker compose exec claude-migration bash
-
-# Option 3: Clean start (removes all interventions)
-CLEAN_START=true docker compose up
-```
-
-### Issue: "local: can only be used in a function"
-
-**Solution:** This was a bug in entrypoint.sh that used `local` outside functions. This should now be fixed.
-
----
-
-## 📊 Success Indicators
-
-✅ **Migration log growing** - New entries every few minutes
-✅ **Screenshots captured** - Pairs of source + target images
-✅ **Git commits** - One per completed micro-plan
-✅ **No stuck processes** - Claude process actively running
-
-### Warning Signs
-
-⚠️ **Long pauses (>10 minutes)** - May need intervention response
-⚠️ **Repeated errors in log** - Check migration-log.md for issues
-⚠️ **No screenshots** - Dev servers may not be starting
-⚠️ **Container exits** - Check docker logs for errors
-
----
-
-## 🎬 After the Demo
-
-### Review Results
-
-```bash
-# View full migration log
-cat migration-log.md
-
-# View all screenshots
-open screenshots/
-
-# Check git history
-cd storefront-next
-git log --oneline
-
-# View specific commit
-git show HEAD
-```
-
-### Compare Side-by-Side
-
-Open screenshot pairs to compare SFRA (source) vs storefront-next (target):
-
--   `*-source.png` - SFRA reference implementation
--   `*-target.png` - storefront-next migration result
-
----
-
-## 🛠️ Advanced Usage
-
-### Custom Migration Plan
-
-```bash
-# Use a different plan file
-MIGRATION_PLAN=/workspace/custom-plan.md docker compose up
-```
-
-### Disable Auto-Start
-
-```bash
-# Start container but don't run migration automatically
-AUTO_START=false docker compose up
-
-# Then manually execute in container
-docker exec -u node -it claude-migration-demo bash
-claude code run --dangerously-skip-permissions < migration-main-plan.md
-```
-
-### Debug Mode
-
-```bash
-# Keep container alive on errors for inspection
-KEEPALIVE=true docker compose up
-
-# Watch Claude output in real-time
-docker exec -u node claude-migration-demo tail -f /tmp/claude-output.log
-
-# Check intervention files
-docker exec -u node claude-migration-demo ls -la /workspace/intervention/
-
-# View session ID
-docker exec -u node claude-migration-demo cat /workspace/.claude-session-id
-
-# Exec into running container for manual debugging
-docker compose exec claude-migration bash
-cd /workspace/storefront-next
-pnpm dev  # Manually test dev server
-```
-
----
-
-## 📞 Support
-
-**Questions?** Check these docs:
-
--   [LEARNINGS.md](LEARNINGS.md) - Known issues and solutions
--   [DASHBOARD-GUIDE.md](DASHBOARD-GUIDE.md) - Dashboard usage
--   [MIGRATION-USAGE.md](MIGRATION-USAGE.md) - Migration plan format
-
-**Bugs?** Check Docker logs and claude-output.log for details.
-
----
-
-**Ready to run?**
-
-```bash
-CLEAN_START=true docker compose up
-```
-
-**Happy migrating! 🚀**
+- Use `MIGRATION_PLAN` for the runtime plan override. That is the variable the current execution path reads before launching `scripts/execute-migration.ts`.
+- The migration workflow standardizes on the production preview server and should avoid Vite file watching during migration runs.
+- In Docker mode, the container exposes the production preview server on host port `3009`, while internal scripts use `http://localhost:3000`.
+- The dashboard lives in `dashboard/` and is a separate process.

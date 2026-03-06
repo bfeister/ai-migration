@@ -18,9 +18,12 @@ You are executing the migration sub-plans for the **{{feature.name}}** feature (
 
 ---
 
-## Sub-Plans to Execute (in order)
+## Selected Sub-Plans To Execute (in order)
 
-Read each sub-plan file, implement the changes described, verify, then move to the next.
+Read and execute only the sub-plan files listed below. Do not read ahead into other
+sub-plans for this feature, and do not continue past the last listed sub-plan.
+
+**Selected Range:** `{{executionRangeLabel}}`
 
 {{#each subPlanFiles}}
 {{add @index 1}}. `{{this}}`
@@ -120,7 +123,11 @@ These rules prevent permission denials that waste turns and slow migration:
 When all sub-plans listed above have been executed successfully, output:
 
 ```
+{{#if isPartialExecution}}
+SUB-PLAN RANGE COMPLETE: {{feature.feature_id}} {{executionRangeLabel}}
+{{else}}
 FEATURE COMPLETE: {{feature.feature_id}}
+{{/if}}
 ```
 
-Then exit cleanly. Do not start work on any other feature.
+Then exit cleanly. Do not start work on any other sub-plan or any other feature.

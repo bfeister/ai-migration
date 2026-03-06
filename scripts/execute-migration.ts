@@ -55,6 +55,8 @@ interface FeatureConfig {
   estimated_complexity: string;
   subPlanCount: number;
   subPlanFiles: string[];
+  executionSubPlanFiles?: string[];
+  executionRangeLabel?: string;
   isComplete: boolean;
 }
 
@@ -155,6 +157,30 @@ function getSubPlanFiles(featureId: string): string[] {
     .map(f => path.join(featureDir, f));
 }
 
+function getExecutionSubPlanFiles(config: FeatureConfig): string[] {
+  return config.executionSubPlanFiles ?? config.subPlanFiles;
+}
+
+function getExecutionSubPlanCount(config: FeatureConfig): number {
+  return getExecutionSubPlanFiles(config).length;
+}
+
+function getSubPlanLabel(subPlanFile: string): string {
+  return path.basename(subPlanFile, '.md');
+}
+
+function formatExecutionRangeLabel(subPlanFiles: string[]): string {
+  if (subPlanFiles.length === 0) return 'none';
+
+  const first = getSubPlanLabel(subPlanFiles[0]);
+  const last = getSubPlanLabel(subPlanFiles[subPlanFiles.length - 1]);
+  return first === last ? first : `${first} -> ${last}`;
+}
+
+function isPartialExecution(config: FeatureConfig): boolean {
+  return getExecutionSubPlanCount(config) !== config.subPlanCount;
+}
+
 function loadFeatureConfigs(): FeatureConfig[] {
   const discoveryResults = loadDiscoveryResults(MIGRATION_PLANS_DIR);
   if (discoveryResults.length === 0) {
@@ -244,6 +270,67 @@ async function presentFeatureSelection(configs: FeatureConfig[]): Promise<Featur
   return configs.filter(c => selectedSet.has(c.feature_id));
 }
 
+async function presentSubPlanRangeSelection(config: FeatureConfig): Promise<FeatureConfig | null> {
+  if (config.subPlanFiles.length <= 1) {
+    return {
+      ...config,
+      executionSubPlanFiles: [...config.subPlanFiles],
+      executionRangeLabel: formatExecutionRangeLabel(config.subPlanFiles),
+    };
+  }
+
+  const choices = config.subPlanFiles.map((subPlanFile, index) => ({
+    title: `${getSubPlanLabel(subPlanFile)}${index === 0 ? ' (first)' : ''}${index === config.subPlanFiles.length - 1 ? ' (last)' : ''}`,
+    value: index,
+  }));
+
+  const { startIndex } = await prompts({
+    type: 'select',
+    name: 'startIndex',
+    message: `Select first sub-plan for ${config.feature_id}:`,
+    choices,
+    initial: 0,
+  });
+
+  if (typeof startIndex !== 'number') {
+    return null;
+  }
+
+  const endChoices = choices.filter(choice => (choice.value as number) >= startIndex);
+  const { endIndex } = await prompts({
+    type: 'select',
+    name: 'endIndex',
+    message: `Select last sub-plan for ${config.feature_id}:`,
+    choices: endChoices,
+    initial: endChoices.length - 1,
+  });
+
+  if (typeof endIndex !== 'number') {
+    return null;
+  }
+
+  const executionSubPlanFiles = config.subPlanFiles.slice(startIndex, endIndex + 1);
+  return {
+    ...config,
+    executionSubPlanFiles,
+    executionRangeLabel: formatExecutionRangeLabel(executionSubPlanFiles),
+  };
+}
+
+async function presentExecutionRangeSelection(configs: FeatureConfig[]): Promise<FeatureConfig[] | null> {
+  const rangedConfigs: FeatureConfig[] = [];
+
+  for (const config of configs) {
+    const rangedConfig = await presentSubPlanRangeSelection(config);
+    if (!rangedConfig) {
+      return null;
+    }
+    rangedConfigs.push(rangedConfig);
+  }
+
+  return rangedConfigs;
+}
+
 // ============================================================================
 // Prompt Compilation
 // ============================================================================
@@ -253,10 +340,14 @@ function compileFeaturePrompt(config: FeatureConfig): string {
 
   // 00-* features are scaffolding (route setup) — no visual UI to screenshot.
   const isScaffoldingFeature = config.feature_id.startsWith('00-');
+  const executionSubPlanFiles = getExecutionSubPlanFiles(config);
+  const partialExecution = isPartialExecution(config);
 
   return template({
     feature: config,
-    subPlanFiles: config.subPlanFiles,
+    subPlanFiles: executionSubPlanFiles,
+    executionRangeLabel: config.executionRangeLabel ?? formatExecutionRangeLabel(executionSubPlanFiles),
+    isPartialExecution: partialExecution,
     migrationMainPlanContent: fs.readFileSync(MIGRATION_MAIN_PLAN, 'utf-8').replaceAll('{{WORKSPACE_ROOT}}', WORKSPACE_ROOT),
     skipScreenshots: isScaffoldingFeature,
   });
@@ -286,6 +377,26 @@ function generateUUID(): string {
 
 const OUTPUT_LOG = path.join(WORKSPACE_ROOT, 'claude-output.jsonl');
 
+// Strategy B: modern documented Bash permission syntax using spaces, e.g.
+// "Bash(tsx *)" rather than legacy colon syntax like "Bash(tsx:*)".
+// Keep this aligned with docker/entrypoint.sh and scripts/test-screenshot-worker.ts.
+const CLAUDE_ALLOWED_TOOLS_STRATEGY_B = [
+  'Read', 'Write', 'Edit', 'Glob', 'Grep',
+  'Bash(pnpm *)',
+  'Bash(git add *)', 'Bash(git commit *)', 'Bash(git status *)',
+  'Bash(git diff *)', 'Bash(git log *)', 'Bash(git -C *)',
+  'Bash(mkdir *)', 'Bash(mv *)', 'Bash(cp *)', 'Bash(rm *)', 'Bash(touch *)',
+  'Bash(cat *)', 'Bash(ls *)', 'Bash(jq *)', 'Bash(date *)',
+  'Bash(head *)', 'Bash(tail *)', 'Bash(wc *)', 'Bash(find *)',
+  'Bash(grep *)', 'Bash(pwd *)', 'Bash(echo *)', 'Bash(which *)',
+  'Bash(npx *)', 'Bash(tsx *)', 'Bash(node *)',
+  'Bash(kill *)', 'Bash(pkill *)', 'Bash(lsof *)',
+  'Bash(cd *)', 'Bash(export *)', 'Bash(source *)', 'Bash(test *)',
+  'Bash(curl *)',
+  'Bash(sleep *)',
+  'Bash(sed *)', 'Bash(sort *)', 'Bash(tee *)',
+];
+
 function executeFeature(config: FeatureConfig, prompt: string): Promise<number> {
   return new Promise((resolve, reject) => {
     const sessionId = generateUUID();
@@ -296,12 +407,18 @@ function executeFeature(config: FeatureConfig, prompt: string): Promise<number> 
       ? ['-p', '--verbose', '--session-id', sessionId, '--dangerously-skip-permissions', '--output-format', 'stream-json']
       : ['-p', '--verbose', '--session-id', sessionId, '--permission-mode', 'acceptEdits', '--add-dir', WORKSPACE_ROOT, '--output-format', 'stream-json'];
 
-    // Append allowed tools from entrypoint.sh (defined once, shared via env).
-    // The env var is newline-delimited to preserve tools containing spaces
-    // (e.g. "Bash(git add:*)").
-    const allowedToolsStr = process.env.CLAUDE_ALLOWED_TOOLS_STR;
-    if (allowedToolsStr) {
-      const tools = allowedToolsStr.split('\n').filter(Boolean);
+    // Host execution should always use the validated Strategy B allowed-tools set.
+    // Prefer the env var exported by docker/entrypoint.sh, but fall back to the
+    // local constant so direct invocations stay aligned.
+    const allowedTools =
+      process.env.CLAUDE_ALLOWED_TOOLS_STR?.split('\n').filter(Boolean) ??
+      CLAUDE_ALLOWED_TOOLS_STRATEGY_B;
+    if (!IN_CONTAINER && allowedTools.length > 0) {
+      const hasLegacyColonSyntax = allowedTools.some((tool) => /Bash\([^ )]+:\*\)/.test(tool));
+      if (hasLegacyColonSyntax) {
+        warn('Detected legacy Claude allowed-tools syntax in env; falling back to validated Strategy B patterns.');
+      }
+      const tools = hasLegacyColonSyntax ? CLAUDE_ALLOWED_TOOLS_STRATEGY_B : allowedTools;
       claudeArgs.push('--allowedTools', ...tools);
     }
 
@@ -481,7 +598,13 @@ async function main(): Promise<void> {
 
   if (cliArgs.auto) {
     // Auto mode: run all incomplete features
-    selectedConfigs = configs.filter(c => !c.isComplete);
+    selectedConfigs = configs
+      .filter(c => !c.isComplete)
+      .map(c => ({
+        ...c,
+        executionSubPlanFiles: [...c.subPlanFiles],
+        executionRangeLabel: formatExecutionRangeLabel(c.subPlanFiles),
+      }));
     log(`Auto mode: running ${selectedConfigs.length} incomplete feature(s)`);
   } else {
     // Interactive multi-select
@@ -490,11 +613,23 @@ async function main(): Promise<void> {
       log('No features selected. Exiting.');
       process.exit(0);
     }
+
+    const rangedConfigs = await presentExecutionRangeSelection(selectedConfigs);
+    if (!rangedConfigs) {
+      log('Sub-plan range selection cancelled. Exiting.');
+      process.exit(0);
+    }
+    selectedConfigs = rangedConfigs;
   }
 
   log(`Will execute ${selectedConfigs.length} feature(s):`);
   for (const c of selectedConfigs) {
-    console.log(`  ${colors.cyan}${c.feature_id}${colors.reset}: ${c.name} (${c.subPlanCount} sub-plans)`);
+    const executionCount = getExecutionSubPlanCount(c);
+    const rangeLabel = c.executionRangeLabel ?? formatExecutionRangeLabel(getExecutionSubPlanFiles(c));
+    const scopeLabel = executionCount === c.subPlanCount
+      ? `${executionCount} sub-plans`
+      : `${executionCount}/${c.subPlanCount} sub-plans (${rangeLabel})`;
+    console.log(`  ${colors.cyan}${c.feature_id}${colors.reset}: ${c.name} (${scopeLabel})`);
   }
   console.log('');
 
@@ -510,7 +645,9 @@ async function main(): Promise<void> {
     console.log(`${colors.magenta}${'─'.repeat(60)}${colors.reset}`);
     console.log('');
 
-    if (config.subPlanCount === 0) {
+    const executionSubPlanFiles = getExecutionSubPlanFiles(config);
+
+    if (executionSubPlanFiles.length === 0) {
       warn(`No sub-plans found for ${config.feature_id}. Skipping.`);
       results.push({
         feature_id: config.feature_id,
@@ -530,8 +667,12 @@ async function main(): Promise<void> {
       const exitCode = await executeFeature(config, prompt);
 
       if (exitCode === 0) {
-        success(`Feature ${config.feature_id} completed successfully`);
-        markFeatureComplete(config.feature_id);
+        if (isPartialExecution(config)) {
+          success(`Sub-plan range ${config.executionRangeLabel} completed successfully for ${config.feature_id}`);
+        } else {
+          success(`Feature ${config.feature_id} completed successfully`);
+          markFeatureComplete(config.feature_id);
+        }
         results.push({
           feature_id: config.feature_id,
           name: config.name,

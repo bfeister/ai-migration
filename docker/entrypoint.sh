@@ -35,38 +35,40 @@ else
 
     # Host-mode allowed tools — commands Claude may run unattended during migration.
     # Defined once here, exported for execute-migration.ts to reuse.
+    # Strategy B: modern documented Bash permission syntax using spaces, e.g.
+    # "Bash(tsx *)" rather than legacy colon syntax like "Bash(tsx:*)".
     # NOTE: Bash patterns match the START of the command string. Compound commands
     # like "cd /foo && pnpm build" match on "cd", not "pnpm".
     CLAUDE_ALLOWED_TOOLS=(
         # Built-in file tools
         "Read" "Write" "Edit" "Glob" "Grep"
         # Package manager (typecheck, build, dev, start, test, lint, install)
-        "Bash(pnpm:*)"
+        "Bash(pnpm *)"
         # Git operations — scoped to non-destructive only (no reset, push, rebase, etc.)
-        "Bash(git add:*)" "Bash(git commit:*)" "Bash(git status:*)"
-        "Bash(git diff:*)" "Bash(git log:*)" "Bash(git -C:*)"
+        "Bash(git add *)" "Bash(git commit *)" "Bash(git status *)"
+        "Bash(git diff *)" "Bash(git log *)" "Bash(git -C *)"
         # Filesystem (archive dirs, file moves, cleanup)
-        "Bash(mkdir:*)" "Bash(mv:*)" "Bash(cp:*)" "Bash(rm:*)" "Bash(touch:*)"
+        "Bash(mkdir *)" "Bash(mv *)" "Bash(cp *)" "Bash(rm *)" "Bash(touch *)"
         # Read-only utilities
-        "Bash(cat:*)" "Bash(ls:*)" "Bash(jq:*)" "Bash(date:*)"
-        "Bash(head:*)" "Bash(tail:*)" "Bash(wc:*)" "Bash(find:*)"
-        "Bash(grep:*)" "Bash(pwd:*)" "Bash(echo:*)" "Bash(which:*)"
+        "Bash(cat *)" "Bash(ls *)" "Bash(jq *)" "Bash(date *)"
+        "Bash(head *)" "Bash(tail *)" "Bash(wc *)" "Bash(find *)"
+        "Bash(grep *)" "Bash(pwd *)" "Bash(echo *)" "Bash(which *)"
         # Script runners (covers CLI migration tooling: capture-screenshots.ts,
         # log-progress-cli.ts, prod-server.ts, etc.)
-        "Bash(npx:*)" "Bash(tsx:*)" "Bash(node:*)"
+        "Bash(npx *)" "Bash(tsx *)" "Bash(node *)"
         # Process management (prod server lifecycle)
-        "Bash(kill:*)" "Bash(pkill:*)" "Bash(lsof:*)"
+        "Bash(kill *)" "Bash(pkill *)" "Bash(lsof *)"
         # Shell constructs that start compound commands (e.g. "cd /foo && pnpm build")
-        "Bash(cd:*)" "Bash(export:*)" "Bash(source:*)" "Bash(test:*)"
+        "Bash(cd *)" "Bash(export *)" "Bash(source *)" "Bash(test *)"
         # Network (health check fallback)
-        "Bash(curl:*)"
+        "Bash(curl *)"
         # Waiting (retry loops)
-        "Bash(sleep:*)"
+        "Bash(sleep *)"
         # Text processing
-        "Bash(sed:*)" "Bash(sort:*)" "Bash(tee:*)"
+        "Bash(sed *)" "Bash(sort *)" "Bash(tee *)"
     )
     # Newline-delimited string for env export to execute-migration.ts.
-    # Space-delimited would break tools containing spaces (e.g. "Bash(git add:*)").
+    # Space-delimited would break tools containing spaces (e.g. "Bash(git add *)").
     CLAUDE_ALLOWED_TOOLS_STR="$(printf '%s\n' "${CLAUDE_ALLOWED_TOOLS[@]}")"
 
     # Build CLAUDE_PERMS as an array to preserve quoting through expansion

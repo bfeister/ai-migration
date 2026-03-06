@@ -12,10 +12,12 @@ npx tsx scripts/setup-migration.ts
 
 **What it does:**
 - Reads `url-mappings.json` (the seed / single source of truth)
-- Prompts to confirm/edit global settings (SFRA base URL, target dev server)
+- Prompts to confirm/edit global settings (SFRA base URL, target storefront URL for production preview)
 - Prompts to confirm/edit per-page config (SFRA URL, target URL, ISML template, consent selector)
 - Presents multiselect for route selection
 - Writes updated config back to `url-mappings.json` with `selected` flags
+
+**Important:** The migration workflow should avoid Vite file watching. Set target URLs to the production preview server, typically `http://localhost:3000`, rather than the Vite dev server.
 
 **When to use:**
 - Before first discovery run (sets which pages to process)

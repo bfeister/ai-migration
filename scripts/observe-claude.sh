@@ -72,13 +72,13 @@ else
     echo -e "${GREEN}None${NC}"
 fi
 
-echo -e "\n${BLUE}=== Dev Server Status ===${NC}"
-if docker exec -u node $CONTAINER sh -c "curl -s -o /dev/null -w '%{http_code}' http://localhost:5173 2>/dev/null" | grep -q "200\|404"; then
-    echo -e "${GREEN}Dev server responding${NC}"
-elif docker exec -u node $CONTAINER pgrep -f "vite\|sfnext" >/dev/null 2>&1; then
-    echo -e "${YELLOW}Dev server process running (may be starting up)${NC}"
+echo -e "\n${BLUE}=== Production Server Status ===${NC}"
+if docker exec -u node $CONTAINER sh -c "curl -s -o /dev/null -w '%{http_code}' http://localhost:3000 2>/dev/null" | grep -q "200\|404"; then
+    echo -e "${GREEN}Production server responding${NC}"
+elif docker exec -u node $CONTAINER pgrep -f "sfnext preview\|pnpm start\|sfnext" >/dev/null 2>&1; then
+    echo -e "${YELLOW}Production server process running (may be starting up)${NC}"
 else
-    echo -e "${RED}Dev server not running${NC}"
+    echo -e "${RED}Production server not running${NC}"
 fi
 }
 

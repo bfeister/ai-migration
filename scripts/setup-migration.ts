@@ -124,7 +124,7 @@ function createSkeletonMappings(): URLMappingsV2 {
         version: '2.0',
         description: 'Page-level URL mappings for SFRA to Storefront Next migration.',
         source_base_url: 'https://example.com/s/SiteID/en_US',
-        target_base_url: 'http://localhost:5173',
+        target_base_url: 'http://localhost:3000',
         sfra_templates_base: 'storefront-reference-architecture/cartridges/app_storefront_base/cartridge/templates/default',
         slots_xml_path: 'slots/slots.xml',
         pages: [],
@@ -208,7 +208,7 @@ async function main(): Promise<void> {
         {
             type: 'text',
             name: 'target_base_url',
-            message: 'Target dev server:',
+            message: 'Target storefront URL (production preview):',
             initial: mappings.target_base_url,
             validate: (v: string) => v.startsWith('http') || 'Must be a valid URL',
         },

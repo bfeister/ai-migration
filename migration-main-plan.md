@@ -26,7 +26,7 @@ Read `{{WORKSPACE_ROOT}}/url-mappings.json` to get the list of features and thei
 For the **current feature**, extract:
 - `feature_id` (e.g., "01-homepage-hero")
 - `sfra_url` (SFRA source URL)
-- `target_url` (Storefront Next local dev URL)
+- `target_url` (Storefront Next production preview URL)
 - `viewport`, `wait_for_selector`, `scroll_to`, etc.
 
 **Example extraction:**
@@ -285,13 +285,13 @@ tsx {{WORKSPACE_ROOT}}/scripts/log-progress-cli.ts \
   --status "success" \
   --summary "Implemented hero section layout matching SFRA baseline" \
   --source-screenshot-url "https://zzrf-001.dx.commercecloud.salesforce.com/s/RefArchGlobal/en_GB/home" \
-  --target-screenshot-url "http://localhost:5173" \
+  --target-screenshot-url "http://localhost:3000" \
   --commit-sha "a3f2c1b"
 ```
 
 **For failed iterations:**
 
-If dev server failed, compilation errors occurred, or other blocking issues:
+If the production server failed, compilation errors occurred, or other blocking issues:
 
 ```bash
 tsx {{WORKSPACE_ROOT}}/scripts/log-progress-cli.ts \
@@ -301,7 +301,7 @@ tsx {{WORKSPACE_ROOT}}/scripts/log-progress-cli.ts \
   --source-screenshot-url "" \
   --target-screenshot-url "" \
   --commit-sha "" \
-  --error-message "Dev server failed: Cannot find module 'react'. Tried installing dependencies but error persists."
+  --error-message "Production server failed: Cannot find module 'react'. Tried installing dependencies but error persists."
 ```
 
 ### 10. Loop Decision & Continue
@@ -391,7 +391,7 @@ To request user intervention:
 cat > {{WORKSPACE_ROOT}}/intervention/needed-migration-worker.json <<EOF
 {
   "worker_id": "migration-worker",
-  "question": "Dev server failed with errors. How should I proceed?",
+  "question": "Production server failed with errors. How should I proceed?",
   "options": ["Fix manually", "Skip this micro-plan", "Debug manually"],
   "context": "Errors found in prod-server.log"
 }
@@ -401,7 +401,7 @@ EOF
 tsx {{WORKSPACE_ROOT}}/scripts/log-progress-cli.ts \
   --subplan-id "01-03" \
   --status "failed" \
-  --summary "Dev server failed, awaiting user intervention" \
+  --summary "Production server failed, awaiting user intervention" \
   --source-screenshot-url "" \
   --target-screenshot-url "" \
   --commit-sha "" \

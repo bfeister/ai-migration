@@ -357,9 +357,9 @@ async function main(): Promise<void> {
 
   console.log('');
   console.log(`${colors.bold}Next steps:${colors.reset}`);
-  console.log(`  1. Start the dashboard:     ${colors.cyan}cd dashboard && node server.js${colors.reset}`);
-  console.log(`  2. Open dashboard:          ${colors.cyan}http://localhost:3030${colors.reset}`);
-  console.log(`  3. Start target dev server: ${colors.cyan}cd target/storefront-next && pnpm dev${colors.reset}`);
+  console.log(`  1. Start the dashboard:            ${colors.cyan}cd dashboard && node server.js${colors.reset}`);
+  console.log(`  2. Open dashboard:                 ${colors.cyan}http://localhost:3030${colors.reset}`);
+  console.log(`  3. Start target production server: ${colors.cyan}tsx scripts/prod-server.ts start${colors.reset}`);
   console.log(`  4. Begin migration with Claude`);
   console.log('');
 }
