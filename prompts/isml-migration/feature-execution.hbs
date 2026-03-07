@@ -94,6 +94,28 @@ Compare them and check for:
 **If the target does NOT visually match the source, you MUST fix the implementation
 before committing.** Do not proceed to the next sub-plan with known visual regressions.
 Document what you fixed in the commit message.
+
+=========== IMPORTANT! ===========
+
+#### A visual match must meet the following criteria:
+
+- The target and source screenshots have the same CSS styles (translated to Tailwind CSS)
+- The target and source screenshots are the same size
+- The target and source screenshots are the same colors (except for product images)
+- The target and source screenshots are the same layout
+- The target and source screenshots are the same spacing
+- The target and source screenshots are the same font
+- The target and source screenshots are the same text
+
+#### Allowed differences are (if a difference is not allowed, you MUST fix the implementation before committing):
+
+- The target and source have different product images (e.g. "product-1.jpg" vs. "product-2.jpg")
+- The target and source have different product names (e.g. "Product Name" vs. "Product Name 2")
+- The target and source have different product prices (e.g. "$100" vs. "$100.00")
+- The target and source have different product descriptions (e.g. "Product Description" vs. "Product Description 2")
+
+=========== IMPORTANT ===========
+
 {{/unless}}
 
 ---
