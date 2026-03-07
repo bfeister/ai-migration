@@ -2,6 +2,7 @@
 	"scripts": {
 		"start": "tsx scripts/run-setup.ts",
 		"discover": "tsx scripts/discover-features-claude.ts",
+		"screenshot-wrappers": "tsx scripts/generate-screenshot-wrappers.ts",
 		"baselines": "tsx scripts/capture-baselines.ts",
 		"analyze": "tsx scripts/analyze-features.ts",
 		"map-isml": "tsx scripts/map-isml-templates.ts",

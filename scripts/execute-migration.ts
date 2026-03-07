@@ -45,6 +45,7 @@ interface FeatureConfig {
   description?: string;
   selector: string;
   page_id: string;
+  pageOrder: number;
   sfra_url: string;
   target_url: string;
   viewport: { width: number; height: number };
@@ -199,6 +200,21 @@ function loadFeatureConfigs(screenshotManifest: ScreenshotCommandManifest): Feat
   }
 
   const configs: FeatureConfig[] = [];
+  const discoveredPageIds = new Set(discoveryResults.map((result) => result.page_id));
+  const pageOrderMap = new Map<string, number>();
+  let nextPageOrder = 0;
+
+  for (const page of mappings.pages) {
+    if (discoveredPageIds.has(page.page_id)) {
+      pageOrderMap.set(page.page_id, nextPageOrder++);
+    }
+  }
+
+  for (const result of discoveryResults) {
+    if (!pageOrderMap.has(result.page_id)) {
+      pageOrderMap.set(result.page_id, nextPageOrder++);
+    }
+  }
 
   for (const result of discoveryResults) {
     const page = findPage(mappings, result.page_id);
@@ -215,6 +231,7 @@ function loadFeatureConfigs(screenshotManifest: ScreenshotCommandManifest): Feat
         description: feature.description,
         selector: feature.selector,
         page_id: result.page_id,
+        pageOrder: pageOrderMap.get(result.page_id) ?? Number.MAX_SAFE_INTEGER,
         sfra_url: page.sfra_url,
         target_url: page.target_url,
         viewport: page.viewport || { width: 1920, height: 1080 },
@@ -229,8 +246,13 @@ function loadFeatureConfigs(screenshotManifest: ScreenshotCommandManifest): Feat
     }
   }
 
-  // Sort by migration_priority
-  configs.sort((a, b) => a.migration_priority - b.migration_priority);
+  // Group features by page order first so interactive selection matches the
+  // route-by-route migration flow, then sort within each page by priority.
+  configs.sort((a, b) =>
+    a.pageOrder - b.pageOrder ||
+    a.migration_priority - b.migration_priority ||
+    a.feature_id.localeCompare(b.feature_id)
+  );
   return configs;
 }
 
@@ -342,7 +364,7 @@ function compileFeaturePrompt(config: FeatureConfig): string {
   const template = getTemplate();
 
   // 00-* features are scaffolding (route setup) — no visual UI to screenshot.
-  const isScaffoldingFeature = config.feature_id.startsWith('00-');
+  const isScaffoldingFeature = config.feature_id.endsWith('-route-setup');
   const executionSubPlanFiles = getExecutionSubPlanFiles(config);
   const partialExecution = isPartialExecution(config);
 

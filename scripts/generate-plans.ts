@@ -7,8 +7,8 @@
  *
  * Generates two bookend plans per route, each in its own dedicated directory
  * so they execute as independent Claude sessions:
- * - Plan Zero (00-{page}-route-setup): Archives the existing route and creates a blank canvas
- * - Final Plan (99-{page}-data-wiring): Wires up data-access patterns from the archived original
+ * - Plan Zero ({pageOrder}-00-{page}-route-setup): Archives the existing route and creates a blank canvas
+ * - Final Plan ({pageOrder}-99-{page}-data-wiring): Wires up data-access patterns from the archived original
  *
  * Usage:
  *   npx tsx scripts/generate-plans.ts [--features id1,id2]
@@ -31,6 +31,7 @@ interface FeatureConfig {
   sfra_url: string;
   selector?: string;
   page_id: string;
+  page_order: number;
   route_file?: string;
   isml_template?: string;
   isFirstForRoute: boolean;
@@ -130,16 +131,41 @@ function error(msg: string): void {
 
 const MIGRATION_PLANS_DIR = path.join(WORKSPACE_ROOT, 'migration-plans');
 
+function formatBookendFeatureId(pageOrder: number, phaseOrder: '00' | '99', pageId: string, suffix: string): string {
+  return `${String(pageOrder).padStart(2, '0')}-${phaseOrder}-${pageId}-${suffix}`;
+}
+
+function isGeneratedBookendFeatureId(featureId: string): boolean {
+  return featureId.endsWith('-route-setup') || featureId.endsWith('-data-wiring');
+}
+
 function loadFeatures(): FeatureConfig[] {
   const pageConfig = loadURLMappings(URL_MAPPINGS_FILE);
   const results = loadDiscoveryResults(MIGRATION_PLANS_DIR);
+  const discoveredPageIds = new Set(results.map((result) => result.page_id));
+  const pageOrderMap = new Map<string, number>();
+
+  let nextPageOrder = 0;
+  for (const page of pageConfig.pages) {
+    if (discoveredPageIds.has(page.page_id)) {
+      pageOrderMap.set(page.page_id, nextPageOrder++);
+    }
+  }
+
+  for (const result of results) {
+    if (!pageOrderMap.has(result.page_id)) {
+      pageOrderMap.set(result.page_id, nextPageOrder++);
+    }
+  }
 
   // Group features by page_id to determine first/last per route
   const pageFeatures = new Map<string, { page: PageConfig | undefined; featureIds: string[] }>();
 
   for (const discovery of results) {
     const page = findPage(pageConfig, discovery.page_id);
-    const ids = discovery.features.map(f => f.feature_id);
+    const ids = discovery.features
+      .filter((feature) => !isGeneratedBookendFeatureId(feature.feature_id))
+      .map(f => f.feature_id);
     pageFeatures.set(discovery.page_id, { page, featureIds: ids });
   }
 
@@ -148,15 +174,18 @@ function loadFeatures(): FeatureConfig[] {
   for (const discovery of results) {
     const page = findPage(pageConfig, discovery.page_id);
     const group = pageFeatures.get(discovery.page_id)!;
+    const coreFeatures = discovery.features
+      .filter((entry) => !isGeneratedBookendFeatureId(entry.feature_id));
 
-    for (let i = 0; i < discovery.features.length; i++) {
-      const feat = discovery.features[i];
+    for (let i = 0; i < coreFeatures.length; i++) {
+      const feat = coreFeatures[i];
       features.push({
         feature_id: feat.feature_id,
         name: feat.name,
         sfra_url: page?.sfra_url || pageConfig.source_base_url,
         selector: feat.selector,
         page_id: discovery.page_id,
+        page_order: pageOrderMap.get(discovery.page_id) ?? 0,
         route_file: page?.route_file,
         isml_template: page?.isml_template,
         isFirstForRoute: feat.feature_id === group.featureIds[0],
@@ -166,6 +195,18 @@ function loadFeatures(): FeatureConfig[] {
   }
 
   return features;
+}
+
+function removeGeneratedBookendDirectories(): void {
+  if (!fs.existsSync(SUBPLANS_DIR)) {
+    return;
+  }
+
+  for (const entry of fs.readdirSync(SUBPLANS_DIR, { withFileTypes: true })) {
+    if (entry.isDirectory() && isGeneratedBookendFeatureId(entry.name)) {
+      fs.rmSync(path.join(SUBPLANS_DIR, entry.name), { recursive: true, force: true });
+    }
+  }
 }
 
 function loadAnalysis(featureId: string): AnalysisSummary | null {
@@ -626,6 +667,7 @@ async function main(): Promise<void> {
 
   log(`Generating sub-plans for ${features.length} feature(s)...`);
   fs.mkdirSync(SUBPLANS_DIR, { recursive: true });
+  removeGeneratedBookendDirectories();
 
   let totalPlans = 0;
 
@@ -655,7 +697,7 @@ async function main(): Promise<void> {
       }
       const slots = slotsCache.get(cacheKey)!;
 
-      const planZeroId = `00-${feature.page_id}-route-setup`;
+      const planZeroId = formatBookendFeatureId(feature.page_order, '00', feature.page_id, 'route-setup');
       const planZeroDir = path.join(SUBPLANS_DIR, planZeroId);
       fs.mkdirSync(planZeroDir, { recursive: true });
 
@@ -703,7 +745,7 @@ async function main(): Promise<void> {
 
     // --- Final Plan: generate in its own dedicated directory ---
     if (feature.isLastForRoute && feature.route_file) {
-      const finalPlanId = `99-${feature.page_id}-data-wiring`;
+      const finalPlanId = formatBookendFeatureId(feature.page_order, '99', feature.page_id, 'data-wiring');
       const finalPlanDir = path.join(SUBPLANS_DIR, finalPlanId);
       fs.mkdirSync(finalPlanDir, { recursive: true });
 
@@ -740,7 +782,7 @@ async function main(): Promise<void> {
 
       // Remove any previously injected bookend entries
       discovery.features = discovery.features.filter(
-        (f: any) => !f.feature_id.startsWith('00-') && !f.feature_id.startsWith('99-')
+        (f: any) => !isGeneratedBookendFeatureId(f.feature_id)
       );
 
       if (bookends.planZero) {
