@@ -14,6 +14,7 @@
 import prompts from 'prompts';
 import fs from 'fs';
 import path from 'path';
+import { compareFeatureIds } from './lib/feature-id.js';
 
 // ============================================================================
 // Types
@@ -299,12 +300,8 @@ async function main(): Promise<void> {
         );
     }
 
-    // Sort by feature ID (numeric prefix)
-    featuresToMap.sort((a, b) => {
-        const aNum = parseInt(a.feature_id.split('-')[0], 10);
-        const bNum = parseInt(b.feature_id.split('-')[0], 10);
-        return aNum - bNum;
-    });
+    // Sort by route first, then by feature order within that route.
+    featuresToMap.sort((a, b) => compareFeatureIds(a.feature_id, b.feature_id));
 
     log(`Found ${featuresToMap.length} feature(s) to map`);
 

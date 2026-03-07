@@ -90,6 +90,8 @@ Analyze the ISML template and identify **distinct, migratable features**. A "fea
 
 Return your analysis as a JSON object with this structure:
 
+Use per-page feature numbering for `feature_id` values such as `01-home-hero`, `02-home-categories`, etc. The route-level prefix is added automatically after discovery is saved.
+
 ```json
 {
   "page_id": "{{page.page_id}}",

@@ -24,6 +24,7 @@ import Handlebars from 'handlebars';
 import { spawn } from 'child_process';
 import fs from 'fs';
 import path from 'path';
+import { buildPageOrderMap, normalizeDiscoveryResultFeatureIds } from './lib/feature-id.js';
 
 // ============================================================================
 // Types
@@ -477,13 +478,27 @@ async function discoverFeaturesForPage(
     force: boolean
 ): Promise<FeatureDiscoveryResult | null> {
     log(`Discovering features for page: ${page.page_id} - ${page.name}`);
+    const selectedPageIds = mappings.pages
+        .filter((entry) => entry.selected !== false)
+        .map((entry) => entry.page_id);
+    const includedPageIds = selectedPageIds.includes(page.page_id)
+        ? selectedPageIds
+        : [...selectedPageIds, page.page_id];
+    const pageOrderMap = buildPageOrderMap(
+        mappings.pages,
+        includedPageIds.length > 0 ? includedPageIds : [page.page_id],
+    );
+    const pageOrder = pageOrderMap.get(page.page_id) ?? 0;
 
     // Check if discovery already exists
     const existingPath = path.join(MIGRATION_PLANS_DIR, `${page.page_id}-features.json`);
     if (fs.existsSync(existingPath) && !force) {
         warn(`Feature discovery already exists: ${existingPath}`);
         log('Use --force to re-discover features');
-        return JSON.parse(fs.readFileSync(existingPath, 'utf-8'));
+        const existingResult = JSON.parse(fs.readFileSync(existingPath, 'utf-8')) as FeatureDiscoveryResult;
+        normalizeDiscoveryResultFeatureIds(existingResult, pageOrder);
+        saveFeatureDiscovery(existingResult);
+        return existingResult;
     }
 
     // Build full ISML path (absolute for Claude to read)
@@ -542,6 +557,8 @@ async function discoverFeaturesForPage(
         if (!result.discovered_at) {
             result.discovered_at = new Date().toISOString();
         }
+
+        normalizeDiscoveryResultFeatureIds(result, pageOrder);
 
         // Save results
         const savedPath = saveFeatureDiscovery(result);

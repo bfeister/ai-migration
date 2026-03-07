@@ -20,6 +20,7 @@ import Handlebars from 'handlebars';
 import { spawn } from 'child_process';
 import fs from 'fs';
 import path from 'path';
+import { compareFeatureIds, getFeatureSequence } from './lib/feature-id.js';
 
 // ============================================================================
 // Types
@@ -320,8 +321,8 @@ function loadDiscoveredFeatures(): { features: FeatureConfig[]; pageConfig: Page
         }
     }
 
-    // Sort by feature ID (which includes priority)
-    features.sort((a, b) => a.feature_id.localeCompare(b.feature_id));
+    // Sort by route first, then by feature order within that route.
+    features.sort((a, b) => compareFeatureIds(a.feature_id, b.feature_id));
 
     return {
         features,
@@ -352,7 +353,7 @@ interface ScreenshotPaths {
 
 function findScreenshots(featureId: string): ScreenshotPaths {
     const result: ScreenshotPaths = {};
-    const featureNum = featureId.split('-')[0];
+    const featureNum = getFeatureSequence(featureId);
 
     if (fs.existsSync(SCREENSHOTS_DIR)) {
         const files = fs.readdirSync(SCREENSHOTS_DIR);
@@ -610,8 +611,8 @@ async function generateSubPlansForFeature(
     let subPlanNumber = previousSubPlans.length + 1;
     let generatedCount = 0;
 
-    // Extract feature prefix (e.g., "01" from "01-homepage-hero")
-    const featurePrefix = feature.feature_id.split('-')[0];
+    // Keep sub-plan numbering keyed to the per-route feature sequence.
+    const featurePrefix = getFeatureSequence(feature.feature_id);
 
     // Get template
     const template = getTemplate();
@@ -787,12 +788,8 @@ async function main(): Promise<void> {
     log(`Processing ${featuresToProcess.length} feature(s)`);
     log(`Max sub-plans per feature: ${cliArgs.maxPlans}`);
 
-    // Sort by feature ID (numeric prefix)
-    featuresToProcess.sort((a, b) => {
-        const aNum = parseInt(a.feature_id.split('-')[0], 10);
-        const bNum = parseInt(b.feature_id.split('-')[0], 10);
-        return aNum - bNum;
-    });
+    // Sort by route first, then by feature order within that route.
+    featuresToProcess.sort((a, b) => compareFeatureIds(a.feature_id, b.feature_id));
 
     // Process each feature
     let totalGenerated = 0;

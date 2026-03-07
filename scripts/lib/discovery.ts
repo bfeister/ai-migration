@@ -38,6 +38,7 @@ export interface FeatureDiscoveryResult {
 export interface PageConfig {
   page_id: string;
   name: string;
+  selected?: boolean;
   sfra_url: string;
   target_url: string;
   /** React Router route file name relative to src/routes/ (e.g., "_app._index.tsx") */

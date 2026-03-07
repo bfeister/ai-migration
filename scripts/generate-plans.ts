@@ -19,6 +19,7 @@ import path from 'path';
 import Handlebars from 'handlebars';
 import { loadDiscoveryResults, loadURLMappings, findPage } from './lib/discovery.js';
 import type { PageConfig } from './lib/discovery.js';
+import { compareFeatureIds, getFeatureRouteSequence, getFeatureSequence } from './lib/feature-id.js';
 
 // ============================================================================
 // Types
@@ -142,21 +143,6 @@ function isGeneratedBookendFeatureId(featureId: string): boolean {
 function loadFeatures(): FeatureConfig[] {
   const pageConfig = loadURLMappings(URL_MAPPINGS_FILE);
   const results = loadDiscoveryResults(MIGRATION_PLANS_DIR);
-  const discoveredPageIds = new Set(results.map((result) => result.page_id));
-  const pageOrderMap = new Map<string, number>();
-
-  let nextPageOrder = 0;
-  for (const page of pageConfig.pages) {
-    if (discoveredPageIds.has(page.page_id)) {
-      pageOrderMap.set(page.page_id, nextPageOrder++);
-    }
-  }
-
-  for (const result of results) {
-    if (!pageOrderMap.has(result.page_id)) {
-      pageOrderMap.set(result.page_id, nextPageOrder++);
-    }
-  }
 
   // Group features by page_id to determine first/last per route
   const pageFeatures = new Map<string, { page: PageConfig | undefined; featureIds: string[] }>();
@@ -165,7 +151,8 @@ function loadFeatures(): FeatureConfig[] {
     const page = findPage(pageConfig, discovery.page_id);
     const ids = discovery.features
       .filter((feature) => !isGeneratedBookendFeatureId(feature.feature_id))
-      .map(f => f.feature_id);
+      .map((feature) => feature.feature_id)
+      .sort(compareFeatureIds);
     pageFeatures.set(discovery.page_id, { page, featureIds: ids });
   }
 
@@ -175,7 +162,11 @@ function loadFeatures(): FeatureConfig[] {
     const page = findPage(pageConfig, discovery.page_id);
     const group = pageFeatures.get(discovery.page_id)!;
     const coreFeatures = discovery.features
-      .filter((entry) => !isGeneratedBookendFeatureId(entry.feature_id));
+      .filter((entry) => !isGeneratedBookendFeatureId(entry.feature_id))
+      .sort((a, b) => compareFeatureIds(a.feature_id, b.feature_id));
+    const pageOrder = group.featureIds.length > 0
+      ? parseInt(getFeatureRouteSequence(group.featureIds[0]), 10)
+      : 0;
 
     for (let i = 0; i < coreFeatures.length; i++) {
       const feat = coreFeatures[i];
@@ -185,7 +176,7 @@ function loadFeatures(): FeatureConfig[] {
         sfra_url: page?.sfra_url || pageConfig.source_base_url,
         selector: feat.selector,
         page_id: discovery.page_id,
-        page_order: pageOrderMap.get(discovery.page_id) ?? 0,
+        page_order: pageOrder,
         route_file: page?.route_file,
         isml_template: page?.isml_template,
         isFirstForRoute: feat.feature_id === group.featureIds[0],
@@ -273,7 +264,7 @@ function generatePlanZeroContent(feature: FeatureConfig, slots: ISMLSlot[]): str
   const routePath = `src/routes/${routeFile}`;
   const archivedPath = `src/routes/archived/${routeFile}`;
   const ismlTemplate = feature.isml_template || 'unknown';
-  const featureNum = feature.feature_id.split('-')[0];
+  const featureNum = getFeatureSequence(feature.feature_id);
   const timestamp = new Date().toISOString();
 
   const slotRegions = slots.map(s =>
@@ -374,7 +365,7 @@ function generateFinalPlanContent(feature: FeatureConfig, lastPlanNumber: string
   const routeFile = feature.route_file || '_app._index.tsx';
   const routePath = `src/routes/${routeFile}`;
   const archivedPath = `src/routes/archived/${routeFile}`;
-  const featureNum = feature.feature_id.split('-')[0];
+  const featureNum = getFeatureSequence(feature.feature_id);
   const lastNumPart = lastPlanNumber.split('-')[1] || lastPlanNumber;
   const finalNum = String(parseInt(lastNumPart, 10) + 1).padStart(2, '0');
   const timestamp = new Date().toISOString();
@@ -491,7 +482,7 @@ function generateSubPlansForFeature(
   analysis: AnalysisSummary | null
 ): GeneratedSubPlan[] {
   const plans: GeneratedSubPlan[] = [];
-  const featureNum = feature.feature_id.split('-')[0];
+  const featureNum = getFeatureSequence(feature.feature_id);
   const featureName = feature.name || feature.feature_name || feature.feature_id;
 
   // Plan 1: Setup and Scaffolding

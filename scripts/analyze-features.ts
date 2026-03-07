@@ -13,6 +13,7 @@ import fs from 'fs';
 import path from 'path';
 import { extractDomStructure, ExtractionResult } from './extract-dom-structure.js';
 import { loadDiscoveryResults, loadURLMappings, findPage, type URLMappingsV2 } from './lib/discovery.js';
+import { getFeatureSequence } from './lib/feature-id.js';
 
 // ============================================================================
 // Types
@@ -141,8 +142,8 @@ function generateScreenshotPath(featureId: string): string {
   const date = now.toISOString().slice(0, 10).replace(/-/g, ''); // YYYYMMDD
   const time = now.toISOString().slice(11, 19).replace(/:/g, ''); // HHMMSS
 
-  // Extract feature number from feature_id (e.g., "01" from "01-homepage-hero")
-  const featureNum = featureId.split('-')[0] || '00';
+  // Preserve stable screenshot numbering even when feature IDs are route-prefixed.
+  const featureNum = getFeatureSequence(featureId);
 
   // Format: YYYYMMDD-HHMMSS-{featureNum}-00-analysis-source.png
   const filename = `${date}-${time}-${featureNum}-00-analysis-source.png`;
