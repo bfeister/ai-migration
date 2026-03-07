@@ -867,16 +867,16 @@ log_success "$RUNTIME_NAME initialization complete"
 log_info "Chromium available: $([ -n "$CHROMIUM_PATH" ] && echo "Yes ($CHROMIUM_PATH)" || echo 'No')"
 
 # ============================================================================
-# Phase 4: Interactive Setup (Feature Discovery & Plan Generation)
+# Phase 3: Interactive Setup (Feature Discovery & Plan Generation)
 # ============================================================================
 
-if [ -f "$STATE_DIR/phase2-complete" ]; then
-    log_success "Phase 4 already complete (setup: $(cat "$STATE_DIR/phase2-complete"))"
+if [ -f "$STATE_DIR/phase3-complete" ]; then
+    log_success "Phase 3 already complete (setup: $(cat "$STATE_DIR/phase3-complete"))"
     log_info "  Discovery: $(find "$WORKSPACE_ROOT/migration-plans" -name '*-features.json' 2>/dev/null | wc -l | tr -d ' ') page(s)"
     log_info "  Sub-plans: $(find "$WORKSPACE_ROOT/sub-plans" -name '*.md' 2>/dev/null | wc -l | tr -d ' ')"
-    log_info "Skipping to Phase 5..."
+    log_info "Skipping to Phase 4..."
 else
-    log_info "Running Phase 4: Feature Discovery & Plan Generation"
+    log_info "Running Phase 3: Feature Discovery & Plan Generation"
 
     # Install setup script dependencies if needed
     if [ -f "$WORKSPACE_ROOT/package.json" ]; then
@@ -956,12 +956,12 @@ else
         log_warning "Migration log initialization failed (continuing anyway)"
     fi
 
-    echo "$(date -u +"%Y-%m-%dT%H:%M:%SZ")" > "$STATE_DIR/phase2-complete"
-    log_success "Phase 2 complete: Discovery and plan generation finished"
+    echo "$(date -u +"%Y-%m-%dT%H:%M:%SZ")" > "$STATE_DIR/phase3-complete"
+    log_success "Phase 3 complete: Discovery and plan generation finished"
 fi
 
 # ============================================================================
-# Phase 5: Execute Migration
+# Phase 4: Execute Migration
 # ============================================================================
 
 # Configuration from environment
@@ -990,7 +990,7 @@ CLAUDE_EXIT_CODE=$?
 log_info "Execution loop exited with code $CLAUDE_EXIT_CODE"
 
 # ============================================================================
-# Phase 6: Exit Handling
+# Phase 5: Exit Handling
 # ============================================================================
 
 check_exit_reason() {
