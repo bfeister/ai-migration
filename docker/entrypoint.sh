@@ -870,8 +870,8 @@ log_info "Chromium available: $([ -n "$CHROMIUM_PATH" ] && echo "Yes ($CHROMIUM_
 # Phase 4: Interactive Setup (Feature Discovery & Plan Generation)
 # ============================================================================
 
-if [ -f "$STATE_DIR/phase4-complete" ]; then
-    log_success "Phase 4 already complete (setup: $(cat "$STATE_DIR/phase4-complete"))"
+if [ -f "$STATE_DIR/phase2-complete" ]; then
+    log_success "Phase 4 already complete (setup: $(cat "$STATE_DIR/phase2-complete"))"
     log_info "  Discovery: $(find "$WORKSPACE_ROOT/migration-plans" -name '*-features.json' 2>/dev/null | wc -l | tr -d ' ') page(s)"
     log_info "  Sub-plans: $(find "$WORKSPACE_ROOT/sub-plans" -name '*.md' 2>/dev/null | wc -l | tr -d ' ')"
     log_info "Skipping to Phase 5..."
@@ -956,9 +956,8 @@ else
         log_warning "Migration log initialization failed (continuing anyway)"
     fi
 
-    # Mark Phase 4 complete
-    echo "$(date -u +"%Y-%m-%dT%H:%M:%SZ")" > "$STATE_DIR/phase4-complete"
-    log_success "Phase 4 complete: Discovery and plan generation finished"
+    echo "$(date -u +"%Y-%m-%dT%H:%M:%SZ")" > "$STATE_DIR/phase2-complete"
+    log_success "Phase 2 complete: Discovery and plan generation finished"
 fi
 
 # ============================================================================

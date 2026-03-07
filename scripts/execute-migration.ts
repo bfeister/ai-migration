@@ -575,7 +575,7 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
-  log(`Found ${configs.length} feature(s) across ${new Set(configs.map(() => 'home')).size} page(s)`);
+  log(`Found ${configs.length} feature(s) across ${new Set(configs.map(c => c.page_id)).size} page(s)`);
 
   // Apply --features filter
   if (cliArgs.features) {

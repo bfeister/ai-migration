@@ -66,7 +66,7 @@ fi
 # 2. Remove migration state markers (keep phase1-complete)
 if [ -d "$STATE_DIR" ]; then
     rm -f "$STATE_DIR/baseline-committed"
-    rm -f "$STATE_DIR/phase3-complete"
+    rm -f "$STATE_DIR/phase2-complete"
     echo -e "${GREEN}✓${NC} Removed migration state markers (phases 2-5)"
 fi
 
