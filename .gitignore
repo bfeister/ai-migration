@@ -64,6 +64,8 @@ worktrees/
 
 # Migration status (if generated)
 migration-status.json
+analysis/screenshot-commands.json
+scripts/generated/
 
 # Test migration plans (if created during testing)
 test-migration-plan.md
