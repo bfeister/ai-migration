@@ -1,5 +1,6 @@
 {
 	"scripts": {
+		"entrypoint": "tsx scripts/migration-entrypoint.ts",
 		"start": "tsx scripts/run-setup.ts",
 		"discover": "tsx scripts/discover-features-claude.ts",
 		"screenshot-wrappers": "tsx scripts/generate-screenshot-wrappers.ts",
@@ -9,7 +10,8 @@
 		"generate-plans": "tsx scripts/generate-plans.ts",
 		"generate-plans:claude": "tsx scripts/generate-subplan-claude.ts",
 		"init-log": "tsx scripts/init-migration-log.ts",
-		"execute": "tsx scripts/execute-migration.ts"
+		"execute": "tsx scripts/execute-migration.ts",
+		"test:entrypoint": "vitest run scripts/lib/migration-entrypoint/*.test.ts"
 	},
 	"dependencies": {
 		"prompts": "^2.4.2",
@@ -19,6 +21,7 @@
 		"@teleporthq/teleport-component-generator-react": "^0.42.13",
 		"@teleporthq/teleport-project-plugin-tailwind": "^0.42.13",
 		"@types/prompts": "^2.4.9",
-		"tsx": "^4.21.0"
+		"tsx": "^4.21.0",
+		"vitest": "^4.0.18"
 	}
 }
