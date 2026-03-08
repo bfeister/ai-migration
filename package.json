@@ -11,7 +11,7 @@
 		"generate-plans:claude": "tsx scripts/generate-subplan-claude.ts",
 		"init-log": "tsx scripts/init-migration-log.ts",
 		"execute": "tsx scripts/execute-migration.ts",
-		"test:entrypoint": "vitest run scripts/lib/migration-entrypoint/*.test.ts"
+		"test:entrypoint": "vitest run scripts/lib/migration-entrypoint"
 	},
 	"dependencies": {
 		"prompts": "^2.4.2",
