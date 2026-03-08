@@ -1,0 +1,110 @@
+name: Migration Entrypoint Windows
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+    branches: ['*']
+  push:
+    branches: ['*']
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '24'
+  PNPM_VERSION: '10.28.0'
+  WINDOWS_CHROMIUM_PATH: 'C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe'
+
+jobs:
+  test-windows:
+    name: Run Entrypoint Tests (Windows)
+    runs-on: windows-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run migration entrypoint tests
+        run: pnpm test:entrypoint
+
+  monorepo-smoke:
+    name: Smoke Monorepo Generator (Windows)
+    runs-on: windows-latest
+    timeout-minutes: 45
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Checkout private Storefront Next monorepo
+        uses: actions/checkout@v4
+        with:
+          repository: commerce-emu/storefront-next
+          token: ${{ secrets.SFNEXT_MONOREPO_READ_TOKEN }}
+          path: external/storefront-next-monorepo
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Verify monorepo checkout shape
+        shell: pwsh
+        run: |
+          if (-not (Test-Path 'external/storefront-next-monorepo/package.json')) {
+            throw 'private monorepo checkout is missing package.json'
+          }
+          if (-not (Test-Path 'external/storefront-next-monorepo/packages')) {
+            throw 'private monorepo checkout is missing packages/'
+          }
+
+      - name: Add claude shim for smoke tests
+        shell: pwsh
+        run: |
+          $shimDir = Join-Path $env:RUNNER_TEMP 'claude-shim'
+          New-Item -ItemType Directory -Force -Path $shimDir | Out-Null
+          $shimPath = Join-Path $shimDir 'claude.cmd'
+          "@echo off`necho claude shim`nexit /b 0" | Out-File -FilePath $shimPath -Encoding ascii
+          $shimDir | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+      - name: Smoke test entrypoint monorepo bootstrap mode
+        shell: pwsh
+        env:
+          MONOREPO_SOURCE: ${{ github.workspace }}\external\storefront-next-monorepo
+          PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH: ${{ env.WINDOWS_CHROMIUM_PATH }}
+          AUTO_START: 'false'
+        run: |
+          $workspace = Join-Path $env:RUNNER_TEMP 'entrypoint-monorepo-smoke'
+          Remove-Item -Recurse -Force $workspace -ErrorAction SilentlyContinue
+          New-Item -ItemType Directory -Force -Path (Join-Path $workspace '.migration-state') | Out-Null
+          'done' | Out-File -FilePath (Join-Path $workspace '.migration-state/baseline-committed') -Encoding utf8
+          'done' | Out-File -FilePath (Join-Path $workspace '.migration-state/phase3-complete') -Encoding utf8
+          Push-Location $workspace
+          node "$env:GITHUB_WORKSPACE/node_modules/tsx/dist/cli.mjs" "$env:GITHUB_WORKSPACE/scripts/migration-entrypoint.ts" --non-interactive
+          Pop-Location
+          if (-not (Test-Path (Join-Path $workspace 'storefront-next/package.json'))) {
+            throw 'monorepo bootstrap mode did not generate storefront-next/package.json'
+          }

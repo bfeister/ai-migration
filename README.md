@@ -247,6 +247,17 @@ If you run `docker/entrypoint.sh` directly on the host instead of through Docker
 | --- | --- | --- |
 | `MONOREPO_SOURCE` | Yes | Path to the Storefront Next monorepo |
 
+### CI secret for private monorepo coverage
+
+The Windows monorepo smoke job checks out the private `commerce-emu/storefront-next` repository.
+
+Create a fine-grained GitHub token with:
+
+- Repository access limited to `commerce-emu/storefront-next`
+- Repository permission `Contents: Read-only`
+
+Add that token to this repository’s Actions secrets as `SFNEXT_MONOREPO_READ_TOKEN`.
+
 ## What `docker/entrypoint.sh` Actually Does
 
 The current execution path looks like this.
@@ -472,6 +483,12 @@ Bootstrap cannot find the monorepo:
 
 - In Docker mode, pass `STOREFRONT_MONOREPO_PATH=/absolute/path/to/SFCC-Odyssey`
 - In host mode, pass `MONOREPO_SOURCE=/absolute/path/to/SFCC-Odyssey`
+
+Windows CI monorepo smoke test cannot read the private repo:
+
+- Create a fine-grained GitHub token with read-only access to `commerce-emu/storefront-next`
+- Grant repository `Contents: Read-only`
+- Add it to this repository as the `SFNEXT_MONOREPO_READ_TOKEN` Actions secret
 
 ISML mapping is incomplete:
 
